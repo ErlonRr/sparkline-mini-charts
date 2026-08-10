@@ -1,0 +1,125 @@
+{
+  "name": "sparkline-mini-charts",
+  "version": "0.1.0",
+  "description": "Zero-dependency SVG sparkline Web Components.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./define": {
+      "types": "./dist/define.d.ts",
+      "import": "./dist/define.js",
+      "require": "./dist/define.cjs"
+    },
+    "./register": {
+      "types": "./dist/register.d.ts",
+      "import": "./dist/register.js",
+      "require": "./dist/register.cjs"
+    },
+    "./mini-line-chart": {
+      "types": "./dist/mini-line-chart.d.ts",
+      "import": "./dist/mini-line-chart.js",
+      "require": "./dist/mini-line-chart.cjs"
+    },
+    "./mini-bar-chart": {
+      "types": "./dist/mini-bar-chart.d.ts",
+      "import": "./dist/mini-bar-chart.js",
+      "require": "./dist/mini-bar-chart.cjs"
+    },
+    "./mini-pie-chart": {
+      "types": "./dist/mini-pie-chart.d.ts",
+      "import": "./dist/mini-pie-chart.js",
+      "require": "./dist/mini-pie-chart.cjs"
+    },
+    "./mini-half-pie-chart": {
+      "types": "./dist/mini-half-pie-chart.d.ts",
+      "import": "./dist/mini-half-pie-chart.js",
+      "require": "./dist/mini-half-pie-chart.cjs"
+    },
+    "./math": {
+      "types": "./dist/math.d.ts",
+      "import": "./dist/math.js",
+      "require": "./dist/math.cjs"
+    },
+    "./angular": {
+      "types": "./dist/angular.d.ts",
+      "import": "./dist/angular.js",
+      "require": "./dist/angular.cjs"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js",
+      "require": "./dist/react.cjs"
+    },
+    "./vue": {
+      "types": "./dist/vue.d.ts",
+      "import": "./dist/vue.js",
+      "require": "./dist/vue.cjs"
+    }
+  },
+  "sideEffects": [
+    "./dist/register.js",
+    "./dist/register.cjs",
+    "./dist/react.js",
+    "./dist/react.cjs"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "dev": "vite --config vite.config.demo.js",
+    "build": "vite build",
+    "build:demo": "vite build --config vite.config.demo.js",
+    "preview": "vite preview --config vite.config.demo.js",
+    "test": "node --test",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@11.20.0",
+  "keywords": [
+    "sparkline",
+    "chart",
+    "svg",
+    "web-components",
+    "custom-elements",
+    "shadow-dom",
+    "vanilla-javascript",
+    "zero-dependency"
+  ],
+  "devDependencies": {
+    "@typescript/typescript6": "^6.0.2",
+    "@angular/core": "^22.1.1",
+    "@types/react": "^19.2.7",
+    "react": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1",
+    "vite-plugin-dts": "^5.0.3",
+    "vue": "^3.5.41"
+  },
+  "peerDependencies": {
+    "@angular/core": ">=20.0.0",
+    "react": ">=18.0.0",
+    "vue": ">=3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "@angular/core": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
+  }
+}

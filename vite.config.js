@@ -1,0 +1,40 @@
+// vite.config.js — Multi-entry ESM and CommonJS distribution build for the library.
+
+import { resolve } from "node:path";
+import { defineConfig } from "vite";
+import dts from "vite-plugin-dts";
+
+const fromRoot = (path) => resolve(import.meta.dirname, path);
+
+export default defineConfig({
+  build: {
+    lib: {
+      entry: {
+        index: fromRoot("src/index.js"),
+        define: fromRoot("src/define.js"),
+        register: fromRoot("src/register.js"),
+        "mini-line-chart": fromRoot("src/components/mini-line-chart.js"),
+        "mini-bar-chart": fromRoot("src/components/mini-bar-chart.js"),
+        "mini-pie-chart": fromRoot("src/components/mini-pie-chart.js"),
+        "mini-half-pie-chart": fromRoot("src/components/mini-half-pie-chart.js"),
+        math: fromRoot("src/core/geometry.js"),
+        angular: fromRoot("src/angular.ts"),
+        react: fromRoot("src/react.ts"),
+        vue: fromRoot("src/vue.ts"),
+      },
+      formats: ["es", "cjs"],
+      fileName: (format, entryName) => `${entryName}.${format === "es" ? "js" : "cjs"}`,
+    },
+    sourcemap: true,
+    rolldownOptions: {
+      external: ["@angular/core", "react", "vue"],
+    },
+  },
+  plugins: [
+    dts({
+      include: ["src"],
+      outDir: "dist",
+      rollupTypes: false,
+    }),
+  ],
+});

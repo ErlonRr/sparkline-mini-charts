@@ -1,0 +1,8 @@
+# .gitignore — Local dependencies, generated distributions, and package archives.
+
+node_modules/
+dist/
+dist-demo/
+*.tgz
+
+.agents/
