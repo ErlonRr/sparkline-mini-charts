@@ -5,10 +5,12 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2026-08-11
 
 ### Added
 
+- Comprehensive documentation for all 13 components in `docs/`.
+- `mini-progress-chart` and `mini-radial-bar-chart` responsive scaling, colors, and robust `stroke-dashoffset` animations.
 - Vite library builds with typed ESM, CJS, and source-map outputs in `dist/`.
 - `pnpm dev`, `pnpm build`, `pnpm build:demo`, `pnpm preview`, and `pnpm typecheck` workflows.
 - Optional `angular`, `react`, and `vue` framework adapter entry points with peer dependencies.

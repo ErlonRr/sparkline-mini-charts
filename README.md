@@ -230,6 +230,18 @@ vite.config.demo.js   # Demo dev server and static build
 CHANGELOG.md          # Version history
 ```
 
+## Recent Releases
+
+<details>
+<summary>Click to view recent releases</summary>
+
+### v1.0.0 (2026-08-11)
+- Initial release with 13 mini charts.
+- Comprehensive documentation for all components.
+- Native CSS animation and framework integrations.
+
+</details>
+
 ## Development
 
 ```sh
