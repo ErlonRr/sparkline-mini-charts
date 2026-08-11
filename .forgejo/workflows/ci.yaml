@@ -27,10 +27,21 @@ jobs:
 
       - name: Build library
         run: pnpm run build
+
       - name: Build demo
         run: pnpm run build:demo
-      - name: Verify deploy mount
+
+      - name: Deploy demo
         run: |
-          echo "=== DEPLOY MOUNT ==="
-          ls -la
+          mkdir -p /deploy/sparkline-mini-charts
+          rm -rf /deploy/sparkline-mini-charts/*
+          cp -a dist-demo/. /deploy/sparkline-mini-charts/
+
+      - name: Verify deploy
+        run: |
+          echo "=== DEPLOY ==="
           ls -la /deploy
+          echo "=== SPARKLINE ==="
+          ls -la /deploy/sparkline-mini-charts
+          echo "=== INDEX ==="
+          test -f /deploy/sparkline-mini-charts/index.html
