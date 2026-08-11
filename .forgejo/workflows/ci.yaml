@@ -30,3 +30,8 @@ jobs:
 
       - name: Build demo
         run: pnpm run build:demo
+
+      - name: Verify deploy mount
+        run: |
+          echo "=== DEPLOY MOUNT ==="
+          ls -la /deploy
