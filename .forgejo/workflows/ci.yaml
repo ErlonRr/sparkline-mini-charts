@@ -24,13 +24,10 @@ jobs:
 
       - name: Test
         run: pnpm run test
-
       - name: Build library
         run: pnpm run build
-
       - name: Build demo
         run: pnpm run build:demo
-
       - name: Verify deploy mount
         run: |
           echo "=== DEPLOY MOUNT ==="
