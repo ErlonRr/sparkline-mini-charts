@@ -1,17 +1,32 @@
-name: Runner Test
+name: CI
 
 on:
   push:
 
 jobs:
-  runner-test:
+  build-test:
     runs-on: batcave-node22
 
     steps:
-      - name: Environment
+      - name: Checkout
+        uses: https://code.forgejo.org/actions/checkout@v4
+
+      - name: Setup pnpm
         run: |
-          echo "Batcave Runner OK"
-          node --version
           corepack enable
           corepack prepare pnpm@11.20.0 --activate
-          pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm run test
+
+      - name: Build library
+        run: pnpm run build
+
+      - name: Build demo
+        run: pnpm run build:demo
