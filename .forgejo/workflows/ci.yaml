@@ -24,6 +24,7 @@ jobs:
 
       - name: Test
         run: pnpm run test
+
       - name: Build library
         run: pnpm run build
       - name: Build demo
@@ -31,4 +32,5 @@ jobs:
       - name: Verify deploy mount
         run: |
           echo "=== DEPLOY MOUNT ==="
+          ls -la
           ls -la /deploy
