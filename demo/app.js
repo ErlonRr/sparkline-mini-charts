@@ -1,6 +1,5 @@
 // app.js — Native-form playground behavior for the static Sparkline Mini Charts demo.
 
-import "../src/register.js";
 
 const chartExamples = Object.freeze({
   "mini-line-chart": {

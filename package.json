@@ -22,25 +22,70 @@
       "import": "./dist/register.js",
       "require": "./dist/register.cjs"
     },
-    "./mini-line-chart": {
-      "types": "./dist/mini-line-chart.d.ts",
-      "import": "./dist/mini-line-chart.js",
-      "require": "./dist/mini-line-chart.cjs"
+    "./mini-area-chart": {
+      "types": "./dist/mini-area-chart.d.ts",
+      "import": "./dist/mini-area-chart.js",
+      "require": "./dist/mini-area-chart.cjs"
     },
     "./mini-bar-chart": {
       "types": "./dist/mini-bar-chart.d.ts",
       "import": "./dist/mini-bar-chart.js",
       "require": "./dist/mini-bar-chart.cjs"
     },
-    "./mini-pie-chart": {
-      "types": "./dist/mini-pie-chart.d.ts",
-      "import": "./dist/mini-pie-chart.js",
-      "require": "./dist/mini-pie-chart.cjs"
+    "./mini-candlestick-chart": {
+      "types": "./dist/mini-candlestick-chart.d.ts",
+      "import": "./dist/mini-candlestick-chart.js",
+      "require": "./dist/mini-candlestick-chart.cjs"
+    },
+    "./mini-combo-chart": {
+      "types": "./dist/mini-combo-chart.d.ts",
+      "import": "./dist/mini-combo-chart.js",
+      "require": "./dist/mini-combo-chart.cjs"
+    },
+    "./mini-gauge-chart": {
+      "types": "./dist/mini-gauge-chart.d.ts",
+      "import": "./dist/mini-gauge-chart.js",
+      "require": "./dist/mini-gauge-chart.cjs"
     },
     "./mini-half-pie-chart": {
       "types": "./dist/mini-half-pie-chart.d.ts",
       "import": "./dist/mini-half-pie-chart.js",
       "require": "./dist/mini-half-pie-chart.cjs"
+    },
+    "./mini-line-chart": {
+      "types": "./dist/mini-line-chart.d.ts",
+      "import": "./dist/mini-line-chart.js",
+      "require": "./dist/mini-line-chart.cjs"
+    },
+    "./mini-ohlc-chart": {
+      "types": "./dist/mini-ohlc-chart.d.ts",
+      "import": "./dist/mini-ohlc-chart.js",
+      "require": "./dist/mini-ohlc-chart.cjs"
+    },
+    "./mini-pie-chart": {
+      "types": "./dist/mini-pie-chart.d.ts",
+      "import": "./dist/mini-pie-chart.js",
+      "require": "./dist/mini-pie-chart.cjs"
+    },
+    "./mini-progress-chart": {
+      "types": "./dist/mini-progress-chart.d.ts",
+      "import": "./dist/mini-progress-chart.js",
+      "require": "./dist/mini-progress-chart.cjs"
+    },
+    "./mini-radial-bar-chart": {
+      "types": "./dist/mini-radial-bar-chart.d.ts",
+      "import": "./dist/mini-radial-bar-chart.js",
+      "require": "./dist/mini-radial-bar-chart.cjs"
+    },
+    "./mini-stacked-area-chart": {
+      "types": "./dist/mini-stacked-area-chart.d.ts",
+      "import": "./dist/mini-stacked-area-chart.js",
+      "require": "./dist/mini-stacked-area-chart.cjs"
+    },
+    "./mini-stream-chart": {
+      "types": "./dist/mini-stream-chart.d.ts",
+      "import": "./dist/mini-stream-chart.js",
+      "require": "./dist/mini-stream-chart.cjs"
     },
     "./math": {
       "types": "./dist/math.d.ts",
