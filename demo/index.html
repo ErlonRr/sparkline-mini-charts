@@ -1,833 +1,1428 @@
-<!-- index.html — Interactive, dependency-free showcase for Sparkline Mini Charts. -->
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="A live showcase for the Sparkline Mini Charts Web Components." />
-    <title>Sparkline Mini Charts — Web Component Demo</title>
+    <meta name="description" content="Sparkline Mini Charts — Ultra-fast, zero-dependency SVG micro-charts Web Components for modern web dashboards." />
+    <title>Sparkline Mini Charts — Modern Web Components Documentation</title>
 
-    <!-- Il plugin Vite inietterà qui l'import standalone della libreria compilata -->
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
     <script type="module" src="./app.js"></script>
 
     <style>
       :root {
-        color-scheme: light dark;
-        font-family: Geist, Inter, ui-sans-serif, system-ui, sans-serif;
-        
-        /* Light mode */
-        --bg-light: hsl(0 0% 100%);
-        --fg-light: hsl(0 0% 3.9%);
-        --surface-light: hsl(0 0% 100%);
-        --surface-muted-light: hsl(0 0% 96.1%);
-        --text-muted-light: hsl(0 0% 45.1%);
-        --border-light: hsl(0 0% 89.8%);
-        --primary-light: hsl(262 83% 58%);
-        --primary-fg-light: hsl(0 0% 98%);
-        --danger-light: hsl(0 84.2% 60.2%);
-        
-        /* Dark mode (Charcoal viola-tinted OS craft) */
-        --bg-dark: hsl(260 20% 7%);
-        --fg-dark: hsl(260 14% 96%);
-        --surface-dark: hsl(260 18% 10%);
-        --surface-muted-dark: hsl(260 12% 14%);
-        --text-muted-dark: hsl(260 8% 64%);
-        --border-dark: hsl(260 14% 17%);
-        --primary-dark: hsl(262 83% 62%);
-        --primary-fg-dark: hsl(0 0% 100%);
-        --danger-dark: hsl(0 62.8% 40%);
+        --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --font-mono: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-        /* Logical variables mapped with light-dark() */
-        --canvas: light-dark(var(--bg-light), var(--bg-dark));
-        --surface: light-dark(var(--surface-light), var(--surface-dark));
-        --surface-muted: light-dark(var(--surface-muted-light), var(--surface-muted-dark));
-        --text: light-dark(var(--fg-light), var(--fg-dark));
-        --text-muted: light-dark(var(--text-muted-light), var(--text-muted-dark));
-        --border: light-dark(var(--border-light), var(--border-dark));
-        --accent: light-dark(var(--primary-light), var(--primary-dark));
-        --accent-contrast: light-dark(var(--primary-fg-light), var(--primary-fg-dark));
-        --danger: light-dark(var(--danger-light), var(--danger-dark));
+        /* Light Theme Tokens */
+        --bg-light: hsl(210 40% 98%);
+        --surface-light: hsl(0 0% 100%);
+        --surface-muted-light: hsl(210 30% 95%);
+        --border-light: hsl(215 25% 88%);
+        --text-light: hsl(222 47% 11%);
+        --text-muted-light: hsl(215 16% 47%);
+        --primary-light: hsl(250 84% 60%);
+        --primary-hover-light: hsl(250 84% 54%);
+        --primary-subtle-light: hsl(250 84% 96%);
+
+        /* Dark Theme Tokens (Sleek Slate/Violet Craft) */
+        --bg-dark: hsl(224 71% 4%);
+        --surface-dark: hsl(222 47% 9%);
+        --surface-muted-dark: hsl(223 47% 13%);
+        --border-dark: hsl(217 33% 18%);
+        --text-dark: hsl(210 40% 98%);
+        --text-muted-dark: hsl(215 20% 65%);
+        --primary-dark: hsl(250 84% 67%);
+        --primary-hover-dark: hsl(250 84% 73%);
+        --primary-subtle-dark: hsl(250 50% 14%);
+
+        /* Vibrant Palette Accents */
+        --emerald: hsl(158 64% 52%);
+        --cyan: hsl(199 89% 48%);
+        --indigo: hsl(243 75% 59%);
+        --violet: hsl(271 91% 65%);
+        --amber: hsl(38 92% 50%);
+        --rose: hsl(350 89% 60%);
+
+        /* Dynamic Theme mapping */
+        --bg: var(--bg-dark);
+        --surface: var(--surface-dark);
+        --surface-muted: var(--surface-muted-dark);
+        --border: var(--border-dark);
+        --text: var(--text-dark);
+        --text-muted: var(--text-muted-dark);
+        --primary: var(--primary-dark);
+        --primary-hover: var(--primary-hover-dark);
+        --primary-subtle: var(--primary-subtle-dark);
+
+        /* Default Dark Mode Chart CSS Tokens (Luminous Neon Tones) */
+        --mini-chart-color: hsl(217 91% 60%);
+        --mini-chart-bullish-color: #10b981;
+        --mini-chart-bearish-color: #f43f5e;
+        --mini-chart-win-color: #10b981;
+        --mini-chart-loss-color: #f43f5e;
+        --mini-chart-tie-color: #64748b;
+        --mini-chart-track-color: rgba(255, 255, 255, 0.12);
+        --mini-chart-ref-color: rgba(255, 255, 255, 0.25);
+        --mini-chart-crosshair-color: rgba(255, 255, 255, 0.35);
+        --mini-chart-needle-color: #38bdf8;
+        --mini-chart-point-color: #38bdf8;
+        --mini-chart-range-color: #38bdf8;
+        --mini-chart-marker-color: #f43f5e;
+        --mini-chart-safe-color: #10b981;
+        --mini-chart-warn-color: #fbbf24;
+        --mini-chart-danger-color: #f43f5e;
+        --mini-chart-bar-color: rgba(255, 255, 255, 0.22);
+        --mini-chart-range-1: rgba(255, 255, 255, 0.08);
+        --mini-chart-range-2: rgba(255, 255, 255, 0.15);
+        --mini-chart-range-3: rgba(255, 255, 255, 0.24);
         
-        background-color: var(--canvas);
-        color: var(--text);
+        --mini-chart-color-1: #38bdf8;
+        --mini-chart-color-2: #a78bfa;
+        --mini-chart-color-3: #f472b6;
+        --mini-chart-color-4: #34d399;
+        --mini-chart-color-5: #fbbf24;
+        --mini-chart-color-6: #fb923c;
+        --mini-chart-color-7: #22d3ee;
+        --mini-chart-color-8: #e879f9;
+
+        --sidebar-width: 280px;
+        --header-height: 64px;
+        
+        font-family: var(--font-sans);
+        color-scheme: dark;
       }
 
-      * {
+      html.light {
+        --bg: var(--bg-light);
+        --surface: var(--surface-light);
+        --surface-muted: var(--surface-muted-light);
+        --border: var(--border-light);
+        --text: var(--text-light);
+        --text-muted: var(--text-muted-light);
+        --primary: var(--primary-light);
+        --primary-hover: var(--primary-hover-light);
+        --primary-subtle: var(--primary-subtle-light);
+
+        /* Light Mode Chart CSS Tokens (High-Contrast, Rich Saturated Tones) */
+        --mini-chart-color: hsl(221 83% 53%);
+        --mini-chart-bullish-color: #059669;
+        --mini-chart-bearish-color: #e11d48;
+        --mini-chart-win-color: #059669;
+        --mini-chart-loss-color: #e11d48;
+        --mini-chart-tie-color: #94a3b8;
+        --mini-chart-track-color: rgba(0, 0, 0, 0.08);
+        --mini-chart-ref-color: rgba(0, 0, 0, 0.22);
+        --mini-chart-crosshair-color: rgba(0, 0, 0, 0.35);
+        --mini-chart-needle-color: #0f172a;
+        --mini-chart-point-color: #0284c7;
+        --mini-chart-range-color: #0284c7;
+        --mini-chart-marker-color: #e11d48;
+        --mini-chart-safe-color: #059669;
+        --mini-chart-warn-color: #d97706;
+        --mini-chart-danger-color: #e11d48;
+        --mini-chart-bar-color: rgba(0, 0, 0, 0.12);
+        --mini-chart-range-1: rgba(0, 0, 0, 0.05);
+        --mini-chart-range-2: rgba(0, 0, 0, 0.12);
+        --mini-chart-range-3: rgba(0, 0, 0, 0.20);
+
+        --mini-chart-color-1: #0284c7;
+        --mini-chart-color-2: #7c3aed;
+        --mini-chart-color-3: #e11d48;
+        --mini-chart-color-4: #059669;
+        --mini-chart-color-5: #d97706;
+        --mini-chart-color-6: #ea580c;
+        --mini-chart-color-7: #0891b2;
+        --mini-chart-color-8: #c026d3;
+
+
+        color-scheme: light;
+      }
+
+
+      *, *::before, *::after {
         box-sizing: border-box;
-        border-color: var(--border);
       }
 
       body {
         margin: 0;
-        min-block-size: 100vh;
-        /* Dotted grid background */
+        background-color: var(--bg);
+        color: var(--text);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        min-height: 100vh;
+        overflow-x: hidden;
+        transition: background-color 0.25s ease, color 0.25s ease;
+      }
+
+      /* Dotted Matrix Background Grid */
+      .bg-matrix {
+        position: fixed;
+        inset: 0;
         background-image: radial-gradient(
-          color-mix(in srgb, var(--text) 5%, transparent) 1px,
+          color-mix(in srgb, var(--text) 6%, transparent) 1px,
           transparent 1px
         );
-        background-size: 22px 22px;
-        transition: background-color 0.3s ease, color 0.3s ease;
+        background-size: 24px 24px;
+        pointer-events: none;
+        z-index: 0;
       }
 
-      :where(a, button, select, textarea) {
-        font: inherit;
+      /* Glassmorphic Surfaces */
+      .glass-card {
+        background: color-mix(in srgb, var(--surface) 75%, transparent);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       }
 
-      :where(a, button, select, textarea):focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
+      .glass-card:hover {
+        border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+        box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--primary) 15%, transparent);
       }
+
+      /* Typography */
+      h1, h2, h3, h4 {
+        color: var(--text);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.25;
+        margin: 0;
+      }
+
+      h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; }
+      h2 { font-size: clamp(1.4rem, 2.5vw, 1.85rem); margin-block-end: 0.5rem; }
+      h3 { font-size: 1.15rem; font-weight: 650; }
+      p { margin: 0; color: var(--text-muted); }
 
       a {
-        color: var(--accent);
+        color: var(--primary);
         text-decoration: none;
-        transition: color 0.2s ease;
+        transition: color 0.15s ease;
       }
-      
       a:hover {
-        color: color-mix(in srgb, var(--accent) 80%, var(--text));
+        color: var(--primary-hover);
       }
 
-      code,
-      pre {
-        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-        font-feature-settings: "calt" 1, "ss01" 1;
+      code, pre {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
       }
 
-      /* Glassmorphism */
-      .glass {
-        background: color-mix(in srgb, var(--surface) 50%, transparent);
+      /* Buttons & Controls */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.55rem 1.15rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        user-select: none;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 40%, transparent);
+      }
+      .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+      }
+
+      .btn-secondary {
+        background: var(--surface-muted);
+        color: var(--text);
+        border-color: var(--border);
+      }
+      .btn-secondary:hover {
+        background: color-mix(in srgb, var(--surface-muted) 80%, var(--primary));
+        border-color: var(--primary);
+      }
+
+      .btn-sm {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+        border-radius: 6px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: var(--primary-subtle);
+        color: var(--primary);
+        border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+      }
+
+      /* Top Navbar (Docusaurus Style) */
+      .navbar {
+        position: sticky;
+        top: 0;
+        height: var(--header-height);
+        background: color-mix(in srgb, var(--bg) 85%, transparent);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-      }
-
-      /* Hover effects */
-      .hover-lift {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-      }
-      .hover-lift:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px color-mix(in srgb, var(--text) 10%, transparent);
-      }
-
-      /* Animations */
-      .fade-in {
-        animation: themeFadeIn 0.8s ease-out backwards;
-      }
-      
-      @keyframes themeFadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .skip-link {
-        inset-block-start: 0.75rem;
-        inset-inline-start: 0.75rem;
-        padding: 0.5rem 0.75rem;
-        position: fixed;
-        border-radius: 0.375rem;
-        transform: translateY(-200%);
-        z-index: 100;
-      }
-
-      .skip-link:focus {
-        transform: translateY(0);
-      }
-
-      .shell {
-        inline-size: min(100% - 2rem, 72rem);
-        margin-inline: auto;
-      }
-
-      .site-header {
-        border-block-end: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-        padding-block: clamp(2.5rem, 7vw, 6rem) 1.5rem;
-      }
-
-      .eyebrow {
-        color: var(--accent);
-        font-size: 0.8rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        margin: 0;
-        text-transform: uppercase;
-      }
-
-      h1,
-      h2,
-      h3,
-      p {
-        margin-block: 0;
-      }
-
-      h1 {
-        font-size: clamp(2.25rem, 6vw, 4.5rem);
-        letter-spacing: -0.055em;
-        line-height: 0.98;
-        margin-block-start: 0.75rem;
-        max-inline-size: 13ch;
-        
-        /* Gradient text */
-        background: linear-gradient(135deg, var(--accent) 0%, var(--accent) 50%, var(--text-muted) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-
-      h2 {
-        font-size: clamp(1.6rem, 3vw, 2.25rem);
-        letter-spacing: -0.035em;
-      }
-
-      h3 {
-        font-size: 1rem;
-      }
-
-      .lede {
-        color: var(--text-muted);
-        font-size: clamp(1rem, 2vw, 1.25rem);
-        line-height: 1.6;
-        margin-block-start: 1.25rem;
-        max-inline-size: 62ch;
-      }
-
-      nav ul {
+        border-bottom: 1px solid var(--border);
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem 1.25rem;
-        list-style: none;
-        margin: 1.5rem 0 0;
-        padding: 0;
-      }
-
-      nav a {
-        text-decoration-thickness: 0.08em;
-        text-underline-offset: 0.2em;
-      }
-
-      main {
-        padding-block: clamp(2.5rem, 6vw, 5rem);
-      }
-
-      .section + .section {
-        margin-block-start: clamp(3.5rem, 9vw, 7rem);
-      }
-
-      .section-heading {
-        display: grid;
-        gap: 0.75rem;
-        max-inline-size: 62ch;
-      }
-
-      .section-heading p {
-        color: var(--text-muted);
-        line-height: 1.6;
-      }
-
-      .chart-grid {
-        display: grid;
-        gap: 1.5rem;
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
-        margin-block-start: 1.5rem;
-      }
-
-      .chart-card,
-      .playground,
-      details {
-        border-radius: 0.75rem;
-      }
-
-      .chart-card {
-        container-type: inline-size;
-        display: grid;
-        gap: 1rem;
-        padding: 1.25rem;
-      }
-
-      .chart-card header {
-        align-items: baseline;
-        display: flex;
-        gap: 0.75rem;
-        justify-content: space-between;
-      }
-
-      .chart-card header code {
-        color: var(--text-muted);
-        font-size: 0.75rem;
-      }
-
-      figure {
-        margin: 0;
-      }
-
-      .chart-stage {
         align-items: center;
-        background: color-mix(in srgb, var(--surface-muted) 50%, transparent);
-        border: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
-        border-radius: 0.625rem;
-        display: grid;
-        justify-items: center;
-        min-block-size: 8rem;
-        padding: 1rem;
+        justify-content: space-between;
+        padding-inline: clamp(1rem, 3vw, 2rem);
+        z-index: 50;
       }
 
-      .chart-stage mini-line-chart,
-      .chart-stage mini-area-chart,
-      .chart-stage mini-stacked-area-chart,
-      .chart-stage mini-stream-chart,
-      .chart-stage mini-combo-chart,
-      .chart-stage mini-candlestick-chart,
-      .chart-stage mini-ohlc-chart,
-      .chart-stage mini-bar-chart,
-      .chart-stage mini-half-pie-chart {
-        display: block;
-        inline-size: min(100%, 19rem);
+      .navbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--text);
       }
 
-      .chart-stage mini-pie-chart,
-      .chart-stage mini-progress-chart,
-      .chart-stage mini-gauge-chart,
-      .chart-stage mini-radial-bar-chart {
-        display: block;
-        inline-size: min(100%, 8rem);
+      .logo-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--primary), var(--cyan));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 35%, transparent);
       }
 
-      figcaption {
+      .navbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .nav-btn {
+        background: var(--surface-muted);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.45rem 0.85rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s ease;
+      }
+      .nav-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      /* Layout: Sidebar + Main Content */
+      .docs-layout {
+        display: flex;
+        min-height: calc(100vh - var(--header-height));
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Left Sidebar */
+      .sidebar {
+        width: var(--sidebar-width);
+        position: sticky;
+        top: var(--header-height);
+        height: calc(100vh - var(--header-height));
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        padding: 1.5rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        background: color-mix(in srgb, var(--bg) 95%, transparent);
+        flex-shrink: 0;
+      }
+
+      .sidebar-group-title {
+        font-size: 0.75rem;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+        margin-block-end: 0.5rem;
+        padding-inline: 0.75rem;
+      }
+
+      .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+
+      .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
         color: var(--text-muted);
         font-size: 0.875rem;
-        line-height: 1.5;
-        margin-block-start: 0.75rem;
+        font-weight: 500;
+        transition: all 0.15s ease;
       }
 
-      .playground {
-        display: grid;
-        gap: clamp(1.25rem, 4vw, 2.5rem);
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
-        margin-block-start: 1.5rem;
-        padding: clamp(1.25rem, 4vw, 2.5rem);
-      }
-
-      form {
-        align-content: start;
-      }
-
-      fieldset {
-        border: 0;
-        margin: 0;
-        padding: 0;
-      }
-
-      legend {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-block-end: 1rem;
-      }
-
-      .field + .field {
-        margin-block-start: 1rem;
-      }
-
-      label {
-        display: block;
-        font-weight: 650;
-        margin-block-end: 0.4rem;
-      }
-
-      .field p {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        line-height: 1.45;
-        margin-block-start: 0.4rem;
-      }
-
-      select,
-      textarea,
-      button {
-        border: 1px solid var(--border);
-        border-radius: 0.5rem;
-      }
-
-      select,
-      textarea {
-        background: color-mix(in srgb, var(--surface-muted) 30%, transparent);
+      .sidebar-link:hover {
         color: var(--text);
-        inline-size: 100%;
-        padding: 0.65rem 0.75rem;
+        background: var(--surface-muted);
       }
 
-      textarea {
-        min-block-size: 7rem;
-        resize: block;
+      .sidebar-link.active {
+        color: var(--primary);
+        background: var(--primary-subtle);
+        font-weight: 600;
       }
 
-      textarea[aria-invalid="true"] {
-        border-color: var(--danger);
+      /* Main Content Container */
+      .main-content {
+        flex: 1;
+        max-width: 1120px;
+        margin-inline: auto;
+        padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1rem, 3vw, 2.5rem);
+        display: flex;
+        flex-direction: column;
+        gap: 4.5rem;
       }
 
-      button {
-        background: var(--accent);
-        color: var(--accent-contrast);
-        cursor: pointer;
+      /* Hero Section */
+      .hero {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        padding-block-end: 1.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-block-top: 0.5rem;
+      }
+
+      /* Live Real-time Stream Dashboard */
+      .stream-dashboard {
+        border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
+        background: linear-gradient(180deg, color-mix(in srgb, var(--primary-subtle) 40%, transparent), transparent 70%);
+        padding: 1.75rem;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .stream-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .stream-controls {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+
+      .stream-select {
+        background: var(--surface-muted);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+
+      .stream-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.25rem;
+      }
+
+      .stream-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .stream-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .live-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.7rem;
         font-weight: 700;
-        margin-block-start: 1.25rem;
-        padding: 0.7rem 1rem;
-        border: none;
+        color: var(--emerald);
+      }
+
+      .live-pulse {
+        width: 8px;
+        height: 8px;
+        background: var(--emerald);
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--emerald) 70%, transparent);
+        animation: pulseLive 1.5s infinite;
+      }
+
+      @keyframes pulseLive {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 color-mix(in srgb, var(--emerald) 70%, transparent); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px transparent; }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 transparent; }
+      }
+
+      .stream-stage {
+        min-height: 75px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .stream-stage mini-line-chart,
+      .stream-stage mini-area-chart,
+      .stream-stage mini-bar-chart,
+      .stream-stage mini-candlestick-chart,
+      .stream-stage mini-ohlc-chart,
+      .stream-stage mini-stacked-area-chart,
+      .stream-stage mini-stream-chart,
+      .stream-stage mini-combo-chart,
+      .stream-stage mini-bullet-chart,
+      .stream-stage mini-win-loss-chart,
+      .stream-stage mini-range-bar-chart,
+      .stream-stage mini-scatter-chart {
+        width: 100%;
+        height: 65px;
+      }
+
+      .stream-stage mini-pie-chart,
+      .stream-stage mini-radial-bar-chart {
+        width: 80px;
+        height: 80px;
+      }
+
+      .stream-stage mini-half-pie-chart,
+      .stream-stage mini-gauge-chart,
+      .stream-stage mini-progress-chart {
+        width: 120px;
+        height: 60px;
+      }
+
+      /* Gallery Grid */
+      .chart-gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        gap: 1.5rem;
+      }
+
+      .gallery-card {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      .gallery-stage {
+        min-height: 110px;
+        background: var(--surface-muted);
+        border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .gallery-stage mini-line-chart,
+      .gallery-stage mini-area-chart,
+      .gallery-stage mini-stacked-area-chart,
+      .gallery-stage mini-stream-chart,
+      .gallery-stage mini-bar-chart,
+      .gallery-stage mini-candlestick-chart,
+      .gallery-stage mini-ohlc-chart,
+      .gallery-stage mini-combo-chart,
+      .gallery-stage mini-bullet-chart,
+      .gallery-stage mini-win-loss-chart,
+      .gallery-stage mini-range-bar-chart,
+      .gallery-stage mini-scatter-chart {
+        width: 100%;
+        max-width: 220px;
+      }
+
+      .gallery-stage mini-pie-chart,
+      .gallery-stage mini-radial-bar-chart {
+        width: 85px;
+        height: 85px;
+      }
+
+      .gallery-stage mini-half-pie-chart,
+      .gallery-stage mini-gauge-chart,
+      .gallery-stage mini-progress-chart {
+        width: 120px;
+        height: 60px;
+      }
+
+
+      /* Tabs & Code Snippets */
+      .tabs-container {
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      .tab-list {
+        display: flex;
+        background: var(--surface-muted);
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
       }
 
       .tab-btn {
+        padding: 0.75rem 1.25rem;
         background: transparent;
-        color: var(--text-muted);
-        margin-block-start: 0;
-        border-radius: 0;
+        border: none;
         border-bottom: 2px solid transparent;
-        transition: color 0.2s ease, border-color 0.2s ease;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s ease;
       }
-      
+
       .tab-btn:hover {
         color: var(--text);
-        filter: none;
       }
-      
+
       .tab-btn.active {
-        color: var(--accent);
-        border-bottom-color: var(--accent);
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+        background: color-mix(in srgb, var(--surface) 60%, transparent);
       }
 
-      button:hover {
-        filter: brightness(1.08);
-      }
-
-      .status {
-        color: var(--text-muted);
-        line-height: 1.5;
-        margin-block-start: 1rem;
-        min-block-size: 1.5em;
-      }
-
-      .status[data-state="error"] {
-        color: var(--danger);
-      }
-
-      .preview {
-        align-content: start;
-        /* display: grid; */
-        gap: 1rem;
-      }
-
-      .preview-label {
-        color: var(--text-muted);
-        font-size: 0.875rem;
-      }
-
-      .preview-stage {
-        align-items: center;
-        background: color-mix(in srgb, var(--surface-muted) 50%, transparent);
-        border: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
-        border-radius: 0.625rem;
-        display: grid;
-        justify-items: center;
-        min-block-size: 14rem;
+      .tab-panels {
         padding: 1.5rem;
-      }
-
-      .preview-stage mini-line-chart,
-      .preview-stage mini-area-chart,
-      .preview-stage mini-stacked-area-chart,
-      .preview-stage mini-stream-chart,
-      .preview-stage mini-combo-chart,
-      .preview-stage mini-candlestick-chart,
-      .preview-stage mini-ohlc-chart,
-      .preview-stage mini-bar-chart,
-      .preview-stage mini-half-pie-chart {
-        display: block;
-        inline-size: min(100%, 24rem);
-      }
-
-      .preview-stage mini-pie-chart,
-      .preview-stage mini-progress-chart,
-      .preview-stage mini-gauge-chart,
-      .preview-stage mini-radial-bar-chart {
-        display: block;
-        inline-size: min(100%, 12rem);
-      }
-
-      details {
-        overflow: clip;
-      }
-
-      summary {
-        cursor: pointer;
-        font-weight: 700;
-        padding: 0.875rem 1rem;
       }
 
       pre {
         background: color-mix(in srgb, var(--surface-muted) 50%, transparent);
-        border-block-start: 1px solid var(--border);
-        margin: 0;
-        max-inline-size: 100%;
-        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
         padding: 1rem;
-      }
-
-      pre code {
+        margin: 0;
+        overflow-x: auto;
         color: var(--text);
-        font-size: 0.8rem;
-        line-height: 1.6;
+        line-height: 1.5;
       }
 
-      footer {
-        border-block-start: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-        color: var(--text-muted);
-        padding-block: 1.5rem 3rem;
+      /* Playground */
+      .playground-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
       }
 
-      @container (inline-size > 24rem) {
-        .chart-card {
-          padding: 1.5rem;
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        margin-block-end: 1rem;
+      }
+
+      .form-group label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text);
+      }
+
+      .form-control {
+        background: var(--surface-muted);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.6rem 0.85rem;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 0.9rem;
+      }
+
+      .form-control:focus {
+        outline: 2px solid var(--primary);
+        border-color: transparent;
+      }
+
+      textarea.form-control {
+        font-family: var(--font-mono);
+        font-size: 0.825rem;
+        min-height: 120px;
+      }
+
+      /* Mobile Drawer Toggle */
+      .mobile-menu-btn {
+        display: none;
+        background: transparent;
+        border: none;
+        color: var(--text);
+        font-size: 1.4rem;
+        cursor: pointer;
+      }
+
+      @media (max-width: 1023px) {
+        .mobile-menu-btn {
+          display: block;
+        }
+
+        .sidebar {
+          position: fixed;
+          left: -100%;
+          top: var(--header-height);
+          bottom: 0;
+          z-index: 100;
+          transition: left 0.25s ease;
+          box-shadow: 10px 0 30px rgba(0,0,0,0.3);
+        }
+
+        .sidebar.open {
+          left: 0;
         }
       }
     </style>
-    <script type="module" src="./app.js"></script>
   </head>
   <body>
-    <a class="skip-link glass" href="#main-content">Skip to demo</a>
-    <header class="site-header fade-in">
-      <div class="shell">
-        <p class="eyebrow">Native Web Components · SVG · Zero dependencies</p>
-        <h1>Sparkline Mini Charts</h1>
-        <p class="lede">
-          Responsive data visualizations that work in any frontend stack. Import the registration entry point once, then use
-          semantic HTML tags wherever a compact metric needs context.
-        </p>
-        <nav aria-label="On this page">
-          <ul>
-            <li><a href="#components">Components</a></li>
-            <li><a href="#playground">Playground</a></li>
-            <li><a href="../README.md">Documentation</a></li>
-          </ul>
-        </nav>
+    <div class="bg-matrix"></div>
+
+    <!-- Top Navigation Header -->
+    <header class="navbar">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle navigation">☰</button>
+        <a href="#overview" class="navbar-brand">
+          <div class="logo-icon">✨</div>
+          <span>Sparkline Mini Charts</span>
+          <span class="badge">v1.0.0</span>
+        </a>
+      </div>
+
+      <div class="navbar-actions">
+        <button id="lang-toggle-btn" class="nav-btn" aria-label="Toggle language">🇬🇧 EN</button>
+        <button id="theme-toggle-btn" class="nav-btn" aria-label="Toggle color theme">
+          <span id="theme-icon">🌙</span>
+        </button>
+        <a href="https://github.com/ErlonRru/sparkline-mini-charts" target="_blank" rel="noreferrer" class="btn btn-secondary btn-sm" style="display: inline-flex;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub</span>
+        </a>
       </div>
     </header>
 
-    <main id="main-content" class="shell fade-in" style="animation-delay: 0.1s;">
-      <section id="installation" class="section" aria-labelledby="installation-heading">
-        <header class="section-heading">
-          <h2 id="installation-heading">Installation & Setup</h2>
-          <p>Install the package via your preferred package manager and import the registration script once in your app's entry point.</p>
-        </header>
-        <div class="glass" style="border-radius: 0.75rem; padding: 1.5rem; margin-block-start: 1.5rem;">
-          <pre tabindex="0"><code>npm install sparkline-mini-charts</code></pre>
-          <p style="margin-block: 1rem 0.5rem; font-weight: 600;">Main Entry Point (e.g., main.js)</p>
-          <pre tabindex="0"><code>import 'sparkline-mini-charts/register';</code></pre>
+    <div class="docs-layout">
+      <!-- Left Sticky Sidebar -->
+      <aside id="docs-sidebar" class="sidebar">
+        <div>
+          <div class="sidebar-group-title" data-i18n="groupGettingStarted">Getting Started</div>
+          <ul class="sidebar-menu">
+            <li><a href="#overview" class="sidebar-link active" data-i18n="itemOverview">Overview & Features</a></li>
+            <li><a href="#installation" class="sidebar-link" data-i18n="itemInstallation">Installation</a></li>
+          </ul>
         </div>
-      </section>
 
-      <section id="frameworks" class="section" aria-labelledby="frameworks-heading">
-        <header class="section-heading">
-          <h2 id="frameworks-heading">Framework Integrations</h2>
-          <p>Standard Web Components work anywhere. Select your framework to see the exact implementation pattern.</p>
-        </header>
+        <div>
+          <div class="sidebar-group-title" data-i18n="groupLiveStream">Live Real-Time</div>
+          <ul class="sidebar-menu">
+            <li><a href="#streaming" class="sidebar-link" data-i18n="itemStreamingDashboard">Streaming Dashboard</a></li>
+          </ul>
+        </div>
 
-        <div class="tabs-container glass" style="border-radius: 0.75rem; margin-block-start: 1.5rem; overflow: hidden;">
-          <div class="tab-list" role="tablist" aria-label="Framework Examples" style="display: flex; border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent); background: color-mix(in srgb, var(--surface-muted) 30%, transparent); overflow-x: auto;">
-            <button role="tab" aria-selected="true" aria-controls="tab-vanilla" id="btn-vanilla" class="tab-btn active">Vanilla / HTML</button>
-            <button role="tab" aria-selected="false" aria-controls="tab-react" id="btn-react" class="tab-btn">React</button>
-            <button role="tab" aria-selected="false" aria-controls="tab-vue" id="btn-vue" class="tab-btn">Vue</button>
-            <button role="tab" aria-selected="false" aria-controls="tab-angular" id="btn-angular" class="tab-btn">Angular</button>
+        <div>
+          <div class="sidebar-group-title" data-i18n="groupComponents">Components Gallery</div>
+          <ul class="sidebar-menu">
+            <li><a href="#gallery" class="sidebar-link" data-i18n="itemAllComponents">All Primitives</a></li>
+          </ul>
+        </div>
+
+
+
+        <div>
+          <div class="sidebar-group-title" data-i18n="groupPlayground">Interactive Sandbox</div>
+          <ul class="sidebar-menu">
+            <li><a href="#playground" class="sidebar-link" data-i18n="itemPlayground">Live Playground</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="sidebar-group-title" data-i18n="groupFrameworks">Framework Integrations</div>
+          <ul class="sidebar-menu">
+            <li><a href="#frameworks" class="sidebar-link" data-i18n="itemFrameworks">React, Vue, Angular</a></li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Main Content Scroll Area -->
+      <main class="main-content">
+        <!-- Hero Overview Section -->
+        <section id="overview" class="hero">
+          <div class="badge" data-i18n="tagline">Native Web Components · SVG · Zero runtime dependencies</div>
+          <h1 data-i18n="heroTitle">Sparkline Mini Charts</h1>
+          <p data-i18n="heroDesc" style="font-size: 1.15rem; max-width: 700px;">
+            Ultra-lightweight, reactive, framework-agnostic micro data visualizations. Drop semantic SVG sparkline tags into any table, dashboard, card, or metric widget.
+          </p>
+          <div class="hero-actions">
+            <a href="#streaming" class="btn btn-primary">⚡ <span data-i18n="itemStreamingDashboard">Streaming Dashboard (All 13)</span></a>
+            <a href="#gallery" class="btn btn-secondary">🎨 <span data-i18n="itemAllComponents">All 13 Primitives</span></a>
+            <a href="#playground" class="btn btn-secondary">🛠️ <span data-i18n="itemPlayground">Live Playground</span></a>
           </div>
+        </section>
 
-          <div class="tab-panels" style="padding: 1.5rem;">
-            <div id="tab-vanilla" role="tabpanel" aria-labelledby="btn-vanilla" tabindex="0">
-              <p style="margin-block-end: 1rem; color: var(--text-muted);">In standard HTML, pass the data as a JSON string attribute.</p>
-              <pre tabindex="0"><code>&lt;mini-line-chart data="[18, 23, 20, 31, 27, 38, 44]" label="Weekly revenue trend"&gt;&lt;/mini-line-chart&gt;</code></pre>
+        <!-- Live Real-Time Streaming Section (ALL 16 COMPONENTS) -->
+        <section id="streaming">
+          <div class="stream-dashboard">
+            <div class="stream-header">
+              <div>
+                <div class="live-indicator">
+                  <span class="live-pulse"></span>
+                  <span style="letter-spacing: 0.05em;">LIVE WEBSOCKET / POLLING STREAMING TICKER</span>
+                </div>
+                <h2 data-i18n="streamTitle" style="margin-block-start: 0.3rem;">Live Real-Time Streaming (All 16 Charts)</h2>
+                <p data-i18n="streamSubtitle">Witness smooth SVG path morphing, synchronized point tracking, staggered bar physics, and continuous financial ticks in real time.</p>
+              </div>
+
+
+              <div class="stream-controls">
+                <button id="stream-toggle-btn" class="btn btn-secondary btn-sm" data-i18n="btnPause">⏸ Pause Stream</button>
+                <button id="stream-step-btn" class="btn btn-secondary btn-sm" data-i18n="btnStep">⏭ Single Step</button>
+                <button id="stream-random-btn" class="btn btn-secondary btn-sm" data-i18n="btnRandom">🎲 Randomize</button>
+                <select id="stream-speed-select" class="stream-select" aria-label="Stream speed">
+                  <option value="600" data-i18n="speedFast">Fast (0.6s)</option>
+                  <option value="1200" selected data-i18n="speedNormal">Normal (1.2s)</option>
+                  <option value="2500" data-i18n="speedSlow">Slow (2.5s)</option>
+                </select>
+              </div>
             </div>
 
-            <div id="tab-react" role="tabpanel" aria-labelledby="btn-react" tabindex="0" hidden>
-              <p style="margin-block-end: 1rem; color: var(--text-muted);">In React 19+, Custom Elements are natively supported. In older versions, pass complex data as a JSON string.</p>
-              <pre tabindex="0"><code>export default function App() {
-  const chartData = JSON.stringify([18, 23, 20, 31, 27, 38, 44]);
-  
+            <div class="stream-grid">
+              <!-- Live 1: Line Market Ticker (10 Ticks FIFO) -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamLineLabel">Live Market Ticker (10 Ticks)</span>
+                  <code>&lt;mini-line-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-line-chart id="stream-line-chart" data="[24, 28, 25, 32, 30, 42, 48, 45, 54, 52]" curve="smooth" trend-color="auto" points="last" interactive label="Live market ticker"></mini-line-chart>
+                </div>
+              </div>
+
+              <!-- Live 2: Area CPU Load (10 Ticks FIFO) -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamAreaLabel">Server CPU Load (10 Ticks)</span>
+                  <code>&lt;mini-area-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-area-chart id="stream-area-chart" data="[42, 48, 45, 55, 58, 52, 64, 68, 62, 70]" curve="smooth" gradient="true" trend-color="auto" label="Server CPU load"></mini-area-chart>
+                </div>
+              </div>
+
+              <!-- Live 3: Bar I/O Variance -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamBarLabel">Network I/O Variance (8 Ticks)</span>
+                  <code>&lt;mini-bar-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-bar-chart id="stream-bar-chart" data="[-12, 18, 28, -6, 22, -10, 32, 15]" gap="0.2" radius="2" label="Network I/O variance"></mini-bar-chart>
+                </div>
+              </div>
+
+              <!-- Live 4: Pie Donut Share -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamPieLabel">Traffic Share Distribution</span>
+                  <code>&lt;mini-pie-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-pie-chart id="stream-pie-chart" data="[42, 28, 18, 12]" donut="0.6" interactive label="Traffic share distribution"></mini-pie-chart>
+                </div>
+              </div>
+
+              <!-- Live 5: Half-Pie Subscription -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamHalfPieLabel">Tier Subscription Split</span>
+                  <code>&lt;mini-half-pie-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-half-pie-chart id="stream-half-pie-chart" data="[55, 28, 17]" donut="0.55" interactive label="Tier subscription split"></mini-half-pie-chart>
+                </div>
+              </div>
+
+              <!-- Live 6: Radial Rings Multi-Core -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamRadialLabel">Multi-Core Utilization (Rings)</span>
+                  <code>&lt;mini-radial-bar-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-radial-bar-chart id="stream-radial-chart" data='[{"value": 72, "color": "#6366f1"}, {"value": 54, "color": "#06b6d4"}, {"value": 86, "color": "#10b981"}]' sweep="270" round-caps label="Multi-core utilization"></mini-radial-bar-chart>
+                </div>
+              </div>
+
+              <!-- Live 7: Progress Task Arc -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamProgressLabel">Task Completion Arc</span>
+                  <code>&lt;mini-progress-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-progress-chart id="stream-progress-chart" data="[68]" max="100" show-value unit="%" label="Task completion arc"></mini-progress-chart>
+                </div>
+              </div>
+
+              <!-- Live 8: Gauge Core Temperature -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamGaugeLabel">Core Temperature Gauge</span>
+                  <code>&lt;mini-gauge-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-gauge-chart id="stream-gauge-chart" data="[62, 0, 100]" label="Core temperature"></mini-gauge-chart>
+                </div>
+              </div>
+
+              <!-- Live 9: Candlestick Financial Market (18 Candles) -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamCandleLabel">Financial Asset Candlesticks (18 Candles)</span>
+                  <code>&lt;mini-candlestick-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-candlestick-chart id="stream-candle-chart" data="[[100,105,98,103],[103,108,100,107],[107,110,104,106],[106,112,105,110],[110,114,108,112],[112,118,110,117],[117,120,114,115],[115,122,113,120],[120,124,118,122],[122,126,119,124],[124,128,122,125],[125,130,123,128],[128,132,125,130],[130,134,127,131],[131,135,128,133],[133,137,130,135],[135,140,132,138],[138,142,135,140]]" hollow-bullish gap="0.28" wick-width="0.75" label="Financial candlesticks"></mini-candlestick-chart>
+                </div>
+              </div>
+
+              <!-- Live 10: OHLC Asset Tick Bars (18 Ticks) -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamOhlcLabel">Asset OHLC Tick Bars (18 Ticks)</span>
+                  <code>&lt;mini-ohlc-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-ohlc-chart id="stream-ohlc-chart" data="[[100,105,98,103],[103,108,100,107],[107,110,104,106],[106,112,105,110],[110,114,108,112],[112,118,110,117],[117,120,114,115],[115,122,113,120],[120,124,118,122],[122,126,119,124],[124,128,122,125],[125,130,123,128],[128,132,125,130],[130,134,127,131],[131,135,128,133],[133,137,130,135],[135,140,132,138],[138,142,135,140]]" tick-width="0.75" gap="0.28" label="Asset OHLC ticks"></mini-ohlc-chart>
+                </div>
+              </div>
+
+
+              <!-- Live 11: Stacked Area Multi-Channel Flow -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamStackedLabel">Multi-Channel Resource Flow</span>
+                  <code>&lt;mini-stacked-area-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-stacked-area-chart id="stream-stacked-chart" data="[[12,18,24,22,28,32,30,36],[15,14,18,20,16,22,25,24],[8,12,10,15,14,16,18,20]]" curve="smooth" label="Multi-channel flow"></mini-stacked-area-chart>
+                </div>
+              </div>
+
+              <!-- Live 12: Streamgraph ThemeRiver Silhouette -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamStreamLabel">Authentic ThemeRiver Organic Flow</span>
+                  <code>&lt;mini-stream-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-stream-chart id="stream-stream-chart" data="[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,49,67,15,6,19,19,9,0,1,10,5,6,1,1,0,25,0,3,0],[0,6,1,34,0,16,1,0,3,1,5,6,1,56,0,7,0,7,6,0],[0,8,13,15,0,12,23,0,0,1,0,1,0,0,8,0,8,1,8,1],[0,9,28,0,91,6,1,0,6,7,18,0,9,16,0,1,0,0,0,0],[0,3,42,36,21,5,1,0,0,0,16,30,1,4,62,55,1,5,0,0],[0,7,13,12,64,5,0,0,6,8,17,3,72,1,1,53,1,0,0,0],[1,14,13,7,8,8,7,8,1,1,14,6,44,0,7,17,21,1,0,0],[0,6,14,2,14,1,0,0,3,0,2,2,7,15,6,3,0,0,0,0],[0,9,11,3,0,8,0,0,14,2,8,1,1,7,13,2,1,0,0,0],[0,7,5,10,8,21,0,0,110,1,2,18,6,1,5,1,4,1,0,7],[0,2,15,1,5,5,0,0,0,0,4,1,3,1,17,8,0,9,0,0],[0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0],[6,27,26,1,0,11,1,0,0,0,1,1,2,0,0,9,1,0,0,0],[31,81,11,8,11,0,0,0,0,0,8,3,2,8,3,14,6,8,12,0],[19,53,6,20,6,4,37,0,38,86,43,7,5,7,17,19,2,0,0,5],[0,22,14,6,18,24,18,3,13,21,5,7,13,35,7,1,8,0,0,1],[0,58,5,0,0,8,0,7,24,8,17,7,0,8,3,0,8,8,0,0],[18,29,3,6,11,35,0,12,42,37,0,3,3,13,8,0,0,1,0,0],[32,39,37,5,33,21,6,3,4,17,0,11,0,2,3,0,23,0,17,0],[72,15,28,0,0,8,0,1,3,0,35,0,9,17,1,9,1,8,8,0],[11,15,4,2,0,18,0,26,3,0,6,2,8,0,2,2,36,0,0,0],[14,29,19,5,2,17,13,9,7,12,2,0,6,0,1,1,34,0,1,0],[1,1,7,6,1,1,15,1,1,2,1,3,1,1,9,1,1,25,1,72]]" curve="smooth" label="ThemeRiver silhouette"></mini-stream-chart>
+                </div>
+              </div>
+
+
+              <!-- Live 13: Volume vs Target Combo -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamComboLabel">Volume vs Target Combo</span>
+                  <code>&lt;mini-combo-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-combo-chart id="stream-combo-chart" data='[{"bar":12,"line":18},{"bar":16,"line":15},{"bar":10,"line":22},{"bar":24,"line":28},{"bar":18,"line":25},{"bar":28,"line":34}]' shared-domain="true" curve="smooth" label="Volume vs target combo"></mini-combo-chart>
+                </div>
+              </div>
+
+              <!-- Live 14: Bullet Chart (KPI & Target) -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamBulletLabel">Revenue KPI vs Target (Bullet)</span>
+                  <code>&lt;mini-bullet-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-bullet-chart id="stream-bullet-chart" data='{"value":74,"target":85,"ranges":[50,80,100],"min":0,"max":100}' interactive label="Revenue KPI vs Target"></mini-bullet-chart>
+                </div>
+              </div>
+
+              <!-- Live 15: Win / Loss Chart (CI/CD Build History) -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamWinLossLabel">CI/CD Build History (Win/Loss)</span>
+                  <code>&lt;mini-win-loss-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-win-loss-chart id="stream-win-loss-chart" data="[1,1,-1,1,0,1,-1,1,1,0,1,1]" gap="0.2" radius="2" interactive label="CI/CD build history"></mini-win-loss-chart>
+                </div>
+              </div>
+
+              <!-- Live 16: Range Bar Chart (52-Week Range) -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamRangeBarLabel">52-Week Price Range (Range Bar)</span>
+                  <code>&lt;mini-range-bar-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-range-bar-chart id="stream-range-bar-chart" data="[[15,45,32],[22,68,54],[18,52,48],[30,85,62],[25,70,44]]" gap="0.25" radius="3" interactive label="52-week price range"></mini-range-bar-chart>
+                </div>
+              </div>
+
+              <!-- Live 17: Scatter Chart (Latency vs Throughput) -->
+              <div class="stream-card">
+                <div class="stream-card-header">
+                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamScatterLabel">Latency vs Throughput (Scatter)</span>
+                  <code>&lt;mini-scatter-chart&gt;</code>
+                </div>
+                <div class="stream-stage">
+                  <mini-scatter-chart id="stream-scatter-chart" data="[[10,25],[18,42],[28,30],[35,65],[44,52],[58,80],[65,74],[78,90]]" trend-line="true" point-radius="3.5" interactive label="Latency vs throughput"></mini-scatter-chart>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+
+        <!-- Installation Section -->
+        <section id="installation">
+          <h2 data-i18n="itemInstallation">Installation</h2>
+          <p style="margin-block-end: 1rem;">Install the package from npm and import the side-effect registration entry point once in your application.</p>
+          <div class="glass-card" style="padding: 1.25rem;">
+            <pre><code>npm install sparkline-mini-charts</code></pre>
+            <p style="margin-block: 1rem 0.5rem; font-weight: 600; color: var(--text);">App Entry Point (e.g. main.js / index.ts):</p>
+            <pre><code>import 'sparkline-mini-charts/register';</code></pre>
+          </div>
+        </section>
+
+        <!-- All 16 Primitives Gallery -->
+        <section id="gallery">
+          <h2 data-i18n="galleryTitle">All 16 Chart Primitives</h2>
+          <p data-i18n="gallerySubtitle" style="margin-block-end: 1.5rem;">Every component is encapsulated in Shadow DOM, supports custom theme variables, and reacts to attribute updates.</p>
+
+
+          <div class="chart-gallery-grid">
+            <!-- 1. Line Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="lineTitle">Line Sparkline</h3>
+                <code style="color: var(--primary);">&lt;mini-line-chart&gt;</code>
+                <p data-i18n="lineDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Continuous trend series with smooth Bézier curves.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-line-chart data="[18, 23, 20, 31, 27, 38, 44]" curve="smooth" trend-color="auto" points="last" interactive label="Weekly revenue trend"></mini-line-chart>
+              </div>
+            </div>
+
+            <!-- 2. Area Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="areaTitle">Area Sparkline</h3>
+                <code style="color: var(--primary);">&lt;mini-area-chart&gt;</code>
+                <p data-i18n="areaDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Filled region chart with native vertical gradient.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-area-chart data="[18, 23, 20, 31, 27, 38, 44]" curve="smooth" gradient="true" trend-color="auto" label="Weekly active users"></mini-area-chart>
+              </div>
+            </div>
+
+            <!-- 3. Bar Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="barTitle">Bar Sparkline</h3>
+                <code style="color: var(--primary);">&lt;mini-bar-chart&gt;</code>
+                <p data-i18n="barDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Discrete bar layout with positive/negative zero baseline.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-bar-chart data="[-12, 8, 19, -5, 13, 21]" gap="0.25" radius="3" interactive label="Monthly net variance"></mini-bar-chart>
+              </div>
+            </div>
+
+            <!-- 4. Pie & Donut Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="pieTitle">Pie & Donut</h3>
+                <code style="color: var(--primary);">&lt;mini-pie-chart&gt;</code>
+                <p data-i18n="pieDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Radial distribution with donut cutout and pop-out hover.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-pie-chart data="[42, 27, 18, 13]" donut="0.6" interactive label="Traffic sources share"></mini-pie-chart>
+              </div>
+            </div>
+
+            <!-- 5. Half-Pie Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="halfPieTitle">Half-Pie & Half-Donut</h3>
+                <code style="color: var(--primary);">&lt;mini-half-pie-chart&gt;</code>
+                <p data-i18n="halfPieDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Upper 180° semi-circle arc for KPI cards.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-half-pie-chart data="[58, 25, 17]" donut="0.55" interactive label="Plan adoption split"></mini-half-pie-chart>
+              </div>
+            </div>
+
+            <!-- 6. Radial Bar Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="radialBarTitle">Radial Bar (Activity Rings)</h3>
+                <code style="color: var(--primary);">&lt;mini-radial-bar-chart&gt;</code>
+                <p data-i18n="radialBarDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Concentric rings with 270° sweep and round caps.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-radial-bar-chart data='[{"value": 75, "color": "#8b5cf6"}, {"value": 55, "color": "#3b82f6"}, {"value": 90, "color": "#10b981"}]' sweep="270" round-caps interactive label="Activity goal rings"></mini-radial-bar-chart>
+              </div>
+            </div>
+
+            <!-- 7. Progress Arc Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="progressTitle">Progress Arc</h3>
+                <code style="color: var(--primary);">&lt;mini-progress-chart&gt;</code>
+                <p data-i18n="progressDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Semi-circular progress arc with central numeric readout.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-progress-chart data="[78]" max="100" show-value unit="%" label="Server quota capacity"></mini-progress-chart>
+              </div>
+            </div>
+
+            <!-- 8. Gauge Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="gaugeTitle">Speedometer Gauge</h3>
+                <code style="color: var(--primary);">&lt;mini-gauge-chart&gt;</code>
+                <p data-i18n="gaugeDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Multi-zone meter with colored threshold bands and rotating needle.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-gauge-chart data="[65, 0, 100]" label="Turbine pressure gauge"></mini-gauge-chart>
+              </div>
+            </div>
+
+            <!-- 9. Candlestick Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="candleTitle">Candlestick (OHLC)</h3>
+                <code style="color: var(--primary);">&lt;mini-candlestick-chart&gt;</code>
+                <p data-i18n="candleDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Financial asset pricing with hollow bullish candlesticks.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-candlestick-chart data="[[100,105,98,103],[103,108,100,107],[107,110,104,106],[106,112,105,110],[110,114,108,112],[112,118,110,117],[117,120,114,115],[115,122,113,120]]" hollow-bullish gap="0.28" wick-width="0.75" interactive label="Stock price chart"></mini-candlestick-chart>
+              </div>
+            </div>
+
+            <!-- 10. OHLC Bar Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="ohlcTitle">OHLC Tick Bar</h3>
+                <code style="color: var(--primary);">&lt;mini-ohlc-chart&gt;</code>
+                <p data-i18n="ohlcDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Financial tick bars with open (left) and close (right) ticks.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-ohlc-chart data="[[100,105,98,103],[103,108,100,107],[107,110,104,106],[106,112,105,110],[110,114,108,112],[112,118,110,117],[117,120,114,115],[115,122,113,120]]" tick-width="0.75" gap="0.28" interactive label="Asset tick price"></mini-ohlc-chart>
+              </div>
+            </div>
+
+            <!-- 11. Stacked Area Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="stackedAreaTitle">Stacked Area</h3>
+                <code style="color: var(--primary);">&lt;mini-stacked-area-chart&gt;</code>
+                <p data-i18n="stackedAreaDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Cumulative multi-series layers with smooth curve geometry.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-stacked-area-chart data="[[10,20,30,40], [20,15,25,35], [5,10,15,20]]" curve="smooth" interactive label="Resource distribution"></mini-stacked-area-chart>
+              </div>
+            </div>
+
+            <!-- 12. Stream Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="streamTitleChart">Streamgraph (ThemeRiver)</h3>
+                <code style="color: var(--primary);">&lt;mini-stream-chart&gt;</code>
+                <p data-i18n="streamDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Silhouette-centered flowing streams with organic spline curves.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-stream-chart data="[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,49,67,15,6,19,19,9,0,1,10,5,6,1,1,0,25,0,3,0],[0,6,1,34,0,16,1,0,3,1,5,6,1,56,0,7,0,7,6,0],[0,8,13,15,0,12,23,0,0,1,0,1,0,0,8,0,8,1,8,1],[0,9,28,0,91,6,1,0,6,7,18,0,9,16,0,1,0,0,0,0],[0,3,42,36,21,5,1,0,0,0,16,30,1,4,62,55,1,5,0,0],[0,7,13,12,64,5,0,0,6,8,17,3,72,1,1,53,1,0,0,0],[1,14,13,7,8,8,7,8,1,1,14,6,44,0,7,17,21,1,0,0],[0,6,14,2,14,1,0,0,3,0,2,2,7,15,6,3,0,0,0,0],[0,9,11,3,0,8,0,0,14,2,8,1,1,7,13,2,1,0,0,0],[0,7,5,10,8,21,0,0,110,1,2,18,6,1,5,1,4,1,0,7],[0,2,15,1,5,5,0,0,0,0,4,1,3,1,17,8,0,9,0,0],[0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0],[6,27,26,1,0,11,1,0,0,0,1,1,2,0,0,9,1,0,0,0],[31,81,11,8,11,0,0,0,0,0,8,3,2,8,3,14,6,8,12,0],[19,53,6,20,6,4,37,0,38,86,43,7,5,7,17,19,2,0,0,5],[0,22,14,6,18,24,18,3,13,21,5,7,13,35,7,1,8,0,0,1],[0,58,5,0,0,8,0,7,24,8,17,7,0,8,3,0,8,8,0,0],[18,29,3,6,11,35,0,12,42,37,0,3,3,13,8,0,0,1,0,0],[32,39,37,5,33,21,6,3,4,17,0,11,0,2,3,0,23,0,17,0],[72,15,28,0,0,8,0,1,3,0,35,0,9,17,1,9,1,8,8,0],[11,15,4,2,0,18,0,26,3,0,6,2,8,0,2,2,36,0,0,0],[14,29,19,5,2,17,13,9,7,12,2,0,6,0,1,1,34,0,1,0],[1,1,7,6,1,1,15,1,1,2,1,3,1,1,9,1,1,25,1,72]]" curve="smooth" interactive label="Organic stream flow"></mini-stream-chart>
+              </div>
+
+            </div>
+
+            <!-- 13. Combo Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="comboTitle">Combo (Bar + Line)</h3>
+                <code style="color: var(--primary);">&lt;mini-combo-chart&gt;</code>
+                <p data-i18n="comboDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Simultaneous volume bars with a synchronized trend line.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-combo-chart data='[{"bar": 10, "line": 20}, {"bar": 15, "line": 15}, {"bar": 8, "line": 25}, {"bar": 22, "line": 30}]' shared-domain="true" curve="smooth" interactive label="Sales vs Target"></mini-combo-chart>
+              </div>
+            </div>
+
+            <!-- 14. Bullet Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="bulletTitle">Bullet Graph (KPI & Target)</h3>
+                <code style="color: var(--primary);">&lt;mini-bullet-chart&gt;</code>
+                <p data-i18n="bulletDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Stephen Few standard for KPI tracking against targets and qualitative ranges.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-bullet-chart data='{"value": 78, "target": 85, "ranges": [50, 80, 100], "min": 0, "max": 100}' interactive label="Revenue KPI vs Target"></mini-bullet-chart>
+              </div>
+            </div>
+
+            <!-- 15. Win / Loss Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="winLossTitle">Win / Loss Sparkline</h3>
+                <code style="color: var(--primary);">&lt;mini-win-loss-chart&gt;</code>
+                <p data-i18n="winLossDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Discrete ternary outcomes (+1 win, -1 loss, 0 tie) for build streaks and uptime status.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-win-loss-chart data="[1, 1, -1, 1, 0, 1, -1, 1, 1, 0, 1, 1]" gap="0.2" radius="2" interactive label="CI/CD build history"></mini-win-loss-chart>
+              </div>
+            </div>
+
+            <!-- 16. Range Bar Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="rangeBarTitle">Range Bar (Min-Max)</h3>
+                <code style="color: var(--primary);">&lt;mini-range-bar-chart&gt;</code>
+                <p data-i18n="rangeBarDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">Floating interval bars with min-max dispersion and current position markers.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-range-bar-chart data="[[12, 45, 30], [20, 68, 55], [15, 52, 48], [30, 85, 60], [25, 70, 42]]" gap="0.25" radius="3" interactive label="52-week price range"></mini-range-bar-chart>
+              </div>
+            </div>
+
+            <!-- 17. Scatter Chart -->
+            <div class="glass-card gallery-card">
+              <div>
+                <h3 data-i18n="scatterTitle">Scatter Sparkline (2D)</h3>
+                <code style="color: var(--primary);">&lt;mini-scatter-chart&gt;</code>
+                <p data-i18n="scatterDesc" style="font-size: 0.85rem; margin-block-start: 0.4rem;">2D coordinate distribution with optional regression trendline and bubble sizing.</p>
+              </div>
+              <div class="gallery-stage">
+                <mini-scatter-chart data="[[10, 25], [18, 42], [28, 30], [35, 65], [44, 52], [58, 80], [65, 74], [78, 90]]" trend-line="true" point-radius="3.5" interactive label="Latency vs throughput"></mini-scatter-chart>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Interactive Playground Section -->
+        <section id="playground">
+          <h2 data-i18n="playgroundTitle">Interactive Playground</h2>
+          <p data-i18n="playgroundSubtitle" style="margin-block-end: 1.5rem;">Experiment with chart attributes, test reactive data updates, and copy ready-to-use HTML/framework code.</p>
+
+          <div class="glass-card" style="padding: 1.75rem;">
+            <div class="playground-wrapper">
+              <div>
+                <div class="form-group">
+                  <label for="pg-chart-type" data-i18n="selectChartType">Select Component:</label>
+                  <select id="pg-chart-type" class="form-control">
+                    <option value="mini-line-chart">&lt;mini-line-chart&gt;</option>
+                    <option value="mini-area-chart">&lt;mini-area-chart&gt;</option>
+                    <option value="mini-bar-chart">&lt;mini-bar-chart&gt;</option>
+                    <option value="mini-pie-chart">&lt;mini-pie-chart&gt;</option>
+                    <option value="mini-half-pie-chart">&lt;mini-half-pie-chart&gt;</option>
+                    <option value="mini-radial-bar-chart">&lt;mini-radial-bar-chart&gt;</option>
+                    <option value="mini-progress-chart">&lt;mini-progress-chart&gt;</option>
+                    <option value="mini-gauge-chart">&lt;mini-gauge-chart&gt;</option>
+                    <option value="mini-candlestick-chart">&lt;mini-candlestick-chart&gt;</option>
+                    <option value="mini-ohlc-chart">&lt;mini-ohlc-chart&gt;</option>
+                    <option value="mini-stacked-area-chart">&lt;mini-stacked-area-chart&gt;</option>
+                    <option value="mini-stream-chart">&lt;mini-stream-chart&gt;</option>
+                    <option value="mini-combo-chart">&lt;mini-combo-chart&gt;</option>
+                    <option value="mini-bullet-chart">&lt;mini-bullet-chart&gt;</option>
+                    <option value="mini-win-loss-chart">&lt;mini-win-loss-chart&gt;</option>
+                    <option value="mini-range-bar-chart">&lt;mini-range-bar-chart&gt;</option>
+                    <option value="mini-scatter-chart">&lt;mini-scatter-chart&gt;</option>
+                  </select>
+                </div>
+
+
+
+                <div class="form-group">
+                  <label for="pg-chart-data" data-i18n="editDataLabel">JSON Data Array:</label>
+                  <textarea id="pg-chart-data" class="form-control" spellcheck="false"></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="pg-chart-label" data-i18n="editLabelLabel">Accessible Label (aria-label):</label>
+                  <input id="pg-chart-label" type="text" class="form-control" />
+                </div>
+              </div>
+
+              <div>
+                <div style="font-weight: 600; font-size: 0.85rem; margin-block-end: 0.4rem; color: var(--text);">Live Sandbox Preview:</div>
+                <div id="pg-preview-container" class="gallery-stage" style="min-height: 140px; margin-block-end: 1rem;"></div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-block-end: 0.4rem;">
+                  <span style="font-weight: 600; font-size: 0.85rem; color: var(--text);">Generated Code:</span>
+                  <button class="btn btn-secondary btn-sm" data-copy-target="pg-code-output" data-i18n="btnCopyCode">📋 Copy Markup</button>
+                </div>
+                <pre><code id="pg-code-output"></code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Framework Integrations Section -->
+        <section id="frameworks">
+          <h2 data-i18n="integrationsTitle">Framework Integrations</h2>
+          <p data-i18n="integrationsSubtitle" style="margin-block-end: 1.5rem;">Standard Web Components work in any environment. Use native Custom Elements directly or via first-class typed wrappers.</p>
+
+          <div class="tabs-container">
+            <div class="tab-list" role="tablist">
+              <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-html" data-i18n="tabVanilla">Vanilla / HTML</button>
+              <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-react" data-i18n="tabReact">React 18 / 19+</button>
+              <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-vue" data-i18n="tabVue">Vue 3 (SFC)</button>
+              <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-angular" data-i18n="tabAngular">Angular 18 / 19 / 20+</button>
+            </div>
+
+            <div class="tab-panels">
+              <!-- Vanilla HTML -->
+              <div id="tab-html" role="tabpanel">
+                <p style="margin-block-end: 0.75rem;">Import registration script once and use standard Custom Elements in your HTML.</p>
+                <pre><code>&lt;!-- Include registration bundle --&gt;
+&lt;script type="module" src="https://cdn.jsdelivr.net/npm/sparkline-mini-charts/register"&gt;&lt;/script&gt;
+
+&lt;!-- Use sparklines anywhere --&gt;
+&lt;mini-line-chart 
+  data="[18, 23, 20, 31, 27, 38, 44]" 
+  curve="smooth" 
+  trend-color="auto" 
+  label="Weekly revenue trend"
+&gt;&lt;/mini-line-chart&gt;</code></pre>
+              </div>
+
+              <!-- React -->
+              <div id="tab-react" role="tabpanel" hidden>
+                <p style="margin-block-end: 0.75rem;">First-class React components with full TypeScript prop typings.</p>
+                <pre><code>import { MiniLineChart, MiniAreaChart } from 'sparkline-mini-charts/react';
+
+export function MetricsWidget() {
+  const weeklyData = [18, 23, 20, 31, 27, 38, 44];
+
   return (
-    &lt;mini-line-chart data={chartData} label="Weekly revenue trend"&gt;&lt;/mini-line-chart&gt;
+    &lt;div className="metric-card"&gt;
+      &lt;span&gt;Revenue&lt;/span&gt;
+      &lt;MiniLineChart 
+        data={weeklyData} 
+        curve="smooth" 
+        trendColor="auto" 
+        label="Revenue trend" 
+      /&gt;
+    &lt;/div&gt;
   );
 }</code></pre>
-            </div>
+              </div>
 
-            <div id="tab-vue" role="tabpanel" aria-labelledby="btn-vue" tabindex="0" hidden>
-              <p style="margin-block-end: 1rem; color: var(--text-muted);">In Vue, configure <code>compilerOptions.isCustomElement</code> in your Vite config, then pass data dynamically.</p>
-              <pre tabindex="0"><code>&lt;script setup&gt;
-const data = JSON.stringify([18, 23, 20, 31, 27, 38, 44]);
+              <!-- Vue 3 -->
+              <div id="tab-vue" role="tabpanel" hidden>
+                <p style="margin-block-end: 0.75rem;">Typed Vue 3 Composition API components for SFC templates.</p>
+                <pre><code>&lt;script setup lang="ts"&gt;
+import { MiniLineChart, MiniAreaChart } from 'sparkline-mini-charts/vue';
+
+const revenueData = [18, 23, 20, 31, 27, 38, 44];
 &lt;/script&gt;
 
 &lt;template&gt;
-  &lt;mini-line-chart :data="data" label="Weekly revenue trend" /&gt;
+  &lt;div class="metric-card"&gt;
+    &lt;MiniLineChart 
+      :data="revenueData" 
+      curve="smooth" 
+      trend-color="auto" 
+      label="Revenue trend" 
+    /&gt;
+  &lt;/div&gt;
 &lt;/template&gt;</code></pre>
-            </div>
+              </div>
 
-            <div id="tab-angular" role="tabpanel" aria-labelledby="btn-angular" tabindex="0" hidden>
-              <p style="margin-block-end: 1rem; color: var(--text-muted);">In Angular, add <code>CUSTOM_ELEMENTS_SCHEMA</code> to your module/component and bind the attribute.</p>
-              <pre tabindex="0"><code>import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+              <!-- Angular -->
+              <div id="tab-angular" role="tabpanel" hidden>
+                <p style="margin-block-end: 0.75rem;">Angular directive supporting standalone components with `CUSTOM_ELEMENTS_SCHEMA`.</p>
+                <pre><code>import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import 'sparkline-mini-charts/register';
 
 @Component({
-  selector: 'app-chart',
+  selector: 'app-metric-card',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
-    &lt;mini-line-chart [attr.data]="chartData | json" label="Weekly revenue trend"&gt;&lt;/mini-line-chart&gt;
+    &lt;mini-line-chart 
+      [attr.data]="data | json" 
+      curve="smooth" 
+      trend-color="auto" 
+      label="Revenue trend"&gt;
+    &lt;/mini-line-chart&gt;
   `
 })
-export class ChartComponent {
-  chartData = [18, 23, 20, 31, 27, 38, 44];
+export class MetricCardComponent {
+  data = [18, 23, 20, 31, 27, 38, 44];
 }</code></pre>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="components" class="section" aria-labelledby="components-heading">
-        <header class="section-heading">
-          <h2 id="components-heading">Four chart primitives</h2>
-          <p>Every chart accepts numeric JSON through its declarative <code>data</code> attribute and exposes a meaningful SVG label.</p>
-        </header>
-
-        <div class="chart-grid">
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Trend</h3>
-              <code>&lt;mini-line-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-line-chart data="[18, 23, 20, 31, 27, 38, 44]" label="Weekly revenue trend"></mini-line-chart>
-              </div>
-              <figcaption>Maps an ordered series into a shared responsive Cartesian layout.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Variance</h3>
-              <code>&lt;mini-bar-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-bar-chart data="[-12, 8, 19, -5, 13, 21]" label="Monthly variance"></mini-bar-chart>
-              </div>
-              <figcaption>Uses a zero baseline, so positive and negative values retain their direction.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Distribution</h3>
-              <code>&lt;mini-pie-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-pie-chart data="[42, 27, 18, 13]" label="Traffic sources by share"></mini-pie-chart>
-              </div>
-              <figcaption>Allocates non-negative values across a full radial sweep.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Adoption</h3>
-              <code>&lt;mini-half-pie-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-half-pie-chart data="[58, 25, 17]" label="Plan adoption by tier"></mini-half-pie-chart>
-              </div>
-              <figcaption>Uses the same radial math with an upper 180-degree sweep.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Volume</h3>
-              <code>&lt;mini-area-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-area-chart data="[18, 23, 20, 31, 27, 38, 44]" label="Weekly active users"></mini-area-chart>
-              </div>
-              <figcaption>Fills the region beneath the curve, smoothly wiping into view.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Progress</h3>
-              <code>&lt;mini-progress-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-progress-chart data="[75]" max="100" label="Server load percentage"></mini-progress-chart>
-              </div>
-              <figcaption>A semi-circular progress arc representing a value out of a maximum.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Gauge</h3>
-              <code>&lt;mini-gauge-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-gauge-chart data="[65, 0, 100]" label="Speedometer gauge"></mini-gauge-chart>
-              </div>
-              <figcaption>A speedometer gauge with colored bands and an animated needle.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Financial</h3>
-              <code>&lt;mini-candlestick-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-candlestick-chart data="[[100,110,95,105], [105,105,90,95], [95,115,90,110]]" label="Daily asset price"></mini-candlestick-chart>
-              </div>
-              <figcaption>Parses tuples of OHLC (Open, High, Low, Close) values.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Correlation</h3>
-              <code>&lt;mini-combo-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-combo-chart data='[{"bar": 10, "line": 20}, {"bar": 15, "line": 15}, {"bar": 8, "line": 25}]' label="Sales vs Target"></mini-combo-chart>
-              </div>
-              <figcaption>Overlays a line path on top of a bar layout.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Cumulative</h3>
-              <code>&lt;mini-stacked-area-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-stacked-area-chart data="[[10,20,30,40], [20,15,25,35], [5,10,15,20]]" label="Resource allocation"></mini-stacked-area-chart>
-              </div>
-              <figcaption>Layers multiple series on top of each other.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Flow</h3>
-              <code>&lt;mini-stream-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-stream-chart data="[[28,22,19,19,22,26,27,27,29,33,33,30,28,29,31,33,33,31,30,30,27,23,23,27,31,28,22,18,18,18],[14,24,32,37,37,32,26,17,15,17,22,25,27,31,31,26,18,18,23,30,30,28,24,25,26,29,31,28,22,11],[18,24,30,31,30,25,25,24,28,25,25,23,25,25,26,27,27,27,25,26,26,28,27,24,17,13,15,21,27,30],[21,27,31,31,33,31,28,24,21,24,23,21,18,21,26,29,27,23,23,22,24,23,24,24,19,15,14,19,23,24]]" label="Organic volume"></mini-stream-chart>
-              </div>
-              <figcaption>Centers the stacked layers around a zero baseline.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Rings</h3>
-              <code>&lt;mini-radial-bar-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-radial-bar-chart data='[{"value": 70, "color": "#8b5cf6"}, {"value": 50, "color": "#3b82f6"}, {"value": 90, "color": "#10b981"}]' max="100" label="Activity rings"></mini-radial-bar-chart>
-              </div>
-              <figcaption>Multiple concentric radial bars for comparing segments.</figcaption>
-            </figure>
-          </article>
-
-          <article class="chart-card glass hover-lift">
-            <header>
-              <h3>Ticks</h3>
-              <code>&lt;mini-ohlc-chart&gt;</code>
-            </header>
-            <figure>
-              <div class="chart-stage">
-                <mini-ohlc-chart data="[[100,110,95,105], [105,105,90,95], [95,115,90,110]]" label="Daily asset price"></mini-ohlc-chart>
-              </div>
-              <figcaption>Visualizes open, high, low, close with minimal ticks.</figcaption>
-            </figure>
-          </article>
-        </div>
-      </section>
-
-      <section id="playground" class="section" aria-labelledby="playground-heading">
-        <header class="section-heading">
-          <h2 id="playground-heading">Interactive playground</h2>
-          <p>Choose a chart, supply finite numeric JSON, and copy the resulting declarative markup into an application.</p>
-        </header>
-
-        <div class="playground glass">
-          <form id="chart-form" novalidate>
-            <fieldset>
-              <legend>Configure a chart</legend>
-              <div class="field">
-                <label for="chart-type">Chart type</label>
-                <select id="chart-type" name="chart-type">
-                  <option value="mini-line-chart">Line chart</option>
-                  <option value="mini-area-chart">Area chart</option>
-                  <option value="mini-stacked-area-chart">Stacked Area chart</option>
-                  <option value="mini-stream-chart">Stream chart</option>
-                  <option value="mini-bar-chart">Bar chart</option>
-                  <option value="mini-combo-chart">Combo chart</option>
-                  <option value="mini-candlestick-chart">Candlestick chart</option>
-                  <option value="mini-ohlc-chart">OHLC chart</option>
-                  <option value="mini-radial-bar-chart">Radial Bar chart</option>
-                  <option value="mini-progress-chart">Progress chart</option>
-                  <option value="mini-gauge-chart">Gauge chart</option>
-                  <option value="mini-pie-chart">Pie chart</option>
-                  <option value="mini-half-pie-chart">Half-pie chart</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="chart-data">Data</label>
-                <textarea id="chart-data" name="chart-data" aria-describedby="data-help" spellcheck="false">[18, 23, 20, 31, 27, 38, 44]</textarea>
-                <p id="data-help">Enter a JSON array of finite numbers, for example <code>[10, 20, 30]</code>.</p>
-              </div>
-              <div class="field">
-                <label for="chart-label">Accessible label</label>
-                <textarea id="chart-label" name="chart-label" rows="2">Weekly revenue trend</textarea>
-              </div>
-              <button type="submit" class="hover-lift">Apply data</button>
-            </fieldset>
-            <p id="form-status" class="status" role="status" aria-live="polite"></p>
-          </form>
-
-          <section class="preview" aria-labelledby="preview-heading">
-            <h3 id="preview-heading">Preview</h3>
-            <p id="preview-label" class="preview-label">Rendering mini-line-chart</p>
-            <div id="chart-preview" class="preview-stage"></div>
-            <details open class="glass">
-              <summary>Declarative markup</summary>
-              <pre tabindex="0"><code id="markup-output"></code></pre>
-            </details>
-          </section>
-        </div>
-      </section>
-    </main>
-
-    <footer class="fade-in" style="animation-delay: 0.2s;">
-      <div class="shell">Built with native Custom Elements, Shadow DOM, and SVG.</div>
-    </footer>
+        <!-- Footer -->
+        <footer style="border-top: 1px solid var(--border); padding-block: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <span style="font-weight: 700; color: var(--text);">Sparkline Mini Charts</span>
+            <span style="color: var(--text-muted); margin-inline-start: 0.5rem;">Released under MIT License.</span>
+          </div>
+          <div style="display: flex; gap: 1rem;">
+            <a href="https://github.com/ErlonRru/sparkline-mini-charts" target="_blank" rel="noreferrer">GitHub</a>
+            <a href="https://npmjs.com/package/sparkline-mini-charts" target="_blank" rel="noreferrer">NPM</a>
+          </div>
+        </footer>
+      </main>
+    </div>
   </body>
 </html>

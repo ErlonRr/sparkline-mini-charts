@@ -235,10 +235,16 @@ CHANGELOG.md          # Version history
 <details>
 <summary>Click to view recent releases</summary>
 
+### v1.2.0 (2026-08-15)
+- Adaptive Dark and Light theme token system with instant Shadow DOM cascading.
+- Showcase demo overhaul with real-time streaming, interactive gallery, and sandbox playground.
+- Bilingual i18n support (English & Italian).
+
 ### v1.1.0 (2026-08-14)
 - Added 4 new chart components: `<mini-bullet-chart>`, `<mini-range-bar-chart>`, `<mini-win-loss-chart>`, and `<mini-scatter-chart>`.
 - Integrated linear regression trendline computation and Stephen Few bullet charts.
 - Added Angular, React, and Vue framework bindings for all new elements.
+
 
 ### v1.0.1 (2026-08-14)
 - Refinements to candlestick, OHLC, gauge, and progress bar aesthetics and stroke proportions.

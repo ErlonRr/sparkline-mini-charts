@@ -5,7 +5,18 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-15
+
+### Added
+
+- Adaptive Dark and Light theme token system (`--mini-chart-color-1..8`, `--mini-chart-safe/warn/danger-color`, `--mini-chart-track-color`) with instant CSS inheritance across all 17 components.
+- Interactive showcase overhaul with real-time live streaming grid, 17-component gallery, and live playground sandbox.
+- Native bilingual i18n support in showcase demo (English & Italiano).
+- Authentic ThemeRiver organic streaming simulation with Byron & Wattenberg Last.fm dataset.
+- Comprehensive product specification and component documentation in `docs/improve/`.
+
 ## [1.1.0] - 2026-08-14
+
 
 ### Added
 
