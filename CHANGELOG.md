@@ -5,7 +5,19 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-08-14
+
+### Fixed
+
+- Candlestick & OHLC chart spacing and line width refinement (0.75px crisp stroke width).
+- Gauge chart animation sweep, needle alignment, and semantic zone fallback colors.
+- Progress chart typography, weight (700) and normalized semi-arc radius dimensions.
+- Radial bar chart staggered fluid transitions and outer-to-inner ring stacking order.
+- Pie and half-pie chart size harmony and dynamic multi-token `[part~="segment"]` CSS selectors.
+- Real-time live data streaming interpolation and point tracking on line and area charts.
+
 ## [1.0.0] - 2026-08-11
+
 
 ### Added
 

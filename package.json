@@ -1,7 +1,8 @@
 {
   "name": "sparkline-mini-charts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Zero-dependency SVG sparkline Web Components.",
+
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -87,7 +88,29 @@
       "import": "./dist/mini-stream-chart.js",
       "require": "./dist/mini-stream-chart.cjs"
     },
+    "./mini-bullet-chart": {
+      "types": "./dist/mini-bullet-chart.d.ts",
+      "import": "./dist/mini-bullet-chart.js",
+      "require": "./dist/mini-bullet-chart.cjs"
+    },
+    "./mini-win-loss-chart": {
+      "types": "./dist/mini-win-loss-chart.d.ts",
+      "import": "./dist/mini-win-loss-chart.js",
+      "require": "./dist/mini-win-loss-chart.cjs"
+    },
+    "./mini-range-bar-chart": {
+      "types": "./dist/mini-range-bar-chart.d.ts",
+      "import": "./dist/mini-range-bar-chart.js",
+      "require": "./dist/mini-range-bar-chart.cjs"
+    },
+    "./mini-scatter-chart": {
+      "types": "./dist/mini-scatter-chart.d.ts",
+      "import": "./dist/mini-scatter-chart.js",
+      "require": "./dist/mini-scatter-chart.cjs"
+    },
     "./math": {
+
+
       "types": "./dist/math.d.ts",
       "import": "./dist/math.js",
       "require": "./dist/math.cjs"

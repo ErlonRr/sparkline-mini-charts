@@ -54,6 +54,10 @@ export class MiniChartElement extends HTMLElementBase {
     this.render();
   }
 
+  disconnectedCallback() {
+    this.cleanup();
+  }
+
   attributeChangedCallback() {
     this.requestRender();
   }
@@ -68,6 +72,12 @@ export class MiniChartElement extends HTMLElementBase {
       if (this.isConnected) this.render();
     });
   }
+
+  /**
+   * Lifecycle cleanup hook invoked on disconnection to cancel pending timers or rAF handles.
+   * Can be overridden by subclasses.
+   */
+  cleanup() {}
 
   /** Renders the element's complete Shadow DOM tree. */
   render() {
@@ -103,3 +113,4 @@ export class MiniChartElement extends HTMLElementBase {
     throw new Error("MiniChartElement subclasses must implement renderChart().");
   }
 }
+

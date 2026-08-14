@@ -1,53 +1,71 @@
-// mini-gauge-chart.js — Configurable multi-zone SVG gauge Custom Element with a reactive needle.
+// mini-gauge-chart.js — Responsive SVG gauge sparkline Custom Element.
 
 import { describeArc } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
 import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
 
 /**
- * Builds the default 3-band zone config (safe/warn/danger) from the current range,
- * themeable via CSS custom properties. Used when no `zones` attribute is given.
+ * @typedef {Object} ZoneConfig
+ * @property {number} upTo
+ * @property {string} color
+ */
+
+/**
+ * Builds the default 3-band zone config (safe/warn/danger) from the current range.
  * @param {number} min
  * @param {number} max
- * @returns {{upTo: number, color: string}[]}
+ * @returns {ZoneConfig[]}
  */
 function defaultZones(min, max) {
   const span = max - min || 1;
   return [
-    { upTo: min + span * 0.333, color: "var(--mini-chart-bullish-color, #10b981)" },
-    { upTo: min + span * 0.666, color: "var(--mini-chart-color-4, #f59e0b)" },
-    { upTo: max, color: "var(--mini-chart-bearish-color, #ef4444)" }
+    { upTo: min + span * 0.333, color: "var(--mini-chart-safe-color, var(--mini-chart-bullish-color, #10b981))" },
+    { upTo: min + span * 0.666, color: "var(--mini-chart-warn-color, var(--mini-chart-warning-color, #f59e0b))" },
+    { upTo: max, color: "var(--mini-chart-danger-color, var(--mini-chart-bearish-color, #ef4444))" },
   ];
 }
 
+
 /**
- * Renders a value against a minimum and maximum as a speedometer gauge with a needle
- * and an arbitrary number of configurable colored zones.
+ * Renders a meter gauge with colored threshold zones and an animated rotating needle.
  *
  * @extends MiniChartElement
  */
 export class MiniGaugeChart extends MiniChartElement {
+  static observedAttributes = [
+    "data",
+    "label",
+    "min",
+    "max",
+    "zones",
+    "needle-type",
+    "show-value",
+  ];
+
   /** @type {boolean} */
   #initialized = false;
 
+  /** @type {number | null} */
+  #rafId = null;
+
   /** @type {SVGSVGElement | null} */
   #svg = null;
-
-  /** @type {SVGPathElement | null} */
-  #needle = null;
-
   /** @type {SVGGElement | null} */
   #zonesGroup = null;
+  /** @type {SVGPathElement | null} */
+  #needle = null;
+  /** @type {SVGTextElement | null} */
+  #valueText = null;
 
-  /** @type {SVGPathElement[]} */
-  #zoneEls = [];
+  /** @type {string} */
+  #zonesSignature = "";
 
-  /** @type {string | null} Cache key (raw zones attr + min + max) to skip no-op rebuilds. */
-  #zonesSignature = null;
+  /** @type {number} */
+  #currentZoneIndex = -1;
 
-  /** @returns {string} Human-readable chart type. */
-  get chartName() {
-    return "Gauge";
+  /** @returns {number} SVG viewBox height. */
+  get chartHeight() {
+    return 50;
   }
 
   /** @returns {string} Default aspect ratio for half-radial geometry. */
@@ -55,152 +73,132 @@ export class MiniGaugeChart extends MiniChartElement {
     return "2 / 1";
   }
 
-  /** @returns {number} SVG viewBox height. */
-  get chartHeight() {
-    return 50; // half-circle viewBox
+  /** @returns {string} Human-readable chart type. */
+  get chartName() {
+    return "Gauge";
+  }
+
+  /**
+   * Cleans up pending frames on disconnection.
+   * @override
+   */
+  cleanup() {
+    if (this.#rafId !== null && typeof cancelAnimationFrame !== "undefined") {
+      cancelAnimationFrame(this.#rafId);
+      this.#rafId = null;
+    }
   }
 
   render() {
     const data = this.data;
     const label = this.getAttribute("label") ?? this.createDefaultLabel(data);
-    const min = data.length > 1 ? data[1] : 0;
-    const max = data.length > 2 ? data[2] : 100;
 
     if (!this.#initialized) {
-      this.#createDOM(label, min, max);
+      this.#createDOM(label);
       this.#initialized = true;
     } else if (this.#svg) {
       this.#svg.setAttribute("aria-label", label);
       const title = this.#svg.querySelector("title");
       if (title) title.textContent = label;
-      this.#syncZones(min, max);
     }
 
-    this.#updateChart(data, min, max);
+    this.#updateChart(data);
   }
 
   /**
-   * @param {string} label
-   * @param {number} min
-   * @param {number} max
+   * @param {string} label 
    */
-  #createDOM(label, min, max) {
+  #createDOM(label) {
     const style = document.createElement("style");
     style.textContent = `${chartStyles}
 :host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
 [part="track"] {
   fill: none;
-  stroke-width: 15;
+  stroke-width: var(--mini-chart-stroke-width, 14);
 }
 [part="needle"] {
-  fill: var(--mini-chart-text, #333);
+  fill: var(--mini-chart-needle-color, var(--mini-chart-color, #2563eb));
   transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform-origin: 50px 50px;
 }
 [part="pivot"] {
-  fill: var(--mini-chart-text, #333);
+  fill: var(--mini-chart-needle-color, var(--mini-chart-color, #2563eb));
+}
+[part="text"] {
+  fill: var(--mini-chart-text-color, currentColor);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-anchor: middle;
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
+    this.#svg.setAttribute("role", "meter");
+
     this.#zonesGroup = /** @type {SVGGElement} */ (createSvgElement("g", { part: "zones" }));
 
-    // Needle rests at pivot (50,50), pointing straight up toward (50,15).
-    // 0deg CSS rotation = up (gauge minimum); +180deg = right (gauge maximum).
-    this.#needle = /** @type {SVGPathElement} */ (createSvgElement("path", {
-      part: "needle",
-      d: "M 48 50 L 52 50 L 50 15 Z"
-    }));
-
-    const pivot = createSvgElement("circle", { part: "pivot", cx: "50", cy: "50", r: "4" });
-
-    this.#svg.append(this.#zonesGroup, this.#needle, pivot);
-    this.shadowRoot?.replaceChildren(style, this.#svg);
-
-    this.setAttribute("role", "meter");
-    this.#syncZones(min, max);
-  }
-
-  /**
-   * Rebuilds the colored zone arcs only when the zones config or the value range
-   * actually changed, so a plain needle update never touches this DOM.
-   *
-   * @param {number} min
-   * @param {number} max
-   */
-  #syncZones(min, max) {
-    const raw = this.getAttribute("zones");
-    const signature = `${raw}|${min}|${max}`;
-    if (signature === this.#zonesSignature || !this.#zonesGroup) return;
-    this.#zonesSignature = signature;
-
-    const zones = this.#parseZones(raw, min, max);
-    this.#zonesGroup.replaceChildren();
-
-    let prevUpTo = min;
-    const span = max - min || 1;
-    this.#zoneEls = zones.map(zone => {
-      const startAngle = Math.PI + Math.PI * ((prevUpTo - min) / span);
-      const endAngle = Math.PI + Math.PI * ((zone.upTo - min) / span);
-      prevUpTo = zone.upTo;
-
-      return /** @type {SVGPathElement} */ (createSvgElement("path", {
-        part: "track",
-        stroke: zone.color,
-        d: describeArc(50, 50, 40, startAngle, endAngle) || "",
-        pathLength: "1",
-        "stroke-dasharray": "1",
-        "stroke-dashoffset": "1"
+    // Needle rests at pivot (50, 50), pointing straight UP toward (50, 15).
+    // CSS rotation: -90deg = left (gauge min), 0deg = top (midpoint), +90deg = right (gauge max)
+    const needleType = this.getAttribute("needle-type") || "triangle";
+    if (needleType === "line") {
+      this.#needle = /** @type {SVGPathElement} */ (createSvgElement("path", {
+        part: "needle",
+        d: "M 49 50 L 51 50 L 50 15 Z",
       }));
-    });
-
-    this.#zonesGroup.append(...this.#zoneEls);
-    this.setAttribute("aria-valuemin", String(min));
-    this.setAttribute("aria-valuemax", String(max));
-    this.#animateZonesIn();
-  }
-
-  /**
-   * @param {string | null} raw
-   * @param {number} min
-   * @param {number} max
-   * @returns {{upTo: number, color: string}[]}
-   */
-  #parseZones(raw, min, max) {
-    if (!raw) return defaultZones(min, max);
-    try {
-      const parsed = JSON.parse(raw);
-      const zones = Array.isArray(parsed)
-        ? parsed
-            .filter(/** @type {(z: any) => z is {upTo: number, color: string}} */ (z => z && typeof z.color === "string" && z.color.length > 0 && Number.isFinite(z.upTo)))
-            .sort((a, b) => a.upTo - b.upTo)
-        : [];
-      if (zones.length === 0) return defaultZones(min, max);
-      zones[zones.length - 1] = { ...zones[zones.length - 1], upTo: max }; // full coverage to max
-      return zones;
-    } catch {
-      return defaultZones(min, max);
+    } else {
+      this.#needle = /** @type {SVGPathElement} */ (createSvgElement("path", {
+        part: "needle",
+        d: "M 47 50 L 53 50 L 50 15 Z",
+      }));
     }
-  }
 
-  /** Draws each zone arc in with a per-zone stagger, batching the forced reflow once. */
-  #animateZonesIn() {
-    this.#zoneEls.forEach(el => {
-      el.style.transition = "none";
+    const pivot = createSvgElement("circle", {
+      part: "pivot",
+      cx: "50",
+      cy: "50",
+      r: "4",
     });
-    this.#svg?.getBoundingClientRect(); // single reflow for the whole batch
-    this.#zoneEls.forEach((el, i) => {
-      el.style.transition = `stroke-dashoffset 0.6s ease-out ${i * 80}ms`;
-      el.style.strokeDashoffset = "0";
-    });
+
+    this.#valueText = /** @type {SVGTextElement} */ (createSvgElement("text", {
+      part: "text",
+      x: "50",
+      y: "48",
+    }));
+    this.#valueText.style.display = "none";
+
+    this.#svg.append(this.#zonesGroup, this.#needle, pivot, this.#valueText);
+    this.shadowRoot?.replaceChildren(style, this.#svg);
   }
 
   /**
-   * @param {number[]} data Parsed chart values: [value, min, max]
-   * @param {number} min
-   * @param {number} max
+   * @param {number} min 
+   * @param {number} max 
+   * @returns {ZoneConfig[]}
    */
-  #updateChart(data, min, max) {
-    if (!this.#needle) return;
+  #resolveZones(min, max) {
+    const raw = this.getAttribute("zones");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed
+            .filter((z) => z && typeof z.color === "string" && Number.isFinite(z.upTo))
+            .sort((a, b) => a.upTo - b.upTo);
+        }
+      } catch {}
+    }
+    return defaultZones(min, max);
+  }
+
+  /**
+   * @param {number[]} data 
+   */
+  #updateChart(data) {
+    if (!this.#needle || !this.#zonesGroup || !this.#svg || !this.#valueText) return;
+    if (this.#rafId !== null && typeof cancelAnimationFrame !== "undefined") {
+      cancelAnimationFrame(this.#rafId);
+      this.#rafId = null;
+    }
 
     if (data.length === 0) {
       this.#needle.style.opacity = "0";
@@ -209,33 +207,96 @@ export class MiniGaugeChart extends MiniChartElement {
     }
     this.#needle.style.opacity = "1";
 
-    const value = data[0];
+    const minAttr = parseFloat(this.getAttribute("min") || "");
+    const maxAttr = parseFloat(this.getAttribute("max") || "");
+    
+    let value = data[0];
+    let min = !isNaN(minAttr) ? minAttr : (data.length > 1 ? data[1] : 0);
+    let max = !isNaN(maxAttr) ? maxAttr : (data.length > 2 ? data[2] : 100);
+
+    if (min >= max) max = min + 1;
+    const clampedVal = Math.max(min, Math.min(max, value));
     const range = max - min || 1;
-    let progress = (value - min) / range;
-    progress = Math.max(0, Math.min(1, progress));
+    const progress = (clampedVal - min) / range;
 
-    // -90deg = gauge minimum (left), 0deg = midpoint (up), 90deg = gauge maximum (right)
-    const angle = -90 + (progress * 180);
-    this.setAttribute("aria-valuenow", String(value));
+    // -90deg = gauge min (left), 0deg = mid (up), +90deg = gauge max (right)
+    const angleDeg = -90 + progress * 180;
 
-    const isInitial = !this.#needle.style.transform;
+    this.#svg.setAttribute("aria-valuenow", String(clampedVal));
+    this.#svg.setAttribute("aria-valuemin", String(min));
+    this.#svg.setAttribute("aria-valuemax", String(max));
 
+    if (this.hasAttribute("show-value")) {
+      this.#valueText.textContent = String(Math.round(clampedVal));
+      this.#valueText.style.display = "";
+    } else {
+      this.#valueText.style.display = "none";
+    }
+
+    // Build zones
+    const zones = this.#resolveZones(min, max);
+    const signature = `${min}|${max}|${JSON.stringify(zones)}`;
+
+    if (signature !== this.#zonesSignature) {
+      this.#zonesSignature = signature;
+      this.#zonesGroup.innerHTML = "";
+
+      let prevUpTo = min;
+      zones.forEach((zone) => {
+        const startAngle = Math.PI + Math.PI * ((prevUpTo - min) / range);
+        const endAngle = Math.PI + Math.PI * ((zone.upTo - min) / range);
+        prevUpTo = zone.upTo;
+
+        const arcPath = describeArc(50, 50, 40, startAngle, endAngle);
+        if (arcPath) {
+          const zoneEl = createSvgElement("path", {
+            part: "track",
+            stroke: zone.color,
+            d: arcPath,
+          });
+          this.#zonesGroup?.append(zoneEl);
+        }
+      });
+    }
+
+
+    // Identify active zone
+    let activeZoneIdx = zones.findIndex((z) => clampedVal <= z.upTo);
+    if (activeZoneIdx === -1) activeZoneIdx = zones.length - 1;
+
+    if (activeZoneIdx !== this.#currentZoneIndex && this.#currentZoneIndex !== -1) {
+      this.dispatchEvent(new CustomEvent("zone-change", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          value: clampedVal,
+          zoneIndex: activeZoneIdx,
+          zoneColor: zones[activeZoneIdx]?.color,
+        },
+      }));
+    }
+    this.#currentZoneIndex = activeZoneIdx;
+
+    const isInitial = !this.#needle.dataset.rendered;
     if (isInitial) {
+      this.#needle.dataset.rendered = "true";
       this.#needle.style.transition = "none";
       this.#needle.style.transform = "rotate(-90deg)"; // Start at minimum
-      this.#needle.getBoundingClientRect(); // force reflow
 
       if (typeof requestAnimationFrame !== "undefined") {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
+        this.#rafId = requestAnimationFrame(() => {
+          this.#rafId = requestAnimationFrame(() => {
             if (!this.#needle) return;
-            this.#needle.style.transition = ""; // Restore CSS transition
-            this.#needle.style.transform = `rotate(${angle}deg)`;
+            this.#needle.style.transition = "transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)";
+            this.#needle.style.transform = `rotate(${angleDeg}deg)`;
           });
         });
+      } else {
+        this.#needle.style.transform = `rotate(${angleDeg}deg)`;
       }
     } else {
-      this.#needle.style.transform = `rotate(${angle}deg)`;
+      this.#needle.style.transition = "transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)";
+      this.#needle.style.transform = `rotate(${angleDeg}deg)`;
     }
   }
 }

@@ -1,36 +1,60 @@
-// mini-progress-chart.js — Responsive SVG progress arc sparkline Custom Element.
+// mini-progress-chart.js — Responsive SVG semi-circular gauge/progress bar Custom Element.
 
-import { createRadialLayout, describeArc } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
 import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
 
 /**
- * Renders a single value out of a maximum as a semi-circular progress arc.
+ * Renders a single numeric value as a semi-circular progress meter with smooth/elastic animations.
  *
  * @extends MiniChartElement
  */
 export class MiniProgressChart extends MiniChartElement {
-  /** @type {any[]} */
-  #prevLayout = [];
+  static observedAttributes = [
+    "data",
+    "label",
+    "min",
+    "max",
+    "show-value",
+    "unit",
+  ];
 
   /** @type {boolean} */
   #initialized = false;
 
+  /** @type {number | null} */
+  #rafId = null;
+
   /** @type {SVGSVGElement | null} */
   #svg = null;
   /** @type {SVGPathElement | null} */
-  #trackPath = null;
-  /** @type {SVGPathElement | null} */
   #valuePath = null;
+  /** @type {SVGTextElement | null} */
+  #valueText = null;
+
+  /** @returns {number} SVG viewBox height. */
+  get chartHeight() {
+    return 50;
+  }
+
+  /** @returns {string} Default aspect ratio for half-radial geometry. */
+  get chartAspectRatio() {
+    return "2 / 1";
+  }
 
   /** @returns {string} Human-readable chart type. */
   get chartName() {
     return "Progress";
   }
 
-  /** @returns {string} Default aspect ratio for half-radial geometry. */
-  get chartAspectRatio() {
-    return "2";
+  /**
+   * Cleans up pending frames on disconnection.
+   * @override
+   */
+  cleanup() {
+    if (this.#rafId !== null && typeof cancelAnimationFrame !== "undefined") {
+      cancelAnimationFrame(this.#rafId);
+      this.#rafId = null;
+    }
   }
 
   render() {
@@ -50,104 +74,126 @@ export class MiniProgressChart extends MiniChartElement {
   }
 
   /**
-   * Builds the static DOM structure exactly once.
    * @param {string} label 
    */
   #createDOM(label) {
     const style = document.createElement("style");
     style.textContent = `${chartStyles}
 :host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
-[part="track"] { 
-  fill: none; 
-  stroke: var(--mini-chart-track-color, rgba(128, 128, 128, 0.2)); 
-  stroke-width: var(--mini-chart-stroke-width, 10); 
+[part="track"] {
+  fill: none;
+  stroke: var(--mini-chart-track-color, rgba(128, 128, 128, 0.18));
+  stroke-width: var(--mini-chart-stroke-width, 12);
   stroke-linecap: round;
 }
-[part="value"] { 
-  fill: none; 
-  stroke: currentColor; 
-  stroke-width: var(--mini-chart-stroke-width, 10); 
+[part="value"] {
+  fill: none;
+  stroke: var(--mini-chart-value-color, var(--mini-chart-color, #3b82f6));
+  stroke-width: var(--mini-chart-stroke-width, 12);
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* bouncy ease-out */
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+[part="text"] {
+  fill: var(--mini-chart-text-color, currentColor);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
 }`;
 
-    // A gauge is a half-circle, so viewBox uses the top half of the circle
-    this.#svg = createChartSvg({ width: 100, height: 50, label });
-    // Adjust viewBox for stroke overflow (stroke-width: 10)
-    this.#svg.setAttribute("viewBox", "-55 -55 110 60");
+    this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
+    this.#svg.setAttribute("role", "meter");
 
-    const trackD = describeArc(0, 0, 45, -Math.PI, 0);
+    const track = createSvgElement("path", {
+      part: "track",
+      d: "M 10 50 A 40 40 0 0 1 90 50",
+    });
 
-    this.#trackPath = /** @type {SVGPathElement} */ (createSvgElement("path", { part: "track", d: trackD }));
-    this.#valuePath = /** @type {SVGPathElement} */ (createSvgElement("path", { 
-      part: "value", 
-      d: trackD,
-      pathLength: "1",
-      "stroke-dasharray": "1",
-      "stroke-dashoffset": "1"
+    this.#valuePath = /** @type {SVGPathElement} */ (createSvgElement("path", {
+      part: "value",
+      d: "M 10 50 A 40 40 0 0 1 90 50",
+      pathLength: "100",
+      "stroke-dasharray": "100",
+      "stroke-dashoffset": "100",
     }));
 
-    this.#svg.append(this.#trackPath, this.#valuePath);
+    this.#valueText = /** @type {SVGTextElement} */ (createSvgElement("text", {
+      part: "text",
+      x: "50",
+      y: "42",
+    }));
+    this.#valueText.style.display = "none";
+
+    this.#svg.append(track, this.#valuePath, this.#valueText);
     this.shadowRoot?.replaceChildren(style, this.#svg);
-    
-    this.setAttribute("role", "meter");
   }
 
   /**
-   * Updates SVG attributes and triggers animations natively.
-   * 
-   * @param {number[]} data Parsed chart values. Expects [value].
+   * @param {number[]} data 
    */
   #updateChart(data) {
-    if (!this.#valuePath) return;
-
-    if (data.length === 0) {
-      this.removeAttribute("aria-valuenow");
-      this.#valuePath.style.display = "none";
-      this.#prevLayout = [];
-      return;
+    if (!this.#valuePath || !this.#svg || !this.#valueText) return;
+    if (this.#rafId !== null && typeof cancelAnimationFrame !== "undefined") {
+      cancelAnimationFrame(this.#rafId);
+      this.#rafId = null;
     }
 
-    this.#valuePath.style.display = "";
-
-    const value = data[0] || 0;
     const minAttr = parseFloat(this.getAttribute("min") || "0");
     const maxAttr = parseFloat(this.getAttribute("max") || "100");
-    const min = isNaN(minAttr) ? 0 : minAttr;
-    const max = isNaN(maxAttr) ? 100 : maxAttr;
-    
-    this.setAttribute("aria-valuemin", String(min));
-    this.setAttribute("aria-valuemax", String(max));
-    this.setAttribute("aria-valuenow", String(value));
+    const min = !isNaN(minAttr) ? minAttr : 0;
+    const max = !isNaN(maxAttr) && maxAttr > min ? maxAttr : 100;
 
-    const span = max - min || 1;
-    let progress = (value - min) / span;
-    progress = Math.max(0, Math.min(1, progress));
-    
-    const targetOffset = 1 - progress;
-    const isInitial = this.#prevLayout.length === 0;
+    const rawVal = data.length > 0 ? data[0] : 0;
+    const clampedVal = Math.max(min, Math.min(max, rawVal));
+    const progress = (clampedVal - min) / (max - min);
+    const targetOffset = 100 - progress * 100;
 
-    if (isInitial && progress > 0) {
+    this.#svg.setAttribute("aria-valuenow", String(clampedVal));
+    this.#svg.setAttribute("aria-valuemin", String(min));
+    this.#svg.setAttribute("aria-valuemax", String(max));
+
+    // Show center text if requested
+    if (this.hasAttribute("show-value")) {
+      const unit = this.getAttribute("unit") || "";
+      const displayVal = Math.round(clampedVal);
+      this.#valueText.textContent = `${displayVal}${unit}`;
+      this.#valueText.style.display = "";
+    } else {
+      this.#valueText.style.display = "none";
+    }
+
+    const isInitial = this.#valuePath.style.strokeDashoffset === "100" && !this.#valuePath.dataset.rendered;
+
+    if (isInitial) {
+      this.#valuePath.dataset.rendered = "true";
       this.#valuePath.style.transition = "none";
-      this.#valuePath.style.strokeDashoffset = "1";
-      this.#valuePath.getBoundingClientRect(); // force reflow
-      
+      this.#valuePath.style.strokeDashoffset = "100";
+      this.#valuePath.style.opacity = progress > 0 ? "1" : "0";
+
       if (typeof requestAnimationFrame !== "undefined") {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
+        this.#rafId = requestAnimationFrame(() => {
+          this.#rafId = requestAnimationFrame(() => {
             if (!this.#valuePath) return;
-            this.#valuePath.style.transition = ""; // restore bouncy transition
+            this.#valuePath.style.transition = "stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease";
             this.#valuePath.style.strokeDashoffset = String(targetOffset);
           });
         });
       } else {
-        this.#valuePath.style.transition = "";
         this.#valuePath.style.strokeDashoffset = String(targetOffset);
       }
     } else {
+      this.#valuePath.style.transition = "stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease";
       this.#valuePath.style.strokeDashoffset = String(targetOffset);
+      this.#valuePath.style.opacity = progress > 0 ? "1" : "0";
     }
-    
-    this.#prevLayout = [value];
+
+    if (clampedVal >= max) {
+      this.dispatchEvent(new CustomEvent("progress-complete", {
+        bubbles: true,
+        composed: true,
+        detail: { value: clampedVal, max },
+      }));
+    }
   }
 }
