@@ -13,6 +13,10 @@ import { MiniOhlcChart } from "./components/mini-ohlc-chart.js";
 import { MiniComboChart } from "./components/mini-combo-chart.js";
 import { MiniRadialBarChart } from "./components/mini-radial-bar-chart.js";
 import { MiniPieChart } from "./components/mini-pie-chart.js";
+import { MiniBulletChart } from "./components/mini-bullet-chart.js";
+import { MiniWinLossChart } from "./components/mini-win-loss-chart.js";
+import { MiniRangeBarChart } from "./components/mini-range-bar-chart.js";
+import { MiniScatterChart } from "./components/mini-scatter-chart.js";
 import { defineMiniChart } from "./core/registration.js";
 
 /** @type {readonly [string, CustomElementConstructor][]} */
@@ -30,6 +34,10 @@ const componentDefinitions = Object.freeze([
   ["mini-radial-bar-chart", MiniRadialBarChart],
   ["mini-pie-chart", MiniPieChart],
   ["mini-half-pie-chart", MiniHalfPieChart],
+  ["mini-bullet-chart", MiniBulletChart],
+  ["mini-win-loss-chart", MiniWinLossChart],
+  ["mini-range-bar-chart", MiniRangeBarChart],
+  ["mini-scatter-chart", MiniScatterChart],
 ]);
 
 /**

@@ -25,11 +25,17 @@ test("package metadata exposes granular distribution entry points", () => {
     "./mini-radial-bar-chart",
     "./mini-stacked-area-chart",
     "./mini-stream-chart",
+    "./mini-bullet-chart",
+    "./mini-win-loss-chart",
+    "./mini-range-bar-chart",
+    "./mini-scatter-chart",
     "./math",
     "./angular",
     "./react",
     "./vue",
   ]);
+
+
 
   for (const exportPath of Object.values(packageManifest.exports)) {
     assert.match(exportPath.types, /^\.\/dist\/.*\.d\.ts$/);

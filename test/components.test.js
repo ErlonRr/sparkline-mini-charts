@@ -7,20 +7,43 @@ class TestNode {
   attributes = new Map();
   children = [];
   dataset = {};
-  style = { setProperty: () => {} };
+  style = {
+    setProperty: () => {},
+    removeProperty: () => {},
+  };
   textContent = "";
 
   constructor(name) {
     this.name = name;
   }
 
+  addEventListener() {}
+  removeEventListener() {}
+  dispatchEvent() { return true; }
+
+  hasAttribute(name) {
+    return this.attributes.has(name);
+  }
+
+  removeAttribute(name) {
+    this.attributes.delete(name);
+  }
+
+  closest(selector) {
+    if (selector.startsWith('[part~="') || selector.startsWith('[part="')) {
+      const part = selector.match(/\[part[~=]*"([^"]+)"\]/)?.[1];
+      if (part && this.getAttribute("part")?.includes(part)) return this;
+    }
+    return null;
+  }
+
   querySelector(selector) {
     if (selector === "title") return this.children.find(n => n.name === "title") ?? null;
-    if (selector.startsWith('[part="')) {
-      const part = selector.match(/\[part="(.*)"\]/)[1];
+    if (selector.startsWith('[part="') || selector.startsWith('[part~="')) {
+      const part = selector.match(/\[part[~=]*"([^"]+)"\]/)?.[1];
       const findNode = (nodes) => {
         for (const n of nodes) {
-          if (n.getAttribute("part") === part) return n;
+          if (n.getAttribute("part")?.split(/\s+/).includes(part)) return n;
           const found = findNode(n.children || []);
           if (found) return found;
         }
@@ -37,12 +60,23 @@ class TestNode {
   }
 
   querySelectorAll(selector) {
-    if (selector.startsWith('[part="')) {
-      const part = selector.match(/\[part="(.*)"\]/)[1];
+    if (selector.startsWith('[part="') || selector.startsWith('[part~="')) {
+      const part = selector.match(/\[part[~=]*"([^"]+)"\]/)?.[1];
       const results = [];
       const findNodes = (nodes) => {
         for (const n of nodes) {
-          if (n.getAttribute("part") === part) results.push(n);
+          if (n.getAttribute("part")?.split(/\s+/).includes(part)) results.push(n);
+          findNodes(n.children || []);
+        }
+      };
+      findNodes(this.children);
+      return results;
+    }
+    if (selector === 'rect') {
+      const results = [];
+      const findNodes = (nodes) => {
+        for (const n of nodes) {
+          if (n.name === "rect") results.push(n);
           findNodes(n.children || []);
         }
       };
@@ -63,6 +97,8 @@ class TestNode {
     return [];
   }
 
+
+
   getBoundingClientRect() {
     return { top: 0, left: 0, width: 0, height: 0, bottom: 0, right: 0, x: 0, y: 0 };
   }
@@ -73,6 +109,12 @@ class TestNode {
         this.children.push(node);
     }
   }
+
+  replaceChildren(...nodes) {
+    this.children = [];
+    this.append(...nodes);
+  }
+
 
   remove() {
     if (this.parentNode) {
@@ -99,9 +141,25 @@ class TestNode {
 
 class TestElement {
   #attributes = new Map();
+  style = {
+    setProperty: () => {},
+    removeProperty: () => {},
+  };
 
   constructor() {
     this.isConnected = false;
+  }
+
+  addEventListener() {}
+  removeEventListener() {}
+  dispatchEvent() { return true; }
+
+  hasAttribute(name) {
+    return this.#attributes.has(name);
+  }
+
+  removeAttribute(name) {
+    this.#attributes.delete(name);
   }
 
   attachShadow() {
@@ -129,6 +187,7 @@ class TestElement {
     return this.#attributes.get(name) ?? null;
   }
 }
+
 
 class TestCustomElementRegistry {
   definitions = new Map();
@@ -182,6 +241,10 @@ test("registration entry point defines every chart element exactly once", async 
     "mini-radial-bar-chart",
     "mini-pie-chart",
     "mini-half-pie-chart",
+    "mini-bullet-chart",
+    "mini-win-loss-chart",
+    "mini-range-bar-chart",
+    "mini-scatter-chart",
   ]);
 });
 
@@ -194,7 +257,7 @@ test("line and bar elements append their expected SVG shapes", () => {
   assert.equal(barSvg.querySelectorAll('[part="bar"]').length, 2);
 });
 
-test("pie and half-pie elements use their natural radial viewBoxes", () => {
+test("pie and half-pie elements use their natural radial viewBoxes and support donut inner-radius", () => {
   const pieSvg = renderChart(charts.MiniPieChart, [3, 2, 1]);
   const halfPieSvg = renderChart(charts.MiniHalfPieChart, [3, 2, 1]);
 
@@ -203,3 +266,79 @@ test("pie and half-pie elements use their natural radial viewBoxes", () => {
   assert.equal(pieSvg.querySelector('[part="group"]').children.filter((node) => node.name === "path").length, 3);
   assert.equal(halfPieSvg.querySelector('[part="group"]').children.filter((node) => node.name === "path").length, 3);
 });
+
+test("area, stacked-area and stream elements construct multi-layer and gradient paths", () => {
+  const areaSvg = renderChart(charts.MiniAreaChart, [10, 20, 15]);
+  const stackedSvg = renderChart(charts.MiniStackedAreaChart, [[10, 20], [5, 15]]);
+  const streamSvg = renderChart(charts.MiniStreamChart, [[10, 20], [5, 15]]);
+
+  assert.equal(areaSvg.getAttribute("viewBox"), "0 0 100 30");
+  assert.ok(areaSvg.querySelector('[part="area"]'));
+  assert.equal(stackedSvg.querySelectorAll('[part~="layer"]').length, 2);
+  assert.equal(streamSvg.querySelectorAll('[part~="layer"]').length, 2);
+});
+
+test("gauge and progress elements support semantic roles and values", () => {
+  const gaugeSvg = renderChart(charts.MiniGaugeChart, [75, 0, 100]);
+  const progressSvg = renderChart(charts.MiniProgressChart, [60]);
+
+  assert.equal(gaugeSvg.getAttribute("role"), "meter");
+  assert.equal(gaugeSvg.getAttribute("aria-valuenow"), "75");
+  assert.equal(progressSvg.getAttribute("role"), "meter");
+  assert.equal(progressSvg.getAttribute("aria-valuenow"), "60");
+});
+
+test("candlestick and ohlc elements render 2D financial data", () => {
+  const candleSvg = renderChart(charts.MiniCandlestickChart, [
+    [10, 15, 8, 12],
+    [12, 18, 11, 17],
+  ]);
+  const ohlcSvg = renderChart(charts.MiniOhlcChart, [
+    [10, 15, 8, 12],
+    [12, 18, 11, 17],
+  ]);
+
+  assert.equal(candleSvg.querySelectorAll('[part~="candle"]').length, 2);
+  assert.equal(ohlcSvg.querySelectorAll('[part~="bar"]').length, 2);
+});
+
+test("combo and radial-bar elements render complex layered and concentric structures", () => {
+  const comboSvg = renderChart(charts.MiniComboChart, [
+    { bar: 10, line: 20 },
+    { bar: 15, line: 25 },
+  ]);
+  const radialSvg = renderChart(charts.MiniRadialBarChart, [80, 60, 40]);
+
+  assert.equal(comboSvg.querySelectorAll('[part="bar"]').length, 2);
+  assert.ok(comboSvg.querySelector('[part="line"]'));
+  assert.equal(radialSvg.querySelectorAll('[part="track"]').length, 3);
+});
+
+test("bullet, win-loss, range-bar and scatter elements construct their specific SVG shapes", () => {
+  const bulletSvg = renderChart(charts.MiniBulletChart, { value: 75, target: 85, ranges: [50, 80, 100] });
+  const winLossSvg = renderChart(charts.MiniWinLossChart, [1, -1, 0, 1]);
+  const rangeBarSvg = renderChart(charts.MiniRangeBarChart, [[10, 20, 15], [5, 25, 18]]);
+  const scatterSvg = renderChart(charts.MiniScatterChart, [[1, 2], [2, 5], [3, 8]]);
+
+  assert.equal(bulletSvg.getAttribute("role"), "meter");
+  assert.ok(bulletSvg.querySelector('[part="measure"]'));
+  assert.ok(bulletSvg.querySelector('[part="target"]'));
+  assert.equal(winLossSvg.querySelectorAll('[part~="bar"]').length, 4);
+  assert.equal(rangeBarSvg.querySelectorAll('[part~="range-bar"]').length, 2);
+  assert.equal(scatterSvg.querySelectorAll('[part~="point"]').length, 3);
+});
+
+test("chart components gracefully clean up on disconnection", () => {
+
+  const chart = new charts.MiniLineChart();
+  chart.setAttribute("data", "[1, 2, 3]");
+  chart.isConnected = true;
+  chart.connectedCallback();
+  
+  // Trigger cleanup on disconnect
+  chart.isConnected = false;
+  chart.disconnectedCallback();
+  assert.ok(true);
+});
+
+

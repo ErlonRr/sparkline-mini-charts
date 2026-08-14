@@ -26,10 +26,16 @@ export default defineConfig({
         "mini-radial-bar-chart": fromRoot("src/components/mini-radial-bar-chart.js"),
         "mini-stacked-area-chart": fromRoot("src/components/mini-stacked-area-chart.js"),
         "mini-stream-chart": fromRoot("src/components/mini-stream-chart.js"),
+        "mini-bullet-chart": fromRoot("src/components/mini-bullet-chart.js"),
+        "mini-win-loss-chart": fromRoot("src/components/mini-win-loss-chart.js"),
+        "mini-range-bar-chart": fromRoot("src/components/mini-range-bar-chart.js"),
+        "mini-scatter-chart": fromRoot("src/components/mini-scatter-chart.js"),
         math: fromRoot("src/core/geometry.js"),
         angular: fromRoot("src/angular.ts"),
         react: fromRoot("src/react.ts"),
         vue: fromRoot("src/vue.ts"),
+
+
       },
       formats: ["es", "cjs"],
       fileName: (format, entryName) => `${entryName}.${format === "es" ? "js" : "cjs"}`,

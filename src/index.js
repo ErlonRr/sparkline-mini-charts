@@ -13,17 +13,31 @@ export { MiniOhlcChart } from "./components/mini-ohlc-chart.js";
 export { MiniComboChart } from "./components/mini-combo-chart.js";
 export { MiniRadialBarChart } from "./components/mini-radial-bar-chart.js";
 export { MiniPieChart } from "./components/mini-pie-chart.js";
+export { MiniBulletChart } from "./components/mini-bullet-chart.js";
+export { MiniWinLossChart } from "./components/mini-win-loss-chart.js";
+export { MiniRangeBarChart } from "./components/mini-range-bar-chart.js";
+export { MiniScatterChart } from "./components/mini-scatter-chart.js";
 
 export { parseNumericData } from "./core/data.js";
 export { defineMiniChart } from "./core/registration.js";
+export { SEGMENT_COLORS, getSegmentColor } from "./core/palette.js";
 export {
   TAU,
   createBarLayout,
+  createBulletLayout,
   createCartesianLayout,
   createCandlestickLayout,
   createDomain,
   createLinearScale,
   createRadialLayout,
+  createRadialBarLayout,
+  createRangeBarLayout,
+  createScatterLayout,
+  createSmoothPath,
+  createSmoothAreaPath,
+  createStepPath,
+  createStackedLayout,
+  createWinLossLayout,
   describePieSector,
   describeArc,
   polarToCartesian,

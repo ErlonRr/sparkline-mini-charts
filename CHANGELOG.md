@@ -5,7 +5,20 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-08-14
+
+### Added
+
+- Native `<mini-bullet-chart>` Web Component for Stephen Few qualitative range intervals, performance measure, and target marker.
+- Native `<mini-range-bar-chart>` Web Component for min-max floating interval spans with optional value indicator markers.
+- Native `<mini-win-loss-chart>` Web Component with Edward Tufte binary sparklines and continuous uptime `mode="status"` strip.
+- Native `<mini-scatter-chart>` Web Component for 2D Cartesian scatter plots with automatic linear regression trendlines (`trend-line="true"`).
+- Pure geometric layout functions `createBulletLayout`, `createRangeBarLayout`, `createWinLossLayout`, and `createScatterLayout` in `geometry.js`.
+- Angular directive, React wrapper, and Vue 3 wrapper bindings for all new chart components.
+- Unit and snapshot test suites for new layout algorithms and element behaviors.
+
 ## [1.0.1] - 2026-08-14
+
 
 ### Fixed
 

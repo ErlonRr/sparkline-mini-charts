@@ -235,10 +235,16 @@ CHANGELOG.md          # Version history
 <details>
 <summary>Click to view recent releases</summary>
 
+### v1.1.0 (2026-08-14)
+- Added 4 new chart components: `<mini-bullet-chart>`, `<mini-range-bar-chart>`, `<mini-win-loss-chart>`, and `<mini-scatter-chart>`.
+- Integrated linear regression trendline computation and Stephen Few bullet charts.
+- Added Angular, React, and Vue framework bindings for all new elements.
+
 ### v1.0.1 (2026-08-14)
 - Refinements to candlestick, OHLC, gauge, and progress bar aesthetics and stroke proportions.
 - Radial bar fluid staggered transitions and outer-to-inner ring stacking.
 - Pie and half-pie shadow DOM styling and multi-token part selectors.
+
 
 ### v1.0.0 (2026-08-11)
 - Initial release with 13 mini charts.
