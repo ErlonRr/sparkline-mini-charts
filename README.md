@@ -22,7 +22,7 @@ Use them in any modern frontend application without Canvas, heavy charting runti
 👉 **[Explore the Live Interactive Showcase & Playground →](https://sparkline-mini-chart.erlonrru.com)**
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ErlonRru/sparkline-mini-charts/main/assets/img/live-data-1.png" alt="Sparkline Mini Charts Live Streaming Studio" width="100%" />
+  <img src="https://raw.githubusercontent.com/ErlonRr/sparkline-mini-charts/refs/heads/main/assets/img/live-data-1.png" alt="Sparkline Mini Charts Live Streaming Studio" width="100%" />
 </p>
 
 ---
@@ -120,7 +120,7 @@ defineMiniChart("mini-line-chart", MiniLineChart);
 Test datasets, tweak styling attributes, and preview responsive SVG rendering in real time:
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ErlonRru/sparkline-mini-charts/main/assets/img/interactive-sandbox.png" alt="Interactive Sandbox & Playground" width="100%" />
+  <img src="https://raw.githubusercontent.com/ErlonRr/sparkline-mini-charts/refs/heads/main/assets/img/interactive-sandbox.png" alt="Interactive Sandbox & Playground" width="100%" />
 </p>
 
 ---
@@ -162,7 +162,7 @@ mini-pie-chart {
 Native Web Components work seamlessly in any ecosystem with first-class typed adapters:
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ErlonRru/sparkline-mini-charts/main/assets/img/framework-integrations.png" alt="Framework Integrations for React, Vue, Angular, Svelte" width="100%" />
+  <img src="https://raw.githubusercontent.com/ErlonRr/sparkline-mini-charts/refs/heads/main/assets/img/framework-integrations.png" alt="Framework Integrations for React, Vue, Angular, Svelte" width="100%" />
 </p>
 
 ### Angular
