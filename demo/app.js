@@ -50,10 +50,22 @@ export const translations = {
     catRadial: "3. Radial & Proportions",
     catGauges: "4. Gauges, Meters & Benchmarks",
     catFinancial: "5. Financial & 2D Coordinates",
+    groupTheming: "Theming & Tokens",
+    itemTheming: "Theming & CSS Tokens",
     groupPlayground: "Interactive Sandbox",
     itemPlayground: "Live Playground",
     groupFrameworks: "Framework Guides",
     itemFrameworks: "React, Vue, Angular, Svelte",
+
+    // Theming Guide
+    themingTitle: "Theming & Design Tokens Guide",
+    themingSubtitle: "Discover how to brand, customize, and integrate Sparkline Mini Charts with your Design System using CSS Custom Properties and Shadow Parts.",
+    themingLabTitle: "🧪 Interactive Theming Lab",
+    themingLabSubtitle: "Select a preset or tweak individual CSS tokens to see real-time 60fps cascading theme updates:",
+    themingCssOutputTitle: "Generated CSS Token Snippet:",
+    btnCopyCss: "📋 Copy CSS",
+    themingStrategiesTitle: "The 4 Levels of Customization",
+    themingTableTitle: "Complete Design Tokens Reference",
     
     // Live Stream
     streamTitle: "Live Real-Time Streaming Studio (All 17 Charts)",
@@ -161,10 +173,22 @@ export const translations = {
     catRadial: "3. Radiali & Proporzioni",
     catGauges: "4. Tachimetri, Metri & Target",
     catFinancial: "5. Finanziari & Coordinate 2D",
+    groupTheming: "Temi & Token",
+    itemTheming: "Temi & Token CSS",
     groupPlayground: "Sandbox Interattivo",
     itemPlayground: "Playground Live",
     groupFrameworks: "Guide Framework",
     itemFrameworks: "React, Vue, Angular, Svelte",
+
+    // Theming Guide
+    themingTitle: "Guida alla Temizzazione & Design Token",
+    themingSubtitle: "Scopri come brandizzare, personalizzare e integrare Sparkline Mini Charts con il tuo Design System usando CSS Custom Properties e Shadow Parts.",
+    themingLabTitle: "🧪 Laboratorio Interattivo di Temi",
+    themingLabSubtitle: "Seleziona un preset o modifica i singoli token CSS per vedere gli aggiornamenti a cascata in tempo reale a 60fps:",
+    themingCssOutputTitle: "Snippet Token CSS Generato:",
+    btnCopyCss: "📋 Copia CSS",
+    themingStrategiesTitle: "I 4 Livelli di Personalizzazione",
+    themingTableTitle: "Tabella di Riferimento dei Token",
     
     // Live Stream
     streamTitle: "Studio Live Streaming (Tutti i 17 Grafici)",
@@ -716,6 +740,10 @@ export function handleRoute() {
   } else if (state.currentRoute === "streaming") {
     document.getElementById("view-streaming")?.classList.add("active");
     document.querySelector('.sidebar-link[data-route="streaming"]')?.classList.add("active");
+  } else if (state.currentRoute === "theming") {
+    document.getElementById("view-theming")?.classList.add("active");
+    document.querySelector('.sidebar-link[data-route="theming"]')?.classList.add("active");
+    renderThemingLab();
   } else if (state.currentRoute === "playground") {
     document.getElementById("view-playground")?.classList.add("active");
     document.querySelector('.sidebar-link[data-route="playground"]')?.classList.add("active");
@@ -916,6 +944,213 @@ function updateStreamButtonState() {
   }
 }
 
+// --- Theming Lab Controller & Presets ---
+export const THEME_PRESETS = Object.freeze({
+  ocean: {
+    primary: "#0284c7",
+    point: "#38bdf8",
+    bullish: "#10b981",
+    bearish: "#f43f5e",
+    target: "#f43f5e",
+    stroke: 2,
+    opacity: 0.45,
+    colors: ["#0ea5e9", "#3b82f6", "#6366f1", "#8b5cf6", "#d946ef", "#f59e0b", "#0d9488", "#10b981"],
+  },
+  emerald: {
+    primary: "#059669",
+    point: "#34d399",
+    bullish: "#10b981",
+    bearish: "#e11d48",
+    target: "#e11d48",
+    stroke: 2,
+    opacity: 0.4,
+    colors: ["#10b981", "#0d9488", "#0284c7", "#6366f1", "#8b5cf6", "#f59e0b", "#f97316", "#ef4444"],
+  },
+  cyberpunk: {
+    primary: "#00f0ff",
+    point: "#ffe600",
+    bullish: "#00ff88",
+    bearish: "#ff0055",
+    target: "#ffe600",
+    stroke: 2.5,
+    opacity: 0.25,
+    colors: ["#00f0ff", "#ff007f", "#7000ff", "#00ff88", "#ffe600", "#ff6600", "#b800ff", "#00bfff"],
+  },
+  sunset: {
+    primary: "#f97316",
+    point: "#facc15",
+    bullish: "#10b981",
+    bearish: "#e11d48",
+    target: "#e11d48",
+    stroke: 2,
+    opacity: 0.45,
+    colors: ["#f59e0b", "#f97316", "#ef4444", "#ec4899", "#d946ef", "#8b5cf6", "#6366f1", "#312e81"],
+  },
+  monochrome: {
+    primary: "#8b5cf6",
+    point: "#c084fc",
+    bullish: "#10b981",
+    bearish: "#f43f5e",
+    target: "#fbbf24",
+    stroke: 2,
+    opacity: 0.35,
+    colors: ["#a855f7", "#6366f1", "#3b82f6", "#06b6d4", "#10b981", "#fbbf24", "#f97316", "#f43f5e"],
+  },
+});
+
+export function renderThemingLab(activePresetKey = "ocean") {
+  const board = document.getElementById("theming-preview-board");
+  const codeEl = document.getElementById("theming-css-output");
+  if (!board || !codeEl) return;
+
+  const primary = document.getElementById("theme-token-primary")?.value || "#0284c7";
+  const point = document.getElementById("theme-token-point")?.value || "#38bdf8";
+  const bullish = document.getElementById("theme-token-bullish")?.value || "#10b981";
+  const bearish = document.getElementById("theme-token-bearish")?.value || "#f43f5e";
+  const stroke = document.getElementById("theme-token-stroke")?.value || "2";
+  const opacity = document.getElementById("theme-token-opacity")?.value || "0.45";
+
+  const preset = THEME_PRESETS[activePresetKey] || THEME_PRESETS.ocean;
+  const colors = preset.colors;
+
+  // Apply directly to preview container CSS variables
+  board.style.setProperty("--mini-chart-color", primary);
+  board.style.setProperty("--mini-chart-point-fill", point);
+  board.style.setProperty("--mini-chart-bullish-color", bullish);
+  board.style.setProperty("--mini-chart-bearish-color", bearish);
+  board.style.setProperty("--mini-chart-target-color", preset.target || bearish);
+  board.style.setProperty("--mini-chart-stroke-width", `${stroke}px`);
+  board.style.setProperty("--mini-chart-inactive-opacity", opacity);
+
+  colors.forEach((c, idx) => {
+    board.style.setProperty(`--mini-chart-color-${idx + 1}`, c);
+  });
+
+  // Generate complete CSS code block
+  const cssCode = `/* Theme Custom Properties for Sparkline Mini Charts */
+.my-custom-theme {
+  /* 1. Base Brand & Curves */
+  --mini-chart-color: ${primary};
+  --mini-chart-point-fill: ${point};
+  --mini-chart-stroke-width: ${stroke}px;
+  --mini-chart-inactive-opacity: ${opacity};
+
+  /* 2. Financial & Binary Tones */
+  --mini-chart-bullish-color: ${bullish};
+  --mini-chart-bearish-color: ${bearish};
+  --mini-chart-target-color: ${preset.target || bearish};
+
+  /* 3. Multi-Series Categorical Palette */
+${colors.map((c, i) => `  --mini-chart-color-${i + 1}: ${c};`).join("\n")}
+}`;
+  codeEl.textContent = cssCode;
+}
+
+export function setupThemingLab() {
+  const primaryInput = document.getElementById("theme-token-primary");
+  const primaryText = document.getElementById("theme-token-primary-text");
+  const pointInput = document.getElementById("theme-token-point");
+  const pointText = document.getElementById("theme-token-point-text");
+  const bullishInput = document.getElementById("theme-token-bullish");
+  const bullishText = document.getElementById("theme-token-bullish-text");
+  const bearishInput = document.getElementById("theme-token-bearish");
+  const bearishText = document.getElementById("theme-token-bearish-text");
+  const strokeInput = document.getElementById("theme-token-stroke");
+  const strokeVal = document.getElementById("theme-token-stroke-val");
+  const opacityInput = document.getElementById("theme-token-opacity");
+  const opacityVal = document.getElementById("theme-token-opacity-val");
+
+  function bindInput(input, text) {
+    input?.addEventListener("input", () => {
+      if (text) text.value = input.value;
+      // Deselect preset pills on custom change
+      document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
+      renderThemingLab();
+    });
+  }
+
+  bindInput(primaryInput, primaryText);
+  bindInput(pointInput, pointText);
+  bindInput(bullishInput, bullishText);
+  bindInput(bearishInput, bearishText);
+
+  strokeInput?.addEventListener("input", () => {
+    if (strokeVal) strokeVal.textContent = `${strokeInput.value}px`;
+    document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
+    renderThemingLab();
+  });
+
+  opacityInput?.addEventListener("input", () => {
+    if (opacityVal) opacityVal.textContent = opacityInput.value;
+    document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
+    renderThemingLab();
+  });
+
+  // Preset buttons
+  document.querySelectorAll(".preset-pill").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const presetKey = btn.getAttribute("data-preset");
+      const preset = THEME_PRESETS[presetKey];
+      if (!preset) return;
+
+      document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+
+      if (primaryInput) primaryInput.value = preset.primary;
+      if (primaryText) primaryText.value = preset.primary;
+      if (pointInput) pointInput.value = preset.point;
+      if (pointText) pointText.value = preset.point;
+      if (bullishInput) bullishInput.value = preset.bullish;
+      if (bullishText) bullishText.value = preset.bullish;
+      if (bearishInput) bearishInput.value = preset.bearish;
+      if (bearishText) bearishText.value = preset.bearish;
+      if (strokeInput) strokeInput.value = String(preset.stroke);
+      if (strokeVal) strokeVal.textContent = `${preset.stroke}px`;
+      if (opacityInput) opacityInput.value = String(preset.opacity);
+      if (opacityVal) opacityVal.textContent = String(preset.opacity);
+
+      // Set palette colors on board
+      const board = document.getElementById("theming-preview-board");
+      if (board && preset.colors) {
+        preset.colors.forEach((c, idx) => {
+          board.style.setProperty(`--mini-chart-color-${idx + 1}`, c);
+        });
+      }
+
+      renderThemingLab(presetKey);
+    });
+  });
+
+  // Copy CSS button
+  document.getElementById("copy-theme-css-btn")?.addEventListener("click", async () => {
+    const code = document.getElementById("theming-css-output")?.textContent;
+    if (code) {
+      await navigator.clipboard.writeText(code);
+      showToast("Copied theme CSS tokens!");
+    }
+  });
+
+  // Copy Master Tokens button
+  document.getElementById("copy-master-tokens-btn")?.addEventListener("click", async () => {
+    const code = document.getElementById("master-tokens-code")?.textContent;
+    if (code) {
+      await navigator.clipboard.writeText(code);
+      showToast("Copied Master Tokens snippet!");
+    }
+  });
+
+  // Apply default preset palette
+  const defaultPreset = THEME_PRESETS.ocean;
+  const board = document.getElementById("theming-preview-board");
+  if (board && defaultPreset.colors) {
+    defaultPreset.colors.forEach((c, idx) => {
+      board.style.setProperty(`--mini-chart-color-${idx + 1}`, c);
+    });
+  }
+
+  renderThemingLab();
+}
+
 // --- Playground Controller ---
 export function renderPlayground() {
   const typeSelect = document.getElementById("pg-chart-type");
@@ -1044,6 +1279,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 8. Start live streaming auto-loop
+  // 8. Setup Interactive Theming Lab
+  setupThemingLab();
+
+  // 9. Start live streaming auto-loop
   startStreaming();
 });

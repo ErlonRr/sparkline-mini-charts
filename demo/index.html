@@ -981,6 +981,159 @@
           left: 0;
         }
       }
+
+      /* --- Interactive Theming Lab Styles --- */
+      .theming-lab {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+        margin-block: 1.5rem;
+      }
+      .theming-presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .preset-pill {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0.9rem;
+        border-radius: 9999px;
+        border: 1px solid var(--border);
+        background: var(--surface-subtle);
+        color: var(--text);
+        font-size: 0.825rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .preset-pill:hover {
+        border-color: var(--primary);
+        transform: translateY(-1px);
+      }
+      .preset-pill.active {
+        background: var(--primary);
+        color: #ffffff;
+        border-color: var(--primary);
+        box-shadow: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
+      }
+      .preset-swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .theming-controls-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        background: var(--surface-subtle);
+        padding: 1.25rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+      }
+      .theme-ctrl {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .theme-ctrl label {
+        font-size: 0.775rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+      .theme-ctrl-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .theme-ctrl input[type="color"] {
+        -webkit-appearance: none;
+        appearance: none;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        background: transparent;
+        padding: 0;
+      }
+      .theme-ctrl input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+      .theme-ctrl input[type="color"]::-webkit-color-swatch {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      .theme-ctrl input[type="text"] {
+        flex: 1;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.35rem 0.5rem;
+        border-radius: 6px;
+      }
+      .theming-preview-board {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.25rem;
+        padding: 1.5rem;
+        border-radius: 14px;
+        background: var(--surface-subtle);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+      }
+      .theming-preview-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .theming-preview-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .theming-preview-card-title {
+        font-size: 0.825rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .theming-preview-card-tag {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+      .token-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-block-top: 1rem;
+        font-size: 0.85rem;
+      }
+      .token-table th, .token-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      .token-table th {
+        background: var(--surface-subtle);
+        color: var(--text);
+        font-weight: 700;
+      }
+      .token-table td code {
+        color: var(--primary);
+        font-weight: 600;
+      }
     </style>
   </head>
   <body>
@@ -1053,6 +1206,13 @@
             <li><a href="#/components/mini-bullet-chart" class="sidebar-link" data-route="components/mini-bullet-chart">Bullet KPI Chart</a></li>
             <li><a href="#/components/mini-gauge-chart" class="sidebar-link" data-route="components/mini-gauge-chart">Speedometer Gauge</a></li>
             <li><a href="#/components/mini-candlestick-chart" class="sidebar-link" data-route="components/mini-candlestick-chart">Candlestick Financial</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="sidebar-group-title" data-i18n="groupTheming">Theming & Tokens</div>
+          <ul class="sidebar-menu">
+            <li><a href="#/theming" class="sidebar-link" data-route="theming" data-i18n="itemTheming">Theming & CSS Tokens</a></li>
           </ul>
         </div>
 
@@ -1489,6 +1649,345 @@
                 </div>
                 <pre><code id="pg-code-output"></code></pre>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= PAGE 5: THEMING & DESIGN TOKENS ================= -->
+        <div id="view-theming" class="page-view">
+          <div>
+            <h2 data-i18n="themingTitle">Theming & Design Tokens Guide</h2>
+            <p data-i18n="themingSubtitle">Discover how to brand, customize, and integrate Sparkline Mini Charts with your Design System using CSS Custom Properties and Shadow Parts.</p>
+          </div>
+
+          <!-- Interactive Live Theming Lab -->
+          <div class="theming-lab">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <div style="font-weight: 750; font-size: 1.1rem; color: var(--text);" data-i18n="themingLabTitle">🧪 Interactive Theming Lab</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="themingLabSubtitle">Select a preset or tweak individual CSS tokens to see real-time 60fps cascading theme updates:</div>
+              </div>
+              
+              <!-- Presets -->
+              <div class="theming-presets">
+                <button class="preset-pill active" data-preset="ocean">
+                  <span class="preset-swatch" style="background: #0284c7;"></span> Ocean Tech
+                </button>
+                <button class="preset-pill" data-preset="emerald">
+                  <span class="preset-swatch" style="background: #059669;"></span> Emerald Fintech
+                </button>
+                <button class="preset-pill" data-preset="cyberpunk">
+                  <span class="preset-swatch" style="background: #00f0ff;"></span> Cyberpunk Neon
+                </button>
+                <button class="preset-pill" data-preset="sunset">
+                  <span class="preset-swatch" style="background: #f97316;"></span> Sunset Horizon
+                </button>
+                <button class="preset-pill" data-preset="monochrome">
+                  <span class="preset-swatch" style="background: #8b5cf6;"></span> Luxury Velvet
+                </button>
+              </div>
+            </div>
+
+            <!-- Custom Token Sliders & Pickers -->
+            <div class="theming-controls-grid">
+              <div class="theme-ctrl">
+                <label>--mini-chart-color</label>
+                <div class="theme-ctrl-input-wrapper">
+                  <input type="color" id="theme-token-primary" value="#0ea5e9" />
+                  <input type="text" id="theme-token-primary-text" value="#0ea5e9" readonly />
+                </div>
+              </div>
+              <div class="theme-ctrl">
+                <label>--mini-chart-point-fill</label>
+                <div class="theme-ctrl-input-wrapper">
+                  <input type="color" id="theme-token-point" value="#38bdf8" />
+                  <input type="text" id="theme-token-point-text" value="#38bdf8" readonly />
+                </div>
+              </div>
+              <div class="theme-ctrl">
+                <label>--mini-chart-bullish-color</label>
+                <div class="theme-ctrl-input-wrapper">
+                  <input type="color" id="theme-token-bullish" value="#10b981" />
+                  <input type="text" id="theme-token-bullish-text" value="#10b981" readonly />
+                </div>
+              </div>
+              <div class="theme-ctrl">
+                <label>--mini-chart-bearish-color</label>
+                <div class="theme-ctrl-input-wrapper">
+                  <input type="color" id="theme-token-bearish" value="#ef4444" />
+                  <input type="text" id="theme-token-bearish-text" value="#ef4444" readonly />
+                </div>
+              </div>
+              <div class="theme-ctrl">
+                <label>--mini-chart-stroke-width</label>
+                <input type="range" id="theme-token-stroke" min="1" max="4" step="0.5" value="2" />
+                <span id="theme-token-stroke-val" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">2px</span>
+              </div>
+              <div class="theme-ctrl">
+                <label>--mini-chart-inactive-opacity</label>
+                <input type="range" id="theme-token-opacity" min="0.1" max="0.9" step="0.05" value="0.45" />
+                <span id="theme-token-opacity-val" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">0.45</span>
+              </div>
+            </div>
+
+            <!-- Live Preview Board with Themed Target ID -->
+            <div id="theming-preview-board" class="theming-preview-board">
+              <div class="theming-preview-card">
+                <div class="theming-preview-card-header">
+                  <span class="theming-preview-card-title">Trend Line with Endpoint</span>
+                  <span class="theming-preview-card-tag">&lt;mini-line-chart&gt;</span>
+                </div>
+                <mini-line-chart data="[12, 19, 15, 27, 24, 38, 45]" curve="smooth" endpoint="last" label="Themed trend line"></mini-line-chart>
+              </div>
+
+              <div class="theming-preview-card">
+                <div class="theming-preview-card-header">
+                  <span class="theming-preview-card-title">Signed Bar Comparison</span>
+                  <span class="theming-preview-card-tag">&lt;mini-bar-chart&gt;</span>
+                </div>
+                <mini-bar-chart data="[-8, 14, 22, -12, 19, 31, -5]" label="Themed signed bars"></mini-bar-chart>
+              </div>
+
+              <div class="theming-preview-card">
+                <div class="theming-preview-card-header">
+                  <span class="theming-preview-card-title">5-Slice Donut Distribution</span>
+                  <span class="theming-preview-card-tag">&lt;mini-pie-chart donut="0.55"&gt;</span>
+                </div>
+                <mini-pie-chart data="[35, 25, 20, 12, 8]" donut="0.55" interactive label="Themed 5-slice donut"></mini-pie-chart>
+              </div>
+
+              <div class="theming-preview-card">
+                <div class="theming-preview-card-header">
+                  <span class="theming-preview-card-title">Financial Candlestick</span>
+                  <span class="theming-preview-card-tag">&lt;mini-candlestick-chart&gt;</span>
+                </div>
+                <mini-candlestick-chart data="[[20,28,18,25],[25,32,22,23],[23,30,21,29],[29,35,27,34],[34,36,28,30],[30,38,29,36],[36,42,34,40]]" label="Themed candlestick"></mini-candlestick-chart>
+              </div>
+
+              <div class="theming-preview-card">
+                <div class="theming-preview-card-header">
+                  <span class="theming-preview-card-title">ThemeRiver Stream</span>
+                  <span class="theming-preview-card-tag">&lt;mini-stream-chart&gt;</span>
+                </div>
+                <mini-stream-chart data="[[10,25,18,30,22,35],[15,20,28,24,31,26],[8,14,19,22,18,29]]" label="Themed stream"></mini-stream-chart>
+              </div>
+
+              <div class="theming-preview-card">
+                <div class="theming-preview-card-header">
+                  <span class="theming-preview-card-title">Stephen Few KPI Bullet</span>
+                  <span class="theming-preview-card-tag">&lt;mini-bullet-chart&gt;</span>
+                </div>
+                <mini-bullet-chart data="[78, 85, 40, 70, 100]" label="Themed bullet chart"></mini-bullet-chart>
+              </div>
+            </div>
+
+            <!-- Copyable Generated CSS Block -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-block-end: 0.5rem;">
+                <span style="font-weight: 650; font-size: 0.85rem; color: var(--text);" data-i18n="themingCssOutputTitle">Generated CSS Token Snippet:</span>
+                <button id="copy-theme-css-btn" class="btn btn-secondary btn-sm" data-i18n="btnCopyCss">📋 Copy CSS</button>
+              </div>
+              <pre><code id="theming-css-output"></code></pre>
+            </div>
+          </div>
+
+          <!-- Mega Accordion: Master Design Tokens Configuration Template -->
+          <div class="card" style="padding: 1.75rem; margin-block: 2rem; border-color: color-mix(in srgb, var(--primary) 40%, var(--border));">
+            <details class="tokens-accordion" open>
+              <summary style="cursor: pointer; font-weight: 750; font-size: 1.1rem; color: var(--text); display: flex; justify-content: space-between; align-items: center; user-select: none;">
+                <span>📦 Complete Design Tokens Master Snippet (Ready to Copy)</span>
+                <span class="badge" style="background: var(--primary-subtle); color: var(--primary);">Drop-in CSS</span>
+              </summary>
+              
+              <p style="font-size: 0.875rem; color: var(--text-muted); margin-block: 1rem 0.5rem;">
+                Copy and paste this master snippet into your global stylesheet (e.g. <code>index.css</code>, <code>styles.css</code>, or your Design System root). Simply replace the fallback values with your own CSS variables:
+              </p>
+
+              <div style="position: relative;">
+                <button id="copy-master-tokens-btn" class="btn btn-secondary btn-sm" style="position: absolute; top: 12px; right: 12px; z-index: 10;">📋 Copy All Tokens</button>
+                <pre><code id="master-tokens-code">/* ==========================================================================
+   Sparkline Mini Charts — Master Design Tokens & Theming Configuration
+   Drop this into :root or any container class (e.g. .theme-dark, .my-dashboard)
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------------------
+     1. Brand & Single-Series Base (Line, Bar, Area, Progress, Scatter)
+     ------------------------------------------------------------------------ */
+  --mini-chart-color: var(--brand-primary, #0ea5e9);            /* Main curve, bar fill, and accent */
+  --mini-chart-point-fill: var(--brand-accent, #38bdf8);          /* Line endpoint & scatter dots */
+  --mini-chart-point-stroke: #ffffff;                             /* Border on active/highlight dots */
+  --mini-chart-aspect-ratio: auto;                                /* Override default 10/3 aspect ratio */
+
+  /* ------------------------------------------------------------------------
+     2. Multi-Series & Categorical Palette (Pie, Half-Pie, Stream, Stacked)
+     Used sequentially for multi-layer data (1st slice, 2nd slice, etc.)
+     Supports 1 to 8+ elements (wraps around automatically if > 8 items)
+     ------------------------------------------------------------------------ */
+  --mini-chart-color-1: var(--palette-1, #0ea5e9);              /* 1st slice / top stream layer */
+  --mini-chart-color-2: var(--palette-2, #6366f1);              /* 2nd slice / layer */
+  --mini-chart-color-3: var(--palette-3, #8b5cf6);              /* 3rd slice / layer */
+  --mini-chart-color-4: var(--palette-4, #ec4899);              /* 4th slice / layer */
+  --mini-chart-color-5: var(--palette-5, #f43f5e);              /* 5th slice / layer */
+  --mini-chart-color-6: var(--palette-6, #f97316);              /* 6th slice / layer */
+  --mini-chart-color-7: var(--palette-7, #eab308);              /* 7th slice / layer */
+  --mini-chart-color-8: var(--palette-8, #10b981);              /* 8th slice / bottom layer */
+
+  /* ------------------------------------------------------------------------
+     3. Financial & Binary Status Tones (Candlestick, OHLC, Win/Loss)
+     ------------------------------------------------------------------------ */
+  --mini-chart-bullish-color: var(--brand-success, #10b981);    /* Bullish candles, win bars (+1) */
+  --mini-chart-bearish-color: var(--brand-danger, #ef4444);     /* Bearish candles, loss bars (-1) */
+  --mini-chart-tie-color: var(--brand-muted, #94a3b8);          /* Tie / neutral bars (0) */
+  --mini-chart-wick-width: 0.75px;                              /* Precision stroke width for wicks */
+  --mini-chart-tick-width: 0.75px;                              /* Tick mark width for OHLC bars */
+
+  /* ------------------------------------------------------------------------
+     4. Gauges, Progress & Benchmark KPIs (Gauge, Progress, Bullet)
+     ------------------------------------------------------------------------ */
+  --mini-chart-track-color: rgba(128, 128, 128, 0.15);          /* Background guide arc / track */
+  --mini-chart-measure-color: var(--brand-primary, #0ea5e9);    /* Bullet actual performance bar */
+  --mini-chart-target-color: var(--brand-danger, #ef4444);      /* Bullet KPI benchmark target line */
+  --mini-chart-target-width: 2.5px;                             /* Bullet target marker width */
+  --mini-chart-range-1: rgba(128, 128, 128, 0.10);             /* Bullet poor / low range band */
+  --mini-chart-range-2: rgba(128, 128, 128, 0.18);             /* Bullet satisfactory range band */
+  --mini-chart-range-3: rgba(128, 128, 128, 0.26);             /* Bullet good / optimal range band */
+
+  /* ------------------------------------------------------------------------
+     5. Interactivity, Dimming & Transitions (All Charts)
+     ------------------------------------------------------------------------ */
+  --mini-chart-inactive-opacity: 0.45;                          /* Non-hovered items dimming factor */
+  --mini-chart-hover-brightness: 1.18;                          /* Active item highlight boost */
+  --mini-chart-transition-duration: 0.4s;                       /* Path morphing & value change speed */
+  --mini-chart-hover-duration: 0.2s;                            /* Pointer feedback transition speed */
+  --mini-chart-stroke-width: 2px;                               /* Primary SVG stroke width */
+  --mini-chart-bar-radius: 2px;                                 /* Rounded corners for bars */
+}</code></pre>
+              </div>
+            </details>
+          </div>
+
+          <!-- Theming Architecture & Strategies Guide -->
+          <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-block-top: 2.5rem;">
+            <h3 data-i18n="themingStrategiesTitle">The 4 Levels of Customization</h3>
+            
+            <div class="grid grid-2">
+              <div class="card" style="padding: 1.5rem;">
+                <h4>1. Zero-Config (`currentColor`)</h4>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-block: 0.5rem;">
+                  All single-series charts inherit their primary color from CSS <code>color</code>. When your theme switches or changes text color, the sparklines update automatically.
+                </p>
+                <pre><code>.metric-card.success {
+  color: var(--brand-success); /* Chart inherits automatically! */
+}</code></pre>
+              </div>
+
+              <div class="card" style="padding: 1.5rem;">
+                <h4>2. CSS Custom Properties (`--mini-chart-*`)</h4>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-block: 0.5rem;">
+                  Map your Design System tokens directly to our standardized CSS properties at the root or container level.
+                </p>
+                <pre><code>:root {
+  --mini-chart-color: var(--color-primary-500);
+  --mini-chart-bullish-color: var(--color-emerald-500);
+  --mini-chart-bearish-color: var(--color-rose-500);
+}</code></pre>
+              </div>
+
+              <div class="card" style="padding: 1.5rem;">
+                <h4>3. Shadow Parts (`::part(...)`)</h4>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-block: 0.5rem;">
+                  Target discrete SVG elements inside the Shadow DOM like <code>::part(line)</code>, <code>::part(point-last)</code>, or <code>::part(wick)</code> for advanced design control.
+                </p>
+                <pre><code>mini-line-chart::part(point-last) {
+  fill: var(--color-accent);
+  stroke: #ffffff;
+  stroke-width: 2px;
+}</code></pre>
+              </div>
+
+              <div class="card" style="padding: 1.5rem;">
+                <h4>4. Motion & Performance Tuning</h4>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-block: 0.5rem;">
+                  Control or disable transitions across entire dashboards for high-frequency streaming or accessibility compliance.
+                </p>
+                <pre><code>/* Instant high-frequency real-time update mode */
+.high-frequency-table {
+  --mini-chart-transition-duration: 0s;
+  --mini-chart-hover-duration: 0.05s;
+}</code></pre>
+              </div>
+            </div>
+
+            <!-- Design Tokens Reference Table -->
+            <div class="card" style="padding: 1.5rem; margin-block-top: 1rem;">
+              <h4 data-i18n="themingTableTitle">Complete Design Tokens Reference</h4>
+              <table class="token-table">
+                <thead>
+                  <tr>
+                    <th>CSS Custom Property</th>
+                    <th>Default Fallback</th>
+                    <th>Applies To</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>--mini-chart-color</code></td>
+                    <td><code>#2563eb</code></td>
+                    <td>Line, Bar, Area, Combo, Progress, Scatter</td>
+                    <td>Primary brand tone for paths, bars, and single-value fills.</td>
+                  </tr>
+                  <tr>
+                    <td><code>--mini-chart-color-1..8</code></td>
+                    <td>Built-in 8-Color Palette</td>
+                    <td>Stream, Stacked Area, Pie, Radial Bar</td>
+                    <td>Sequential palette for multi-layer/radial segments.</td>
+                  </tr>
+                  <tr>
+                    <td><code>--mini-chart-point-fill</code></td>
+                    <td><code>currentColor</code></td>
+                    <td>Line, Scatter</td>
+                    <td>Fill color for data endpoints and scatter points.</td>
+                  </tr>
+                  <tr>
+                    <td><code>--mini-chart-bullish-color</code></td>
+                    <td><code>#10b981</code></td>
+                    <td>Candlestick, OHLC, Win/Loss</td>
+                    <td>Color for positive/bullish trading periods and wins.</td>
+                  </tr>
+                  <tr>
+                    <td><code>--mini-chart-bearish-color</code></td>
+                    <td><code>#ef4444</code></td>
+                    <td>Candlestick, OHLC, Win/Loss</td>
+                    <td>Color for negative/bearish trading periods and losses.</td>
+                  </tr>
+                  <tr>
+                    <td><code>--mini-chart-track-color</code></td>
+                    <td><code>rgba(128, 128, 128, 0.15)</code></td>
+                    <td>Progress, Gauge, Radial Bar</td>
+                    <td>Background track arc color for circular meters.</td>
+                  </tr>
+                  <tr>
+                    <td><code>--mini-chart-stroke-width</code></td>
+                    <td><code>2px</code> (or component default)</td>
+                    <td>Line, Area, Gauge, Combo</td>
+                    <td>Stroke width for lines and needle indicators.</td>
+                  </tr>
+                  <tr>
+                    <td><code>--mini-chart-inactive-opacity</code></td>
+                    <td><code>0.45</code></td>
+                    <td>All interactive charts</td>
+                    <td>Opacity applied to non-hovered items during hover focus.</td>
+                  </tr>
+                  <tr>
+                    <td><code>--mini-chart-transition-duration</code></td>
+                    <td><code>0.4s</code></td>
+                    <td>All charts</td>
+                    <td>Duration of path morphing and value transitions.</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
