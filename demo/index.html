@@ -1094,10 +1094,11 @@
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 1rem 1.25rem;
+        padding: 1.15rem 1.25rem;
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
+        min-height: 190px;
       }
       .theming-preview-card-header {
         display: flex;
@@ -1113,6 +1114,29 @@
         font-size: 0.7rem;
         color: var(--text-muted);
         font-family: var(--font-mono);
+      }
+      .theming-preview-card-stage {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 90px;
+      }
+      .theming-preview-card mini-line-chart,
+      .theming-preview-card mini-bar-chart,
+      .theming-preview-card mini-candlestick-chart,
+      .theming-preview-card mini-stream-chart,
+      .theming-preview-card mini-bullet-chart {
+        width: 100%;
+        max-height: 64px;
+      }
+      .theming-preview-card mini-pie-chart,
+      .theming-preview-card mini-half-pie-chart,
+      .theming-preview-card mini-radial-bar-chart {
+        width: 82px;
+        height: 82px;
+        margin-inline: auto;
       }
       .token-table {
         width: 100%;
@@ -1737,7 +1761,9 @@
                   <span class="theming-preview-card-title">Trend Line with Endpoint</span>
                   <span class="theming-preview-card-tag">&lt;mini-line-chart&gt;</span>
                 </div>
-                <mini-line-chart data="[12, 19, 15, 27, 24, 38, 45]" curve="smooth" endpoint="last" label="Themed trend line"></mini-line-chart>
+                <div class="theming-preview-card-stage">
+                  <mini-line-chart data="[12, 19, 15, 27, 24, 38, 45]" curve="smooth" endpoint="last" label="Themed trend line"></mini-line-chart>
+                </div>
               </div>
 
               <div class="theming-preview-card">
@@ -1745,7 +1771,9 @@
                   <span class="theming-preview-card-title">Signed Bar Comparison</span>
                   <span class="theming-preview-card-tag">&lt;mini-bar-chart&gt;</span>
                 </div>
-                <mini-bar-chart data="[-8, 14, 22, -12, 19, 31, -5]" label="Themed signed bars"></mini-bar-chart>
+                <div class="theming-preview-card-stage">
+                  <mini-bar-chart data="[-8, 14, 22, -12, 19, 31, -5]" label="Themed signed bars"></mini-bar-chart>
+                </div>
               </div>
 
               <div class="theming-preview-card">
@@ -1753,7 +1781,9 @@
                   <span class="theming-preview-card-title">5-Slice Donut Distribution</span>
                   <span class="theming-preview-card-tag">&lt;mini-pie-chart donut="0.55"&gt;</span>
                 </div>
-                <mini-pie-chart data="[35, 25, 20, 12, 8]" donut="0.55" interactive label="Themed 5-slice donut"></mini-pie-chart>
+                <div class="theming-preview-card-stage">
+                  <mini-pie-chart data="[35, 25, 20, 12, 8]" donut="0.55" interactive label="Themed 5-slice donut"></mini-pie-chart>
+                </div>
               </div>
 
               <div class="theming-preview-card">
@@ -1761,7 +1791,9 @@
                   <span class="theming-preview-card-title">Financial Candlestick</span>
                   <span class="theming-preview-card-tag">&lt;mini-candlestick-chart&gt;</span>
                 </div>
-                <mini-candlestick-chart data="[[20,28,18,25],[25,32,22,23],[23,30,21,29],[29,35,27,34],[34,36,28,30],[30,38,29,36],[36,42,34,40]]" label="Themed candlestick"></mini-candlestick-chart>
+                <div class="theming-preview-card-stage">
+                  <mini-candlestick-chart data="[[20,28,18,25],[25,32,22,23],[23,30,21,29],[29,35,27,34],[34,36,28,30],[30,38,29,36],[36,42,34,40]]" label="Themed candlestick"></mini-candlestick-chart>
+                </div>
               </div>
 
               <div class="theming-preview-card">
@@ -1769,7 +1801,9 @@
                   <span class="theming-preview-card-title">ThemeRiver Stream</span>
                   <span class="theming-preview-card-tag">&lt;mini-stream-chart&gt;</span>
                 </div>
-                <mini-stream-chart data="[[10,25,18,30,22,35],[15,20,28,24,31,26],[8,14,19,22,18,29]]" label="Themed stream"></mini-stream-chart>
+                <div class="theming-preview-card-stage">
+                  <mini-stream-chart data="[[10,25,18,30,22,35],[15,20,28,24,31,26],[8,14,19,22,18,29]]" label="Themed stream"></mini-stream-chart>
+                </div>
               </div>
 
               <div class="theming-preview-card">
@@ -1777,7 +1811,9 @@
                   <span class="theming-preview-card-title">Stephen Few KPI Bullet</span>
                   <span class="theming-preview-card-tag">&lt;mini-bullet-chart&gt;</span>
                 </div>
-                <mini-bullet-chart data="[78, 85, 40, 70, 100]" label="Themed bullet chart"></mini-bullet-chart>
+                <div class="theming-preview-card-stage">
+                  <mini-bullet-chart data="[78, 85, 40, 70, 100]" label="Themed bullet chart"></mini-bullet-chart>
+                </div>
               </div>
             </div>
 
