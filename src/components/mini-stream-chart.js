@@ -104,17 +104,19 @@ export class MiniStreamChart extends MiniChartElement {
   #createDOM(label) {
     const style = document.createElement("style");
     style.textContent = `${chartStyles}
-:host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
 [part~="layer"] { 
-  transition: d 0.4s ease-out, opacity 0.2s ease-out; 
+  transition: opacity 0.2s ease, filter 0.2s ease; 
   cursor: default;
 }
+:host([interactive]) [part~="layer"] {
+  cursor: pointer;
+}
 :host([interactive]) [part~="layer"]:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.18);
   opacity: 1 !important;
 }
 :host([interactive]) [part="layers"]:has([part~="layer"]:hover) [part~="layer"]:not(:hover) {
-  opacity: 0.35;
+  opacity: 0.45;
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });

@@ -97,20 +97,22 @@ export class MiniPieChart extends MiniChartElement {
 :host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
 [part~="segment"] { 
   fill: var(--mini-chart-segment-color, currentColor);
-  transition: d 0.4s ease-out, transform 0.2s ease-out; 
-  transform-origin: 50px 50px;
+  transition: opacity 0.2s ease, filter 0.2s ease; 
   stroke: var(--mini-chart-gap-color, transparent);
   stroke-width: var(--mini-chart-gap-width, 0.5px);
   cursor: default;
 }
 
 mask circle { transition: stroke-dashoffset 0.8s ease-out; }
+:host([interactive]) [part~="segment"] {
+  cursor: pointer;
+}
 :host([interactive]) [part~="segment"]:hover {
-  transform: scale(1.04);
+  filter: brightness(1.18);
   opacity: 1 !important;
 }
 :host([interactive]) [part="group"]:has([part~="segment"]:hover) [part~="segment"]:not(:hover) {
-  opacity: 0.4;
+  opacity: 0.45;
 }`;
 
     this.renderChart(svg, data, isInitialRender);

@@ -75,8 +75,7 @@ export class MiniBarChart extends MiniChartElement {
   --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; 
 }
 [part~="bar"] { 
-  transition: all 0.4s ease-out; 
-  transform-box: fill-box; 
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease, x 0.35s ease, y 0.35s ease, height 0.35s ease, width 0.35s ease; 
   cursor: default;
 }
 [part~="positive"] { 
@@ -85,11 +84,15 @@ export class MiniBarChart extends MiniChartElement {
 [part~="negative"] { 
   fill: var(--mini-chart-negative-color, #ef4444); 
 }
+:host([interactive]) [part~="bar"] {
+  cursor: pointer;
+}
 :host([interactive]) [part~="bar"]:hover {
+  filter: brightness(1.15);
   opacity: 1 !important;
 }
 :host([interactive]) [part="bars"]:has([part~="bar"]:hover) [part~="bar"]:not(:hover) {
-  opacity: var(--mini-chart-bar-opacity-inactive, 0.35);
+  opacity: var(--mini-chart-bar-opacity-inactive, 0.45);
 }`;
 
     this.renderChart(svg, data, isInitialRender);

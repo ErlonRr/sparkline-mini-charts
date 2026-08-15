@@ -117,21 +117,27 @@ export class MiniComboChart extends MiniChartElement {
 :host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
 [part~="bar"] { 
   fill: var(--mini-chart-bar-color, rgba(128, 128, 128, 0.3)); 
-  transition: all 0.4s ease-out; 
+  transition: opacity 0.2s ease, fill 0.2s ease; 
   cursor: default;
 }
 [part="line"] { 
   stroke: var(--mini-chart-color, #2563eb); 
   stroke-width: var(--mini-chart-stroke-width, 2); 
   transition: d 0.4s ease-out; 
+  pointer-events: none;
 }
 [part="point"] { 
   fill: var(--mini-chart-color, #2563eb); 
   transition: cx 0.4s ease-out, cy 0.4s ease-out; 
+  pointer-events: none;
 }
-[part="crosshair"] { display: none; }
+[part="crosshair"] { display: none; pointer-events: none; }
+:host([interactive]) [part~="bar"] {
+  cursor: pointer;
+}
 :host([interactive]) [part~="bar"]:hover {
   fill: var(--mini-chart-bar-color-hover, rgba(128, 128, 128, 0.6));
+  filter: brightness(1.2);
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });

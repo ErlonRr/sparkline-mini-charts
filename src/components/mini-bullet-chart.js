@@ -95,7 +95,8 @@ export class MiniBulletChart extends MiniChartElement {
 :host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
 [part~="range"] {
   fill: var(--mini-chart-range-color, rgba(128, 128, 128, 0.15));
-  transition: all 0.3s ease-out;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
 }
 [part~="range-1"] { fill: var(--mini-chart-range-1, color-mix(in srgb, var(--primary, #3b82f6) 12%, rgba(128, 128, 128, 0.1))); }
 [part~="range-2"] { fill: var(--mini-chart-range-2, color-mix(in srgb, var(--primary, #3b82f6) 24%, rgba(128, 128, 128, 0.16))); }
@@ -104,7 +105,7 @@ export class MiniBulletChart extends MiniChartElement {
   fill: var(--mini-chart-measure-color, var(--mini-chart-color, #3b82f6));
   rx: 2px;
   ry: 2px;
-  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
   cursor: default;
 }
 [part="target"] {
@@ -112,9 +113,13 @@ export class MiniBulletChart extends MiniChartElement {
   stroke-width: var(--mini-chart-target-width, 2.5px);
   stroke-linecap: round;
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+:host([interactive]) [part="measure"] {
+  cursor: pointer;
 }
 :host([interactive]) [part="measure"]:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.2);
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });

@@ -95,18 +95,18 @@ export class MiniOhlcChart extends MiniChartElement {
 
     const style = document.createElement("style");
     style.textContent = `${chartStyles}
-:host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
 [part~="bar"] { 
   stroke-width: var(--mini-chart-tick-width, ${tickWidth}); 
   stroke-linecap: square;
   fill: none;
-  transition: d 0.4s ease-out; 
+  transition: opacity 0.2s ease, filter 0.2s ease, stroke-width 0.2s ease; 
   cursor: default;
 }
 [part~="bar"][data-bullish] { stroke: var(--mini-chart-bullish-color, #10b981); }
 [part~="bar"]:not([data-bullish]) { stroke: var(--mini-chart-bearish-color, #ef4444); }
-:host([interactive]) [part~="bar"]:hover { opacity: 1 !important; stroke-width: calc(var(--mini-chart-tick-width, ${tickWidth}) + 0.5px); }
-:host([interactive]) [part="ticks"]:has([part~="bar"]:hover) [part~="bar"]:not(:hover) { opacity: 0.35; }`;
+:host([interactive]) [part~="bar"] { cursor: pointer; }
+:host([interactive]) [part~="bar"]:hover { opacity: 1 !important; filter: brightness(1.2); }
+:host([interactive]) [part="ticks"]:has([part~="bar"]:hover) [part~="bar"]:not(:hover) { opacity: 0.45; }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
     this.#container = /** @type {SVGGElement} */ (createSvgElement("g", { part: "ticks" }));

@@ -1,9 +1,8 @@
-// app.js — Interactive showcase, i18n engine, theme manager, and real-time streaming for Sparkline Mini Charts demo.
+// app.js — Interactive showcase, SPA Router, i18n engine, theme manager, multi-framework code generator, and real-time streaming for Sparkline Mini Charts demo.
 
 import "../src/register.js";
 
-// --- Authentic ThemeRiver Dataset (from Last.fm / ECharts / Byron & Wattenberg) ---
-
+// --- Authentic ThemeRiver Dataset (Last.fm / Byron & Wattenberg) ---
 export const THEMERIVER_LASTFM_DATA = Object.freeze([
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 49, 67, 15, 6, 19, 19, 9, 0, 1, 10, 5, 6, 1, 1, 0, 25, 0, 3, 0],
@@ -36,38 +35,33 @@ export const translations = {
   en: {
     tagline: "Native Web Components · SVG · Zero runtime dependencies",
     heroTitle: "Sparkline Mini Charts",
-    heroDesc: "Ultra-lightweight, reactive, framework-agnostic micro data visualizations. Drop semantic SVG sparkline tags into any table, dashboard, card, or metric widget.",
-    navDocs: "Docs",
-    navStreaming: "Live Stream",
-    navGallery: "All Charts",
-    navPlayground: "Playground",
-    navIntegrations: "Frameworks",
+    heroDesc: "Ultra-lightweight, reactive, framework-agnostic micro data visualizations. Drop semantic SVG sparkline tags into any table, dashboard, card, or metric widget with 100% Shadow DOM encapsulation.",
     
-    // Sidebar groups
+    // Sidebar & Navigation
     groupGettingStarted: "Getting Started",
     itemOverview: "Overview & Features",
     itemInstallation: "Installation",
-    itemQuickStart: "Quick Start",
-    groupLiveStream: "Live Real-Time",
-    itemStreamingDashboard: "Streaming Dashboard (All 16)",
-    groupComponents: "Components Gallery",
-    itemAllComponents: "All 16 Primitives",
-    groupCartesian: "Continuous & Cartesian",
-    groupBarFinancial: "Bar & Financial",
-    groupRadialMetrics: "Radial & Metrics",
+    groupLiveStream: "Live Studio",
+    itemStreamingDashboard: "Streaming Dashboard (17)",
+    groupComponents: "Components Catalog",
+    itemAllComponents: "All 17 Primitives",
+    catTrends: "1. Continuous Trends & Flow",
+    catSigned: "2. Signed & Categorical",
+    catRadial: "3. Radial & Proportions",
+    catGauges: "4. Gauges, Meters & Benchmarks",
+    catFinancial: "5. Financial & 2D Coordinates",
     groupPlayground: "Interactive Sandbox",
     itemPlayground: "Live Playground",
-    groupFrameworks: "Framework Integrations",
-    itemFrameworks: "React, Vue, Angular",
+    groupFrameworks: "Framework Guides",
+    itemFrameworks: "React, Vue, Angular, Svelte",
     
-    // Live Stream section
-    streamTitle: "Live Real-Time Streaming (All 16 Charts)",
+    // Live Stream
+    streamTitle: "Live Real-Time Streaming Studio (All 17 Charts)",
     streamSubtitle: "Witness smooth SVG path morphing, synchronized point tracking, staggered bar physics, and authentic ThemeRiver organic flows in real time.",
     btnPlay: "▶ Resume Stream",
     btnPause: "⏸ Pause Stream",
     btnStep: "⏭ Single Step",
     btnRandom: "🎲 Randomize",
-    speedLabel: "Tick Speed:",
     speedFast: "Fast (0.6s)",
     speedNormal: "Normal (1.2s)",
     speedSlow: "Slow (2.5s)",
@@ -91,8 +85,9 @@ export const translations = {
     streamScatterLabel: "Latency vs Throughput (Scatter)",
     
     // Gallery & Cards
-    galleryTitle: "All Chart Primitives",
-    gallerySubtitle: "Every component is encapsulated in Shadow DOM, supports custom theme variables, and reacts to attribute updates.",
+    galleryTitle: "Components Catalog & Code Explorer",
+    gallerySubtitle: "Explore all 17 primitives with uniform cards, multi-framework code snippets, and deep-dive documentation.",
+    btnDetails: "API & Details →",
     
     // Component names & descriptions
     lineTitle: "Line Sparkline",
@@ -130,10 +125,9 @@ export const translations = {
     scatterTitle: "Scatter Sparkline (2D)",
     scatterDesc: "2D coordinate distribution with optional regression trendline and bubble sizing.",
 
-
     // Playground
-    playgroundTitle: "Interactive Playground",
-    playgroundSubtitle: "Experiment with chart attributes, test reactive data updates, and copy ready-to-use HTML/framework code.",
+    playgroundTitle: "Interactive Sandbox & Playground",
+    playgroundSubtitle: "Experiment with chart attributes, test custom datasets, and export ready-to-use markup.",
     selectChartType: "Select Component:",
     editDataLabel: "JSON Data Array:",
     editLabelLabel: "Accessible Label (aria-label):",
@@ -147,42 +141,38 @@ export const translations = {
     tabReact: "React 18 / 19+",
     tabVue: "Vue 3 (SFC)",
     tabAngular: "Angular 18 / 19 / 20+",
+    tabSvelte: "Svelte",
   },
   it: {
     tagline: "Web Components Nativi · SVG · Zero dipendenze runtime",
     heroTitle: "Sparkline Mini Charts",
-    heroDesc: "Micro-visualizzazioni dati ultra-leggere, reattive e indipendenti da framework. Inserisci tag SVG semantici in qualsiasi tabella, dashboard, card o widget di metriche.",
-    navDocs: "Documentazione",
-    navStreaming: "Dati Live",
-    navGallery: "Tutti i Grafici",
-    navPlayground: "Playground",
-    navIntegrations: "Integrazioni",
+    heroDesc: "Micro-visualizzazioni dati ultra-leggere, reattive e indipendenti da framework. Inserisci tag SVG semantici in qualsiasi tabella, dashboard, card o widget di metriche con incapsulamento Shadow DOM al 100%.",
     
-    // Sidebar groups
+    // Sidebar & Navigation
     groupGettingStarted: "Guida Iniziale",
     itemOverview: "Panoramica & Funzioni",
     itemInstallation: "Installazione",
-    itemQuickStart: "Guida Rapida",
-    groupLiveStream: "Dati in Tempo Reale",
-    itemStreamingDashboard: "Streaming Dashboard (Tutti i 16)",
-    groupComponents: "Galleria Componenti",
-    itemAllComponents: "Tutti i 16 Grafici",
-    groupCartesian: "Continui & Cartesiani",
-    groupBarFinancial: "Barre & Finanziari",
-    groupRadialMetrics: "Radiali & Metriche",
+    groupLiveStream: "Live Studio",
+    itemStreamingDashboard: "Streaming Dashboard (17)",
+    groupComponents: "Catalogo Componenti",
+    itemAllComponents: "Tutti i 17 Grafici",
+    catTrends: "1. Trend Continui & Flussi",
+    catSigned: "2. Barre & Esiti Categorici",
+    catRadial: "3. Radiali & Proporzioni",
+    catGauges: "4. Tachimetri, Metri & Target",
+    catFinancial: "5. Finanziari & Coordinate 2D",
     groupPlayground: "Sandbox Interattivo",
     itemPlayground: "Playground Live",
-    groupFrameworks: "Integrazioni Framework",
-    itemFrameworks: "React, Vue, Angular",
+    groupFrameworks: "Guide Framework",
+    itemFrameworks: "React, Vue, Angular, Svelte",
     
-    // Live Stream section
-    streamTitle: "Dashboard Live Streaming (Tutti i 16 Grafici)",
+    // Live Stream
+    streamTitle: "Studio Live Streaming (Tutti i 17 Grafici)",
     streamSubtitle: "Ammira il morphing geometrico delle curve SVG, il tracking sincronizzato dei pallini, la fisica a cascata delle barre e il flusso organico ThemeRiver in tempo reale.",
     btnPlay: "▶ Riprendi Stream",
     btnPause: "⏸ Sospendi Stream",
     btnStep: "⏭ Singolo Passo",
     btnRandom: "🎲 Dati Casuali",
-    speedLabel: "Velocità Tick:",
     speedFast: "Veloce (0.6s)",
     speedNormal: "Normale (1.2s)",
     speedSlow: "Lenta (2.5s)",
@@ -206,8 +196,9 @@ export const translations = {
     streamScatterLabel: "Latenza vs Throughput (Scatter)",
     
     // Gallery & Cards
-    galleryTitle: "Tutti i Componenti Primitivi",
-    gallerySubtitle: "Ogni componente è incapsulato in Shadow DOM, supporta variabili CSS per i temi e reagisce istantaneamente al cambio dati.",
+    galleryTitle: "Catalogo Componenti & Explorer Codice",
+    gallerySubtitle: "Esplora tutti i 17 componenti primitivi con card uniformi, snippet di codice multi-framework e schede di dettaglio.",
+    btnDetails: "Dettagli & API →",
     
     // Component names & descriptions
     lineTitle: "Grafico a Linea",
@@ -245,10 +236,9 @@ export const translations = {
     scatterTitle: "Grafico a Dispersione (2D)",
     scatterDesc: "Distribuzione di punti bidimensionali (x, y) con linea di regressione e supporto bubble.",
 
-
     // Playground
-    playgroundTitle: "Sandbox Interattivo",
-    playgroundSubtitle: "Modifica gli attributi, osserva gli aggiornamenti reattivi e copia il markup pronto per HTML o framework.",
+    playgroundTitle: "Sandbox Interattivo & Playground",
+    playgroundSubtitle: "Modifica gli attributi del grafico, testa dataset personalizzati ed esporta il markup pronto all'uso.",
     selectChartType: "Seleziona Componente:",
     editDataLabel: "Array Dati JSON:",
     editLabelLabel: "Etichetta Accessibile (aria-label):",
@@ -257,42 +247,50 @@ export const translations = {
     
     // Integrations
     integrationsTitle: "Integrazioni Framework",
-    integrationsSubtitle: "Gli standard Web Components funzionano ovunque. Usa i Custom Elements nativi o i wrapper tipizzati per framework.",
+    integrationsSubtitle: "I Web Components standard funzionano ovunque. Usali nativamente o tramite i comodi wrapper tipizzati.",
     tabVanilla: "Vanilla / HTML",
     tabReact: "React 18 / 19+",
     tabVue: "Vue 3 (SFC)",
     tabAngular: "Angular 18 / 19 / 20+",
+    tabSvelte: "Svelte",
   }
 };
 
-// --- App Global State ---
+// --- Application State ---
 export const state = {
-  theme: localStorage.getItem("mini-charts-theme") || "dark",
-  lang: localStorage.getItem("mini-charts-lang") || "en",
+  theme: localStorage.getItem("smc_theme") || "dark",
+  lang: localStorage.getItem("smc_lang") || "en",
+  currentRoute: "overview",
   isStreaming: true,
-  streamSpeedMs: 1200,
+  streamSpeed: 1200,
   streamTimerId: null,
+  streamTick: 0,
 };
 
-// --- Theme Controller ---
+// --- Toast Manager ---
+export function showToast(message = "Copied to clipboard!") {
+  const toast = document.getElementById("toast");
+  const msgEl = document.getElementById("toast-msg");
+  if (!toast || !msgEl) return;
+  msgEl.textContent = message;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+// --- Theme Management ---
 export function applyTheme(theme) {
   state.theme = theme;
-  localStorage.setItem("mini-charts-theme", theme);
+  localStorage.setItem("smc_theme", theme);
   const html = document.documentElement;
-  
-  if (theme === "dark") {
-    html.classList.add("dark");
-    html.classList.remove("light");
-    html.style.colorScheme = "dark";
-  } else {
-    html.classList.add("light");
+  const icon = document.getElementById("theme-icon");
+  if (theme === "light") {
     html.classList.remove("dark");
-    html.style.colorScheme = "light";
-  }
-
-  const themeIcon = document.getElementById("theme-icon");
-  if (themeIcon) {
-    themeIcon.textContent = theme === "dark" ? "🌙" : "☀️";
+    html.classList.add("light");
+    if (icon) icon.textContent = "☀️";
+  } else {
+    html.classList.remove("light");
+    html.classList.add("dark");
+    if (icon) icon.textContent = "🌙";
   }
 }
 
@@ -300,26 +298,25 @@ export function toggleTheme() {
   applyTheme(state.theme === "dark" ? "light" : "dark");
 }
 
-// --- i18n Controller ---
+// --- i18n Language Manager ---
 export function applyLanguage(lang) {
   state.lang = lang;
-  localStorage.setItem("mini-charts-lang", lang);
+  localStorage.setItem("smc_lang", lang);
   const dict = translations[lang] || translations.en;
-  
+  const langBtn = document.getElementById("lang-toggle-btn");
+  if (langBtn) {
+    langBtn.textContent = lang === "it" ? "🇮🇹 IT" : "🇬🇧 EN";
+  }
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.getAttribute("data-i18n");
     if (dict[key]) {
-      if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
-        el.placeholder = dict[key];
-      } else {
-        el.textContent = dict[key];
-      }
+      el.textContent = dict[key];
     }
   });
-
-  const langBtn = document.getElementById("lang-toggle-btn");
-  if (langBtn) {
-    langBtn.textContent = lang === "en" ? "🇬🇧 EN" : "🇮🇹 IT";
+  renderGallery();
+  if (state.currentRoute.startsWith("components/")) {
+    const tag = state.currentRoute.split("/")[1];
+    renderComponentDetail(tag);
   }
 }
 
@@ -327,407 +324,597 @@ export function toggleLanguage() {
   applyLanguage(state.lang === "en" ? "it" : "en");
 }
 
-// --- High-Fidelity Sliding Window Realtime Data Generators ---
+// --- Component Specifications Database ---
+export const COMPONENTS_CATALOG = Object.freeze([
+  // Category 1: Continuous Trends & Flow
+  {
+    category: "trends",
+    tag: "mini-line-chart",
+    nameKey: "lineTitle",
+    descKey: "lineDesc",
+    data: [18, 23, 20, 31, 27, 38, 44],
+    attrs: 'curve="smooth" trend-color="auto" points="last" interactive label="Weekly revenue trend"',
+    reactProps: 'data={[18, 23, 20, 31, 27, 38, 44]} curve="smooth" trendColor="auto" points="last" label="Weekly revenue trend"',
+    vueProps: ':data="[18, 23, 20, 31, 27, 38, 44]" curve="smooth" trend-color="auto" points="last" label="Weekly revenue trend"',
+    angularProps: '[data]="revenueData" curve="smooth" trend-color="auto" points="last" label="Weekly revenue trend"',
+  },
+  {
+    category: "trends",
+    tag: "mini-area-chart",
+    nameKey: "areaTitle",
+    descKey: "areaDesc",
+    data: [18, 23, 20, 31, 27, 38, 44],
+    attrs: 'curve="smooth" gradient="true" trend-color="auto" label="Weekly active users"',
+    reactProps: 'data={[18, 23, 20, 31, 27, 38, 44]} curve="smooth" gradient="true" label="Weekly active users"',
+    vueProps: ':data="[18, 23, 20, 31, 27, 38, 44]" curve="smooth" gradient="true" label="Weekly active users"',
+    angularProps: '[data]="usersData" curve="smooth" gradient="true" label="Weekly active users"',
+  },
+  {
+    category: "trends",
+    tag: "mini-stacked-area-chart",
+    nameKey: "stackedAreaTitle",
+    descKey: "stackedAreaDesc",
+    data: [[10, 20, 30, 40], [20, 15, 25, 35], [5, 10, 15, 20]],
+    attrs: 'curve="smooth" interactive label="Resource distribution"',
+    reactProps: 'data={[[10, 20, 30, 40], [20, 15, 25, 35], [5, 10, 15, 20]]} curve="smooth" label="Resource distribution"',
+    vueProps: ':data="[[10, 20, 30, 40], [20, 15, 25, 35], [5, 10, 15, 20]]" curve="smooth" label="Resource distribution"',
+    angularProps: '[data]="layersData" curve="smooth" label="Resource distribution"',
+  },
+  {
+    category: "trends",
+    tag: "mini-stream-chart",
+    nameKey: "streamTitleChart",
+    descKey: "streamDesc",
+    data: THEMERIVER_LASTFM_DATA,
+    attrs: 'curve="smooth" interactive label="Organic stream flow"',
+    reactProps: 'data={themeRiverData} curve="smooth" label="Organic stream flow"',
+    vueProps: ':data="themeRiverData" curve="smooth" label="Organic stream flow"',
+    angularProps: '[data]="themeRiverData" curve="smooth" label="Organic stream flow"',
+  },
+  {
+    category: "trends",
+    tag: "mini-combo-chart",
+    nameKey: "comboTitle",
+    descKey: "comboDesc",
+    data: [{ bar: 10, line: 20 }, { bar: 15, line: 15 }, { bar: 8, line: 25 }, { bar: 22, line: 30 }],
+    attrs: 'shared-domain="true" curve="smooth" interactive label="Sales vs Target"',
+    reactProps: 'data={[{ bar: 10, line: 20 }, { bar: 15, line: 15 }, { bar: 8, line: 25 }, { bar: 22, line: 30 }]} sharedDomain="true" label="Sales vs Target"',
+    vueProps: ':data="comboData" shared-domain="true" label="Sales vs Target"',
+    angularProps: '[data]="comboData" shared-domain="true" label="Sales vs Target"',
+  },
 
-// 1. Line & Area (Sliding 10-point FIFO queue)
-let lineStreamHistory = [24, 28, 25, 32, 30, 42, 48, 45, 54, 52];
-let areaStreamHistory = [42, 48, 45, 55, 58, 52, 64, 68, 62, 70];
+  // Category 2: Signed & Categorical
+  {
+    category: "signed",
+    tag: "mini-bar-chart",
+    nameKey: "barTitle",
+    descKey: "barDesc",
+    data: [-12, 8, 19, -5, 13, 21],
+    attrs: 'gap="0.25" radius="3" interactive label="Monthly net variance"',
+    reactProps: 'data={[-12, 8, 19, -5, 13, 21]} gap={0.25} radius={3} label="Monthly net variance"',
+    vueProps: ':data="[-12, 8, 19, -5, 13, 21]" gap="0.25" radius="3" label="Monthly net variance"',
+    angularProps: '[data]="varianceData" gap="0.25" radius="3" label="Monthly net variance"',
+  },
+  {
+    category: "signed",
+    tag: "mini-win-loss-chart",
+    nameKey: "winLossTitle",
+    descKey: "winLossDesc",
+    data: [1, 1, -1, 1, 0, 1, -1, 1, 1, 0, 1, 1],
+    attrs: 'gap="0.2" radius="2" interactive label="CI/CD build history"',
+    reactProps: 'data={[1, 1, -1, 1, 0, 1, -1, 1, 1, 0, 1, 1]} gap={0.2} radius={2} label="CI/CD build history"',
+    vueProps: ':data="[1, 1, -1, 1, 0, 1, -1, 1, 1, 0, 1, 1]" gap="0.2" radius="2" label="CI/CD build history"',
+    angularProps: '[data]="buildStreak" gap="0.2" radius="2" label="CI/CD build history"',
+  },
+  {
+    category: "signed",
+    tag: "mini-range-bar-chart",
+    nameKey: "rangeBarTitle",
+    descKey: "rangeBarDesc",
+    data: [[12, 45, 30], [20, 68, 55], [15, 52, 48], [30, 85, 60], [25, 70, 42]],
+    attrs: 'gap="0.25" radius="3" interactive label="52-week price range"',
+    reactProps: 'data={[[12, 45, 30], [20, 68, 55], [15, 52, 48], [30, 85, 60], [25, 70, 42]]} gap={0.25} radius={3} label="52-week price range"',
+    vueProps: ':data="rangeData" gap="0.25" radius="3" label="52-week price range"',
+    angularProps: '[data]="rangeData" gap="0.25" radius="3" label="52-week price range"',
+  },
 
-// 2. Bar (8 points variance)
-let barStreamHistory = [-12, 18, 28, -6, 22, -10, 32, 15];
+  // Category 3: Radial & Proportions
+  {
+    category: "radial",
+    tag: "mini-pie-chart",
+    nameKey: "pieTitle",
+    descKey: "pieDesc",
+    data: [42, 27, 18, 13],
+    attrs: 'donut="0.6" interactive label="Traffic sources share"',
+    reactProps: 'data={[42, 27, 18, 13]} donut={0.6} label="Traffic sources share"',
+    vueProps: ':data="[42, 27, 18, 13]" donut="0.6" label="Traffic sources share"',
+    angularProps: '[data]="trafficShare" donut="0.6" label="Traffic sources share"',
+  },
+  {
+    category: "radial",
+    tag: "mini-half-pie-chart",
+    nameKey: "halfPieTitle",
+    descKey: "halfPieDesc",
+    data: [58, 25, 17],
+    attrs: 'donut="0.55" interactive label="Plan adoption split"',
+    reactProps: 'data={[58, 25, 17]} donut={0.55} label="Plan adoption split"',
+    vueProps: ':data="[58, 25, 17]" donut="0.55" label="Plan adoption split"',
+    angularProps: '[data]="planAdoption" donut="0.55" label="Plan adoption split"',
+  },
+  {
+    category: "radial",
+    tag: "mini-radial-bar-chart",
+    nameKey: "radialBarTitle",
+    descKey: "radialBarDesc",
+    data: [{ value: 75, color: "#8b5cf6" }, { value: 55, color: "#3b82f6" }, { value: 90, color: "#10b981" }],
+    attrs: 'sweep="270" round-caps interactive label="Activity goal rings"',
+    reactProps: 'data={[{ value: 75, color: "#8b5cf6" }, { value: 55, color: "#3b82f6" }, { value: 90, color: "#10b981" }]} sweep={270} roundCaps label="Activity rings"',
+    vueProps: ':data="ringsData" sweep="270" round-caps label="Activity rings"',
+    angularProps: '[data]="ringsData" sweep="270" round-caps label="Activity rings"',
+  },
 
-// 3. Pie & Half-Pie
-let pieStreamValues = [42, 28, 18, 12];
-let halfPieStreamValues = [55, 28, 17];
+  // Category 4: Gauges, Meters & Benchmarks
+  {
+    category: "gauges",
+    tag: "mini-progress-chart",
+    nameKey: "progressTitle",
+    descKey: "progressDesc",
+    data: [78],
+    attrs: 'max="100" show-value unit="%" label="Server quota capacity"',
+    reactProps: 'data={[78]} max={100} showValue unit="%" label="Server quota capacity"',
+    vueProps: ':data="[78]" max="100" show-value unit="%" label="Server quota capacity"',
+    angularProps: '[data]="[78]" max="100" show-value unit="%" label="Server quota capacity"',
+  },
+  {
+    category: "gauges",
+    tag: "mini-gauge-chart",
+    nameKey: "gaugeTitle",
+    descKey: "gaugeDesc",
+    data: [65, 0, 100],
+    attrs: 'label="Turbine pressure gauge"',
+    reactProps: 'data={[65, 0, 100]} label="Turbine pressure gauge"',
+    vueProps: ':data="[65, 0, 100]" label="Turbine pressure gauge"',
+    angularProps: '[data]="[65, 0, 100]" label="Turbine pressure gauge"',
+  },
+  {
+    category: "gauges",
+    tag: "mini-bullet-chart",
+    nameKey: "bulletTitle",
+    descKey: "bulletDesc",
+    data: { value: 78, target: 85, ranges: [50, 80, 100], min: 0, max: 100 },
+    attrs: 'interactive label="Revenue KPI vs Target"',
+    reactProps: 'data={{ value: 78, target: 85, ranges: [50, 80, 100], min: 0, max: 100 }} label="Revenue KPI vs Target"',
+    vueProps: ':data="bulletData" label="Revenue KPI vs Target"',
+    angularProps: '[data]="bulletData" label="Revenue KPI vs Target"',
+  },
 
-// 4. Radial Rings & Progress
-let radialRings = [72, 54, 86];
-let progressValue = 68;
+  // Category 5: Financial & 2D Coordinates
+  {
+    category: "financial",
+    tag: "mini-candlestick-chart",
+    nameKey: "candleTitle",
+    descKey: "candleDesc",
+    data: [[100, 105, 98, 103], [103, 108, 100, 107], [107, 110, 104, 106], [106, 112, 105, 110], [110, 114, 108, 112], [112, 118, 110, 117], [117, 120, 114, 115], [115, 122, 113, 120]],
+    attrs: 'hollow-bullish gap="0.28" wick-width="0.75" interactive label="Stock price chart"',
+    reactProps: 'data={stockCandles} hollowBullish gap={0.28} wickWidth={0.75} label="Stock price chart"',
+    vueProps: ':data="stockCandles" hollow-bullish gap="0.28" wick-width="0.75" label="Stock price chart"',
+    angularProps: '[data]="stockCandles" hollow-bullish gap="0.28" wick-width="0.75" label="Stock price chart"',
+  },
+  {
+    category: "financial",
+    tag: "mini-ohlc-chart",
+    nameKey: "ohlcTitle",
+    descKey: "ohlcDesc",
+    data: [[100, 105, 98, 103], [103, 108, 100, 107], [107, 110, 104, 106], [106, 112, 105, 110], [110, 114, 108, 112], [112, 118, 110, 117], [117, 120, 114, 115], [115, 122, 113, 120]],
+    attrs: 'tick-width="0.75" gap="0.28" interactive label="Asset tick price"',
+    reactProps: 'data={assetTicks} tickWidth={0.75} gap={0.28} label="Asset tick price"',
+    vueProps: ':data="assetTicks" tick-width="0.75" gap="0.28" label="Asset tick price"',
+    angularProps: '[data]="assetTicks" tick-width="0.75" gap="0.28" label="Asset tick price"',
+  },
+  {
+    category: "financial",
+    tag: "mini-scatter-chart",
+    nameKey: "scatterTitle",
+    descKey: "scatterDesc",
+    data: [[10, 25], [18, 42], [28, 30], [35, 65], [44, 52], [58, 80], [65, 74], [78, 90]],
+    attrs: 'trend-line="true" point-radius="3.5" interactive label="Latency vs throughput"',
+    reactProps: 'data={[[10, 25], [18, 42], [28, 30], [35, 65], [44, 52], [58, 80], [65, 74], [78, 90]]} trendLine pointRadius={3.5} label="Latency vs throughput"',
+    vueProps: ':data="scatterData" trend-line="true" point-radius="3.5" label="Latency vs throughput"',
+    angularProps: '[data]="scatterData" trend-line="true" point-radius="3.5" label="Latency vs throughput"',
+  }
+]);
 
-// 5. Gauge Temperature
-let gaugeValue = 62;
-
-// 6. Candlestick & OHLC (18 compact candles with Open_t = Close_{t-1})
-let financialPrice = 110;
-let candleStreamHistory = [];
-for (let i = 0; i < 18; i++) {
-  const open = financialPrice;
-  const delta = (Math.random() - 0.48) * 8;
-  const close = Math.round(open + delta);
-  const high = Math.round(Math.max(open, close) + Math.random() * 4);
-  const low = Math.round(Math.min(open, close) - Math.random() * 4);
-  candleStreamHistory.push([open, high, low, close]);
-  financialPrice = close;
+function tagToPascalCase(tag) {
+  return tag
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join("");
 }
 
-// 7. Stacked Area (3 layers x 8 points)
-let stackedStreamData = [
-  [12, 18, 24, 22, 28, 32, 30, 36],
-  [15, 14, 18, 20, 16, 22, 25, 24],
-  [8, 12, 10, 15, 14, 16, 18, 20],
-];
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 
-// 8. Streamgraph: Multi-layer ThemeRiver rolling window
-let streamRiverState = THEMERIVER_LASTFM_DATA.map((row) => [...row]);
-let streamTickOffset = 0;
+// --- Render Categorized Gallery with Uniform Heights ---
+export function renderGallery() {
+  const dict = translations[state.lang] || translations.en;
+  const categories = ["trends", "signed", "radial", "gauges", "financial"];
+  
+  categories.forEach((cat) => {
+    const grid = document.getElementById(`grid-${cat}`);
+    if (!grid) return;
 
-// 9. Combo (6 points)
-let comboStreamData = [
-  { bar: 12, line: 18 },
-  { bar: 16, line: 15 },
-  { bar: 10, line: 22 },
-  { bar: 24, line: 28 },
-  { bar: 18, line: 25 },
-  { bar: 28, line: 34 },
-];
+    const items = COMPONENTS_CATALOG.filter((c) => c.category === cat);
+    grid.innerHTML = "";
 
-// 10. Bullet Chart
-let bulletStreamData = { value: 74, target: 85, ranges: [50, 80, 100], min: 0, max: 100 };
+    items.forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "glass-card gallery-card";
 
-// 11. Win / Loss Chart (12 items)
-let winLossStreamHistory = [1, 1, -1, 1, 0, 1, -1, 1, 1, 0, 1, 1];
+      const title = dict[item.nameKey] || item.tag;
+      const desc = dict[item.descKey] || "";
+      const pascalName = tagToPascalCase(item.tag);
 
-// 12. Range Bar Chart (5 intervals)
-let rangeBarStreamHistory = [
-  [15, 45, 32],
-  [22, 68, 54],
-  [18, 52, 48],
-  [30, 85, 62],
-  [25, 70, 44],
-];
+      // Multi-framework code snippets
+      const htmlSnippet = `<${item.tag}\n  data='${JSON.stringify(item.data)}'\n  ${item.attrs}\n></${item.tag}>`;
+      const reactSnippet = `import { ${pascalName} } from 'sparkline-mini-charts/react';\n\n<${pascalName}\n  ${item.reactProps}\n/>`;
+      const vueSnippet = `<script setup lang="ts">\nimport { ${pascalName} } from 'sparkline-mini-charts/vue';\n</script>\n\n<template>\n  <${pascalName} ${item.vueProps} />\n</template>`;
+      const angularSnippet = `import { MiniChartDirective } from 'sparkline-mini-charts/angular';\n\n<${item.tag}\n  ${item.angularProps}\n></${item.tag}>`;
 
-// 13. Scatter Chart (8 points)
-let scatterStreamPoints = [
-  [10, 25],
-  [18, 42],
-  [28, 30],
-  [35, 65],
-  [44, 52],
-  [58, 80],
-  [65, 74],
-  [78, 90],
-];
+      card.innerHTML = `
+        <div class="gallery-card-top">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h3 style="font-size: 1.05rem;">${title}</h3>
+              <code style="font-size: 0.75rem; color: var(--primary);">&lt;${item.tag}&gt;</code>
+            </div>
+            <a href="#/components/${item.tag}" class="btn btn-secondary btn-sm" style="font-size: 0.725rem; padding: 0.2rem 0.5rem;">${dict.btnDetails || "Details →"}</a>
+          </div>
+          <p class="gallery-card-desc">${desc}</p>
+        </div>
 
+        <div class="gallery-stage">
+          <${item.tag} data='${JSON.stringify(item.data)}' ${item.attrs}></${item.tag}>
+        </div>
 
+        <div class="card-tabs">
+          <div class="card-tab-nav" role="tablist">
+            <button class="card-tab-btn active" data-framework="html">HTML</button>
+            <button class="card-tab-btn" data-framework="react">React</button>
+            <button class="card-tab-btn" data-framework="vue">Vue</button>
+            <button class="card-tab-btn" data-framework="angular">Angular</button>
+          </div>
+          <div class="card-code-container">
+            <pre class="card-code-block"><code>${escapeHtml(htmlSnippet)}</code></pre>
+            <button class="card-copy-btn" title="Copy code">Copy</button>
+          </div>
+        </div>
+      `;
+
+      // Setup tab switcher & copy button for this specific card
+      const tabBtns = card.querySelectorAll(".card-tab-btn");
+      const codeBlock = card.querySelector(".card-code-block code");
+      const copyBtn = card.querySelector(".card-copy-btn");
+
+      const snippets = {
+        html: htmlSnippet,
+        react: reactSnippet,
+        vue: vueSnippet,
+        angular: angularSnippet
+      };
+
+      tabBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          tabBtns.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          const fw = btn.getAttribute("data-framework");
+          if (codeBlock) codeBlock.textContent = snippets[fw];
+        });
+      });
+
+      copyBtn?.addEventListener("click", async () => {
+        if (codeBlock?.textContent) {
+          await navigator.clipboard.writeText(codeBlock.textContent);
+          showToast(`Copied ${pascalName} code!`);
+          copyBtn.textContent = "✓";
+          setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
+        }
+      });
+
+      grid.appendChild(card);
+    });
+  });
+}
+
+// --- Dedicated Component Detail View Page ---
+export function renderComponentDetail(tag) {
+  const item = COMPONENTS_CATALOG.find((c) => c.tag === tag) || COMPONENTS_CATALOG[0];
+  const dict = translations[state.lang] || translations.en;
+
+  const titleEl = document.getElementById("detail-title");
+  const tagEl = document.getElementById("detail-tag");
+  const descEl = document.getElementById("detail-desc");
+  const badgeEl = document.getElementById("detail-cat-badge");
+  const stageEl = document.getElementById("detail-stage");
+  const attrsPanel = document.getElementById("detail-attrs-panel");
+  const codeOutput = document.getElementById("detail-code-output");
+
+  if (!titleEl || !tagEl || !stageEl || !codeOutput) return;
+
+  const title = dict[item.nameKey] || item.tag;
+  const desc = dict[item.descKey] || "";
+  const pascalName = tagToPascalCase(item.tag);
+
+  titleEl.textContent = title;
+  tagEl.textContent = `<${item.tag}>`;
+  if (descEl) descEl.textContent = desc;
+  if (badgeEl) badgeEl.textContent = `Category: ${item.category.toUpperCase()}`;
+
+  // Render live chart in detail stage
+  stageEl.innerHTML = `<${item.tag} data='${JSON.stringify(item.data)}' ${item.attrs}></${item.tag}>`;
+
+  // Render attributes list
+  if (attrsPanel) {
+    attrsPanel.innerHTML = `
+      <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem; font-size: 0.85rem;">
+        <strong>data:</strong> <code>JSON array / object</code>
+        <strong>label:</strong> <code>Accessible ARIA label</code>
+        <strong>Shadow DOM:</strong> <code>mode="open"</code>
+        <strong>Frameworks:</strong> <code>React, Vue, Angular, Svelte</code>
+        <strong>Theme Tokens:</strong> <code>--mini-chart-color-1..8</code>
+      </div>
+    `;
+  }
+
+  // Snippets
+  const htmlSnippet = `<${item.tag}\n  data='${JSON.stringify(item.data, null, 2)}'\n  ${item.attrs}\n></${item.tag}>`;
+  const reactSnippet = `import { ${pascalName} } from 'sparkline-mini-charts/react';\n\nexport function ChartCard() {\n  return (\n    <${pascalName}\n      ${item.reactProps}\n    />\n  );\n}`;
+  const vueSnippet = `<script setup lang="ts">\nimport { ${pascalName} } from 'sparkline-mini-charts/vue';\n</script>\n\n<template>\n  <${pascalName} ${item.vueProps} />\n</template>`;
+  const angularSnippet = `import { Component } from '@angular/core';\nimport { MiniChartDirective } from 'sparkline-mini-charts/angular';\n\n@Component({\n  standalone: true,\n  imports: [MiniChartDirective],\n  template: \`\n    <${item.tag} ${item.angularProps}></${item.tag}>\n  \`\n})\nexport class ChartCardComponent {}`;
+
+  const detailSnippets = { html: htmlSnippet, react: reactSnippet, vue: vueSnippet, angular: angularSnippet };
+  codeOutput.textContent = htmlSnippet;
+
+  document.querySelectorAll("[data-detail-tab]").forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll("[data-detail-tab]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const fw = btn.getAttribute("data-detail-tab");
+      codeOutput.textContent = detailSnippets[fw];
+    };
+  });
+
+  const detailCopyBtn = document.getElementById("detail-copy-btn");
+  if (detailCopyBtn) {
+    detailCopyBtn.onclick = async () => {
+      await navigator.clipboard.writeText(codeOutput.textContent);
+      showToast(`Copied ${pascalName} code!`);
+    };
+  }
+}
+
+// --- Client-Side Hash Router ---
+export function handleRoute() {
+  const hash = window.location.hash.replace(/^#\/?/, "");
+  state.currentRoute = hash || "overview";
+
+  // Hide all page views
+  document.querySelectorAll(".page-view").forEach((v) => v.classList.remove("active"));
+  document.querySelectorAll(".sidebar-link").forEach((l) => l.classList.remove("active"));
+
+  if (state.currentRoute.startsWith("components/")) {
+    const tag = state.currentRoute.split("/")[1];
+    document.getElementById("view-component-detail")?.classList.add("active");
+    renderComponentDetail(tag);
+    // highlight sidebar
+    const link = document.querySelector(`.sidebar-link[data-route="components/${tag}"]`);
+    if (link) link.classList.add("active");
+  } else if (state.currentRoute === "components") {
+    document.getElementById("view-components")?.classList.add("active");
+    document.querySelector('.sidebar-link[data-route="components"]')?.classList.add("active");
+    renderGallery();
+  } else if (state.currentRoute === "streaming") {
+    document.getElementById("view-streaming")?.classList.add("active");
+    document.querySelector('.sidebar-link[data-route="streaming"]')?.classList.add("active");
+  } else if (state.currentRoute === "playground") {
+    document.getElementById("view-playground")?.classList.add("active");
+    document.querySelector('.sidebar-link[data-route="playground"]')?.classList.add("active");
+    renderPlayground();
+  } else if (state.currentRoute === "frameworks") {
+    document.getElementById("view-frameworks")?.classList.add("active");
+    document.querySelector('.sidebar-link[data-route="frameworks"]')?.classList.add("active");
+  } else {
+    document.getElementById("view-overview")?.classList.add("active");
+    document.querySelector('.sidebar-link[data-route="overview"]')?.classList.add("active");
+  }
+
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+// --- Live Real-Time Stream Simulator ---
 export function stepStreamData() {
-  // 1. Line: FIFO sliding window progression
-  const lastLine = lineStreamHistory[lineStreamHistory.length - 1];
-  const deltaLine = (Math.random() - 0.47) * 9;
-  const newLine = Math.max(12, Math.min(85, Math.round(lastLine + deltaLine)));
-  lineStreamHistory = [...lineStreamHistory.slice(1), newLine];
-  
-  const streamLineEl = document.getElementById("stream-line-chart");
-  if (streamLineEl) {
-    streamLineEl.setAttribute("data", JSON.stringify(lineStreamHistory));
+  state.streamTick++;
+  const t = state.streamTick;
+
+  // 1. Line
+  const lineEl = document.getElementById("stream-line-chart");
+  if (lineEl) {
+    const prev = JSON.parse(lineEl.getAttribute("data") || "[]");
+    const nextVal = Math.round(Math.max(10, Math.min(80, (prev[prev.length - 1] || 40) + (Math.random() * 16 - 7.5))));
+    const next = [...prev.slice(1), nextVal];
+    lineEl.setAttribute("data", JSON.stringify(next));
   }
 
-  // 2. Area: FIFO sliding window progression
-  const lastArea = areaStreamHistory[areaStreamHistory.length - 1];
-  const deltaArea = (Math.random() - 0.49) * 10;
-  const newArea = Math.max(20, Math.min(90, Math.round(lastArea + deltaArea)));
-  areaStreamHistory = [...areaStreamHistory.slice(1), newArea];
-  
-  const streamAreaEl = document.getElementById("stream-area-chart");
-  if (streamAreaEl) {
-    streamAreaEl.setAttribute("data", JSON.stringify(areaStreamHistory));
+  // 2. Area
+  const areaEl = document.getElementById("stream-area-chart");
+  if (areaEl) {
+    const prev = JSON.parse(areaEl.getAttribute("data") || "[]");
+    const nextVal = Math.round(Math.max(20, Math.min(95, (prev[prev.length - 1] || 50) + (Math.random() * 18 - 8))));
+    const next = [...prev.slice(1), nextVal];
+    areaEl.setAttribute("data", JSON.stringify(next));
   }
 
-  // 3. Bar: shift variance
-  barStreamHistory = barStreamHistory.map((v) => {
-    const shift = (Math.random() - 0.5) * 10;
-    return Math.round(Math.max(-35, Math.min(45, v + shift)));
-  });
-  const streamBarEl = document.getElementById("stream-bar-chart");
-  if (streamBarEl) {
-    streamBarEl.setAttribute("data", JSON.stringify(barStreamHistory));
+  // 3. Bar
+  const barEl = document.getElementById("stream-bar-chart");
+  if (barEl) {
+    const prev = JSON.parse(barEl.getAttribute("data") || "[]");
+    const nextVal = Math.round(Math.random() * 70 - 30);
+    const next = [...prev.slice(1), nextVal];
+    barEl.setAttribute("data", JSON.stringify(next));
   }
 
-  // 4. Pie: shifting shares
-  pieStreamValues = pieStreamValues.map((v) => Math.max(10, Math.round(v + (Math.random() - 0.5) * 8)));
-  const streamPieEl = document.getElementById("stream-pie-chart");
-  if (streamPieEl) {
-    streamPieEl.setAttribute("data", JSON.stringify(pieStreamValues));
+  // 4. Pie
+  const pieEl = document.getElementById("stream-pie-chart");
+  if (pieEl) {
+    const r = [Math.round(20 + Math.random() * 30), Math.round(15 + Math.random() * 25), Math.round(10 + Math.random() * 20), Math.round(5 + Math.random() * 15)];
+    pieEl.setAttribute("data", JSON.stringify(r));
   }
 
-  // 5. Half-Pie: shifting tier split
-  halfPieStreamValues = halfPieStreamValues.map((v) => Math.max(12, Math.round(v + (Math.random() - 0.5) * 6)));
-  const streamHalfPieEl = document.getElementById("stream-half-pie-chart");
-  if (streamHalfPieEl) {
-    streamHalfPieEl.setAttribute("data", JSON.stringify(halfPieStreamValues));
+  // 5. Half Pie
+  const halfPieEl = document.getElementById("stream-half-pie-chart");
+  if (halfPieEl) {
+    const r = [Math.round(35 + Math.random() * 25), Math.round(20 + Math.random() * 20), Math.round(10 + Math.random() * 15)];
+    halfPieEl.setAttribute("data", JSON.stringify(r));
   }
 
-  // 6. Radial Bar: fluid stroke-dashoffset transition
-  radialRings = radialRings.map((r) => Math.max(25, Math.min(95, Math.round(r + (Math.random() - 0.5) * 14))));
-  const streamRadialEl = document.getElementById("stream-radial-chart");
-  if (streamRadialEl) {
-    streamRadialEl.setAttribute("data", JSON.stringify([
-      { value: radialRings[0] },
-      { value: radialRings[1] },
-      { value: radialRings[2] },
-    ]));
+  // 6. Radial Bar
+  const radialEl = document.getElementById("stream-radial-chart");
+  if (radialEl) {
+    const r = [
+      { value: Math.round(40 + Math.random() * 55), color: "#6366f1" },
+      { value: Math.round(30 + Math.random() * 60), color: "#06b6d4" },
+      { value: Math.round(50 + Math.random() * 45), color: "#10b981" }
+    ];
+    radialEl.setAttribute("data", JSON.stringify(r));
   }
 
-
-  // 7. Progress Arc: fluctuating completion
-  progressValue = Math.max(20, Math.min(98, Math.round(progressValue + (Math.random() - 0.48) * 8)));
-  const streamProgressEl = document.getElementById("stream-progress-chart");
-  if (streamProgressEl) {
-    streamProgressEl.setAttribute("data", JSON.stringify([progressValue]));
+  // 7. Progress
+  const progressEl = document.getElementById("stream-progress-chart");
+  if (progressEl) {
+    const val = (t * 7) % 100;
+    progressEl.setAttribute("data", JSON.stringify([val]));
   }
 
-  // 8. Gauge: smooth temperature oscillation
-  gaugeValue = Math.max(25, Math.min(92, Math.round(gaugeValue + (Math.random() - 0.48) * 9)));
-  const streamGaugeEl = document.getElementById("stream-gauge-chart");
-  if (streamGaugeEl) {
-    streamGaugeEl.setAttribute("data", JSON.stringify([gaugeValue, 0, 100]));
+  // 8. Gauge
+  const gaugeEl = document.getElementById("stream-gauge-chart");
+  if (gaugeEl) {
+    const val = Math.round(30 + Math.sin(t * 0.4) * 35 + Math.random() * 15);
+    gaugeEl.setAttribute("data", JSON.stringify([val, 0, 100]));
   }
 
-  // 9. Candlestick & 10. OHLC: 18 continuous financial ticks
-  const lastCandle = candleStreamHistory[candleStreamHistory.length - 1];
-  const open = lastCandle[3]; // Open_t = Close_{t-1}
-  const delta = (Math.random() - 0.48) * 7;
-  const close = Math.round(open + delta);
-  const high = Math.round(Math.max(open, close) + Math.random() * 5);
-  const low = Math.round(Math.min(open, close) - Math.random() * 5);
-  candleStreamHistory = [...candleStreamHistory.slice(1), [open, high, low, close]];
-  
-  const streamCandleEl = document.getElementById("stream-candle-chart");
-  if (streamCandleEl) {
-    streamCandleEl.setAttribute("data", JSON.stringify(candleStreamHistory));
-  }
-  const streamOhlcEl = document.getElementById("stream-ohlc-chart");
-  if (streamOhlcEl) {
-    streamOhlcEl.setAttribute("data", JSON.stringify(candleStreamHistory));
-  }
-
-  // 11. Stacked Area: shifting layers
-  stackedStreamData = stackedStreamData.map((layer) => {
-    const last = layer[layer.length - 1];
-    const next = Math.max(8, Math.min(45, Math.round(last + (Math.random() - 0.5) * 6)));
-    return [...layer.slice(1), next];
-  });
-  const streamStackedEl = document.getElementById("stream-stacked-chart");
-  if (streamStackedEl) {
-    streamStackedEl.setAttribute("data", JSON.stringify(stackedStreamData));
+  // 9. Candlestick & 10. OHLC
+  const candleEl = document.getElementById("stream-candle-chart");
+  const ohlcEl = document.getElementById("stream-ohlc-chart");
+  if (candleEl || ohlcEl) {
+    const base = 100 + Math.sin(t * 0.2) * 25 + Math.random() * 5;
+    const candles = Array.from({ length: 18 }, (_, i) => {
+      const open = Math.round(base + i * 2 + Math.random() * 6 - 3);
+      const close = Math.round(open + Math.random() * 8 - 4);
+      const high = Math.max(open, close) + Math.round(Math.random() * 4);
+      const low = Math.min(open, close) - Math.round(Math.random() * 4);
+      return [open, high, low, close];
+    });
+    const cData = JSON.stringify(candles);
+    candleEl?.setAttribute("data", cData);
+    ohlcEl?.setAttribute("data", cData);
   }
 
-  // 12. Streamgraph: ThemeRiver wave flow (sliding rolling window across time)
-  streamTickOffset = (streamTickOffset + 1) % 20;
-  streamRiverState = THEMERIVER_LASTFM_DATA.map((row) => {
-    const shifted = [...row.slice(streamTickOffset), ...row.slice(0, streamTickOffset)];
-    return shifted;
-  });
-  const streamRiverEl = document.getElementById("stream-stream-chart");
-  if (streamRiverEl) {
-    streamRiverEl.setAttribute("data", JSON.stringify(streamRiverState));
+  // 11. Stacked Area
+  const stackedEl = document.getElementById("stream-stacked-chart");
+  if (stackedEl) {
+    const s1 = Array.from({ length: 8 }, (_, i) => Math.round(15 + Math.sin(t * 0.3 + i) * 10 + 5));
+    const s2 = Array.from({ length: 8 }, (_, i) => Math.round(12 + Math.cos(t * 0.25 + i) * 8 + 4));
+    const s3 = Array.from({ length: 8 }, (_, i) => Math.round(8 + Math.sin(t * 0.2 + i) * 6 + 3));
+    stackedEl.setAttribute("data", JSON.stringify([s1, s2, s3]));
   }
 
-  // 13. Combo: sales vs target
-  const lastCombo = comboStreamData[comboStreamData.length - 1];
-  const nextBar = Math.max(8, Math.min(36, Math.round(lastCombo.bar + (Math.random() - 0.5) * 8)));
-  const nextLine = Math.max(10, Math.min(40, Math.round(lastCombo.line + (Math.random() - 0.48) * 8)));
-  comboStreamData = [...comboStreamData.slice(1), { bar: nextBar, line: nextLine }];
-  const streamComboEl = document.getElementById("stream-combo-chart");
-  if (streamComboEl) {
-    streamComboEl.setAttribute("data", JSON.stringify(comboStreamData));
+  // 12. Stream (ThemeRiver)
+  const streamEl = document.getElementById("stream-stream-chart");
+  if (streamEl) {
+    const shifted = [...THEMERIVER_LASTFM_DATA.slice(t % 6), ...THEMERIVER_LASTFM_DATA.slice(0, t % 6)];
+    streamEl.setAttribute("data", JSON.stringify(shifted));
   }
 
-  // 14. Bullet: KPI measure tracking
-  bulletStreamData.value = Math.max(15, Math.min(96, Math.round(bulletStreamData.value + (Math.random() - 0.48) * 9)));
-  const streamBulletEl = document.getElementById("stream-bullet-chart");
-  if (streamBulletEl) {
-    streamBulletEl.setAttribute("data", JSON.stringify(bulletStreamData));
+  // 13. Combo
+  const comboEl = document.getElementById("stream-combo-chart");
+  if (comboEl) {
+    const combo = Array.from({ length: 6 }, (_, i) => ({
+      bar: Math.round(10 + Math.random() * 20),
+      line: Math.round(14 + Math.random() * 18)
+    }));
+    comboEl.setAttribute("data", JSON.stringify(combo));
   }
 
-  // 15. Win / Loss: FIFO streak shift
-  const outcomes = [1, 1, -1, 0, 1, -1, 1];
-  const nextOutcome = outcomes[Math.floor(Math.random() * outcomes.length)];
-  winLossStreamHistory = [...winLossStreamHistory.slice(1), nextOutcome];
-  const streamWinLossEl = document.getElementById("stream-win-loss-chart");
-  if (streamWinLossEl) {
-    streamWinLossEl.setAttribute("data", JSON.stringify(winLossStreamHistory));
+  // 14. Bullet
+  const bulletEl = document.getElementById("stream-bullet-chart");
+  if (bulletEl) {
+    const val = Math.round(45 + Math.sin(t * 0.3) * 35 + Math.random() * 10);
+    bulletEl.setAttribute("data", JSON.stringify({ value: val, target: 85, ranges: [50, 80, 100], min: 0, max: 100 }));
   }
 
-  // 16. Range Bar: interval shift
-  rangeBarStreamHistory = rangeBarStreamHistory.map((item) => {
-    const shift = (Math.random() - 0.5) * 6;
-    const min = Math.max(5, Math.round(item[0] + shift));
-    const max = Math.min(95, Math.round(item[1] + shift));
-    const cur = Math.round(min + (max - min) * (0.3 + Math.random() * 0.4));
-    return [min, max, cur];
-  });
-  const streamRangeBarEl = document.getElementById("stream-range-bar-chart");
-  if (streamRangeBarEl) {
-    streamRangeBarEl.setAttribute("data", JSON.stringify(rangeBarStreamHistory));
+  // 15. Win/Loss
+  const winLossEl = document.getElementById("stream-win-loss-chart");
+  if (winLossEl) {
+    const outcomes = [1, 1, -1, 1, 0, 1, -1, 1, 1, 0, 1, 1];
+    const shifted = [...outcomes.slice(1), Math.random() > 0.4 ? 1 : (Math.random() > 0.5 ? -1 : 0)];
+    winLossEl.setAttribute("data", JSON.stringify(shifted));
   }
 
-  // 17. Scatter: 2D coordinate shift
-  scatterStreamPoints = scatterStreamPoints.map((pt) => {
-    const shiftY = (Math.random() - 0.48) * 8;
-    const newY = Math.max(10, Math.min(95, Math.round(pt[1] + shiftY)));
-    return [pt[0], newY];
-  });
-  const streamScatterEl = document.getElementById("stream-scatter-chart");
-  if (streamScatterEl) {
-    streamScatterEl.setAttribute("data", JSON.stringify(scatterStreamPoints));
+  // 16. Range Bar
+  const rangeBarEl = document.getElementById("stream-range-bar-chart");
+  if (rangeBarEl) {
+    const ranges = Array.from({ length: 5 }, (_, i) => {
+      const min = Math.round(10 + i * 4 + Math.random() * 5);
+      const max = Math.round(min + 25 + Math.random() * 15);
+      const val = Math.round(min + (max - min) * (0.3 + Math.random() * 0.4));
+      return [min, max, val];
+    });
+    rangeBarEl.setAttribute("data", JSON.stringify(ranges));
+  }
+
+  // 17. Scatter
+  const scatterEl = document.getElementById("stream-scatter-chart");
+  if (scatterEl) {
+    const pts = Array.from({ length: 8 }, (_, i) => {
+      const x = Math.round(10 + i * 10 + Math.random() * 4 - 2);
+      const y = Math.round(15 + i * 9 + Math.sin(t * 0.3 + i) * 8 + Math.random() * 6 - 3);
+      return [x, y];
+    });
+    scatterEl.setAttribute("data", JSON.stringify(pts));
   }
 }
 
 export function startStreaming() {
   state.isStreaming = true;
+  updateStreamButtonState();
   if (state.streamTimerId) clearInterval(state.streamTimerId);
-  state.streamTimerId = setInterval(stepStreamData, state.streamSpeedMs);
-  updateStreamButtons();
+  state.streamTimerId = setInterval(stepStreamData, state.streamSpeed);
 }
 
 export function pauseStreaming() {
   state.isStreaming = false;
+  updateStreamButtonState();
   if (state.streamTimerId) {
     clearInterval(state.streamTimerId);
     state.streamTimerId = null;
   }
-  updateStreamButtons();
 }
 
-export function setStreamSpeed(speedMs) {
-  state.streamSpeedMs = speedMs;
+export function setStreamSpeed(ms) {
+  state.streamSpeed = ms;
   if (state.isStreaming) {
     startStreaming();
   }
 }
 
-function updateStreamButtons() {
+function updateStreamButtonState() {
   const toggleBtn = document.getElementById("stream-toggle-btn");
   if (toggleBtn) {
     const dict = translations[state.lang] || translations.en;
     toggleBtn.textContent = state.isStreaming ? dict.btnPause : dict.btnPlay;
-    toggleBtn.className = state.isStreaming ? "btn btn-secondary" : "btn btn-primary";
+    toggleBtn.className = state.isStreaming ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm";
   }
 }
-
-// --- Chart Examples Database for Playground ---
-export const chartPlaygroundExamples = Object.freeze({
-  "mini-line-chart": {
-    data: [18, 23, 20, 31, 27, 38, 44],
-    label: "Weekly revenue trend",
-    attributes: { curve: "smooth", points: "last", "trend-color": "auto", interactive: "" },
-  },
-  "mini-area-chart": {
-    data: [18, 23, 20, 31, 27, 38, 44],
-    label: "Active user growth",
-    attributes: { curve: "smooth", gradient: "true", "trend-color": "auto" },
-  },
-  "mini-bar-chart": {
-    data: [-12, 8, 19, -5, 13, 21],
-    label: "Monthly net variance",
-    attributes: { gap: "0.25", radius: "3", interactive: "" },
-  },
-  "mini-pie-chart": {
-    data: [42, 27, 18, 13],
-    label: "Traffic source breakdown",
-    attributes: { donut: "0.6", "start-angle": "-90", interactive: "" },
-  },
-  "mini-half-pie-chart": {
-    data: [58, 25, 17],
-    label: "Tier subscription split",
-    attributes: { donut: "0.55", interactive: "" },
-  },
-  "mini-radial-bar-chart": {
-    data: [{ value: 75 }, { value: 55 }, { value: 90 }],
-    label: "Activity goal rings",
-    attributes: { sweep: "270", "round-caps": "true", interactive: "" },
-  },
-
-  "mini-progress-chart": {
-    data: [78],
-    label: "Quota capacity",
-    attributes: { min: "0", max: "100", "show-value": "true", unit: "%" },
-  },
-  "mini-gauge-chart": {
-    data: [68, 0, 100],
-    label: "Turbine pressure",
-    attributes: { "needle-type": "triangle" },
-  },
-  "mini-candlestick-chart": {
-    data: [
-      [100, 108, 96, 104],
-      [104, 112, 102, 109],
-      [109, 115, 105, 106],
-      [106, 114, 100, 112],
-      [112, 120, 110, 118],
-      [118, 122, 114, 116],
-      [116, 124, 115, 121],
-      [121, 126, 118, 125],
-    ],
-    label: "Daily stock movement",
-    attributes: { "hollow-bullish": "true", gap: "0.28", "wick-width": "0.75", interactive: "" },
-  },
-  "mini-ohlc-chart": {
-    data: [
-      [100, 108, 96, 104],
-      [104, 112, 102, 109],
-      [109, 115, 105, 106],
-      [106, 114, 100, 112],
-      [112, 120, 110, 118],
-      [118, 122, 114, 116],
-      [116, 124, 115, 121],
-      [121, 126, 118, 125],
-    ],
-    label: "Asset tick breakdown",
-    attributes: { "tick-width": "0.75", gap: "0.28", interactive: "" },
-  },
-  "mini-stacked-area-chart": {
-    data: [[10, 20, 30, 40], [20, 15, 25, 35], [5, 10, 15, 20]],
-    label: "Resource distribution",
-    attributes: { curve: "smooth", interactive: "" },
-  },
-  "mini-stream-chart": {
-    data: THEMERIVER_LASTFM_DATA,
-    label: "Organic stream flow (Last.fm ThemeRiver)",
-    attributes: { curve: "smooth", interactive: "" },
-  },
-  "mini-combo-chart": {
-    data: [{ bar: 10, line: 20 }, { bar: 15, line: 15 }, { bar: 8, line: 25 }, { bar: 22, line: 30 }],
-    label: "Sales vs Quota target",
-    attributes: { "shared-domain": "true", curve: "smooth", interactive: "" },
-  },
-  "mini-bullet-chart": {
-    data: { value: 78, target: 85, ranges: [50, 80, 100], min: 0, max: 100 },
-    label: "Q3 revenue vs quota",
-    attributes: { interactive: "" },
-  },
-  "mini-win-loss-chart": {
-    data: [1, 1, -1, 1, 0, 1, -1, 1, 1, 0, 1, 1],
-    label: "CI/CD continuous build streak",
-    attributes: { gap: "0.2", radius: "2", interactive: "" },
-  },
-  "mini-range-bar-chart": {
-    data: [
-      [12, 45, 30],
-      [20, 68, 55],
-      [15, 52, 48],
-      [30, 85, 60],
-      [25, 70, 42],
-    ],
-    label: "52-week stock price range",
-    attributes: { gap: "0.25", radius: "3", interactive: "" },
-  },
-  "mini-scatter-chart": {
-    data: [
-      [10, 25],
-      [18, 42],
-      [28, 30],
-      [35, 65],
-      [44, 52],
-      [58, 80],
-      [65, 74],
-      [78, 90],
-    ],
-    label: "Latency vs throughput distribution",
-    attributes: { "trend-line": "true", "point-radius": "3.5", interactive: "" },
-  },
-});
-
 
 // --- Playground Controller ---
 export function renderPlayground() {
@@ -740,8 +927,8 @@ export function renderPlayground() {
   if (!typeSelect || !dataInput || !previewContainer || !codeOutput) return;
 
   const tagName = typeSelect.value;
-  const example = chartPlaygroundExamples[tagName] || chartPlaygroundExamples["mini-line-chart"];
-  
+  const item = COMPONENTS_CATALOG.find((c) => c.tag === tagName) || COMPONENTS_CATALOG[0];
+
   let parsedData;
   try {
     parsedData = JSON.parse(dataInput.value);
@@ -749,26 +936,23 @@ export function renderPlayground() {
     return;
   }
 
-  const label = labelInput?.value?.trim() || example.label;
+  const label = labelInput?.value?.trim() || "Live Sandbox Preview";
   const chartEl = document.createElement(tagName);
   chartEl.setAttribute("data", JSON.stringify(parsedData));
   chartEl.setAttribute("label", label);
 
   // Apply custom example attributes
-  if (example.attributes) {
-    for (const [k, v] of Object.entries(example.attributes)) {
-      chartEl.setAttribute(k, v);
-    }
+  if (item.attrs) {
+    const pairs = item.attrs.match(/([a-z-]+)(?:="([^"]*)")?/g) || [];
+    pairs.forEach((p) => {
+      const [k, v] = p.split("=");
+      chartEl.setAttribute(k, v ? v.replace(/"/g, "") : "");
+    });
   }
 
   previewContainer.replaceChildren(chartEl);
 
-  // Format code
-  const attrsFormatted = Object.entries(example.attributes || {})
-    .map(([k, v]) => (v === "" ? `  ${k}` : `  ${k}="${v}"`))
-    .join("\n");
-  
-  const code = `<${tagName}\n  data='${JSON.stringify(parsedData)}'\n  label="${label}"${attrsFormatted ? "\n" + attrsFormatted : ""}\n></${tagName}>`;
+  const code = `<${tagName}\n  data='${JSON.stringify(parsedData)}'\n  label="${label}"\n  ${item.attrs}\n></${tagName}>`;
   codeOutput.textContent = code;
 }
 
@@ -778,11 +962,28 @@ document.addEventListener("DOMContentLoaded", () => {
   applyTheme(state.theme);
   applyLanguage(state.lang);
 
-  // 2. Setup Header Theme & Language Event Listeners
+  // 2. Setup Top Navbar Event Listeners
   document.getElementById("theme-toggle-btn")?.addEventListener("click", toggleTheme);
   document.getElementById("lang-toggle-btn")?.addEventListener("click", toggleLanguage);
 
-  // 3. Setup Live Stream Controls
+  // Quick Install Copy Button
+  document.getElementById("quick-install-btn")?.addEventListener("click", async () => {
+    await navigator.clipboard.writeText("pnpm add sparkline-mini-charts");
+    showToast("Copied: pnpm add sparkline-mini-charts");
+  });
+
+  // Mobile Menu Drawer Toggle
+  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+  const sidebar = document.getElementById("docs-sidebar");
+  mobileMenuBtn?.addEventListener("click", () => {
+    sidebar?.classList.toggle("open");
+  });
+
+  // 3. Setup Hash Router & Listeners
+  window.addEventListener("hashchange", handleRoute);
+  handleRoute();
+
+  // 4. Setup Live Stream Controls
   document.getElementById("stream-toggle-btn")?.addEventListener("click", () => {
     if (state.isStreaming) pauseStreaming();
     else startStreaming();
@@ -798,16 +999,16 @@ document.addEventListener("DOMContentLoaded", () => {
     setStreamSpeed(parseInt(e.target.value, 10));
   });
 
-  // 4. Setup Interactive Playground
+  // 5. Setup Interactive Playground
   const typeSelect = document.getElementById("pg-chart-type");
   const dataInput = document.getElementById("pg-chart-data");
   const labelInput = document.getElementById("pg-chart-label");
 
   function loadPlaygroundPreset(tagName) {
-    const example = chartPlaygroundExamples[tagName];
-    if (!example) return;
-    if (dataInput) dataInput.value = JSON.stringify(example.data, null, 2);
-    if (labelInput) labelInput.value = example.label;
+    const item = COMPONENTS_CATALOG.find((c) => c.tag === tagName) || COMPONENTS_CATALOG[0];
+    if (!item) return;
+    if (dataInput) dataInput.value = JSON.stringify(item.data, null, 2);
+    if (labelInput) labelInput.value = "Custom " + item.tag;
     renderPlayground();
   }
 
@@ -817,40 +1018,32 @@ document.addEventListener("DOMContentLoaded", () => {
   dataInput?.addEventListener("input", renderPlayground);
   labelInput?.addEventListener("input", renderPlayground);
 
-  // Initialize playground with initial select value
   if (typeSelect) {
     loadPlaygroundPreset(typeSelect.value || "mini-line-chart");
   }
 
-  // 5. Setup Copy Code Button
+  // 6. Setup Playground Copy Code Button
   document.getElementById("copy-code-btn")?.addEventListener("click", async () => {
     const code = document.getElementById("pg-code-output")?.textContent;
     if (code) {
       await navigator.clipboard.writeText(code);
-      const copyBtn = document.getElementById("copy-code-btn");
-      if (copyBtn) {
-        const dict = translations[state.lang] || translations.en;
-        const originalText = copyBtn.textContent;
-        copyBtn.textContent = dict.btnCopied;
-        setTimeout(() => {
-          copyBtn.textContent = originalText;
-        }, 1800);
-      }
+      showToast("Copied playground markup!");
     }
   });
 
-  // 6. Setup Integration Tabs
+  // 7. Setup Global Framework Integration Tabs
   document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", () => {
       document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-      document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach((c) => (c.style.display = "none"));
       
-      const targetId = btn.getAttribute("data-tab");
       btn.classList.add("active");
-      document.getElementById(targetId)?.classList.add("active");
+      const targetId = btn.getAttribute("data-tab");
+      const target = document.getElementById(targetId);
+      if (target) target.style.display = "block";
     });
   });
 
-  // 7. Start live streaming auto-loop
+  // 8. Start live streaming auto-loop
   startStreaming();
 });

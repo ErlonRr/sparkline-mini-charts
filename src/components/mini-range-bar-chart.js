@@ -104,21 +104,24 @@ export class MiniRangeBarChart extends MiniChartElement {
   fill: var(--mini-chart-range-color, var(--mini-chart-color, #3b82f6));
   rx: var(--mini-chart-bar-radius, ${radius}px);
   ry: var(--mini-chart-bar-radius, ${radius}px);
-  transition: all 0.4s ease-out;
+  transition: opacity 0.2s ease, filter 0.2s ease;
   cursor: default;
 }
 [part~="marker"] {
   fill: var(--mini-chart-marker-color, #ffffff);
   stroke: var(--mini-chart-marker-stroke, var(--mini-chart-color, #3b82f6));
   stroke-width: 1.5px;
-  transition: all 0.4s ease-out;
+  pointer-events: none;
+}
+:host([interactive]) [part~="range-bar"] {
+  cursor: pointer;
 }
 :host([interactive]) [part~="range-bar"]:hover {
   filter: brightness(1.2);
   opacity: 1 !important;
 }
 :host([interactive]) [part="bars"]:has([part~="range-bar"]:hover) [part~="range-bar"]:not(:hover) {
-  opacity: 0.35;
+  opacity: 0.45;
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });

@@ -119,15 +119,18 @@ export class MiniRadialBarChart extends MiniChartElement {
 [part~="track-fg"] {
   fill: none;
   stroke-linecap: ${roundCaps ? "round" : "butt"};
-  transition: stroke-dashoffset 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, filter 0.2s ease;
   cursor: default;
 }
+:host([interactive]) [part~="track-fg"] {
+  cursor: pointer;
+}
 :host([interactive]) [part~="track-fg"]:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.18);
   opacity: 1 !important;
 }
 :host([interactive]) [part="tracks"]:has([part~="track-fg"]:hover) [part~="track-fg"]:not(:hover) {
-  opacity: 0.35;
+  opacity: 0.45;
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });

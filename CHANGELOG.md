@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-08-15
+
+### Added
+
+- SPA Client-Side Hash Router in showcase demo with dedicated pages for Overview, Live Streaming Studio, Component Detail Views, Sandbox Playground, and Framework Integrations.
+- Native `sparkline-select` click event on interactive elements with detailed data payload.
+- Brand SVG favicon asset and raw GitHub documentation previews.
+
+### Fixed
+
+- Eliminated mouse hover jitter and flickering (`show/hide`) across all charts by replacing disruptive SVG scale transforms with smooth brightness/opacity transitions.
+- Hollow candlestick body hit area with solid `pointer-events: all`.
+- Non-intercepting crosshair and active point pointer events in line charts.
+
 ## [1.2.0] - 2026-08-15
 
 ### Added

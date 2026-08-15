@@ -96,20 +96,21 @@ export class MiniWinLossChart extends MiniChartElement {
 [part~="bar"] {
   rx: var(--mini-chart-bar-radius, ${radius}px);
   ry: var(--mini-chart-bar-radius, ${radius}px);
-  transition: all 0.35s ease-out;
+  transition: opacity 0.2s ease, filter 0.2s ease;
   cursor: default;
 }
 [part~="win"] { fill: var(--mini-chart-win-color, var(--mini-chart-bullish-color, #10b981)); }
 [part~="loss"] { fill: var(--mini-chart-loss-color, var(--mini-chart-bearish-color, #ef4444)); }
 [part~="tie"] { fill: var(--mini-chart-tie-color, var(--mini-chart-muted-color, #94a3b8)); }
+:host([interactive]) [part~="bar"] {
+  cursor: pointer;
+}
 :host([interactive]) [part~="bar"]:hover {
-  filter: brightness(1.25);
-  transform: scaleY(1.08);
-  transform-origin: center;
+  filter: brightness(1.2);
   opacity: 1 !important;
 }
 :host([interactive]) [part="bars"]:has([part~="bar"]:hover) [part~="bar"]:not(:hover) {
-  opacity: 0.35;
+  opacity: 0.45;
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });

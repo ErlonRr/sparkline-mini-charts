@@ -1,121 +1,169 @@
 # Getting Started
 
-Sparkline Mini Charts is a zero-dependency, ultra-lightweight library of SVG sparklines and mini-charts built as **Vanilla Web Components (Custom Elements v1)**. Because they are standard Custom Elements, they work in *any* framework (React, Angular, Vue, Svelte) or without one.
+Sparkline Mini Charts is a zero-dependency, ultra-lightweight library of 17 SVG sparklines and mini-charts built as **Vanilla Web Components (Custom Elements v1)** with Shadow DOM and adaptive CSS design tokens.
 
-## Installation
+Because they are standard Custom Elements, they work in *any* frontend framework (Angular, React, Vue, Svelte) or without any framework at all.
+
+---
+
+## 📦 Installation
 
 ```bash
-npm install sparkline-mini-charts
-# or
 pnpm add sparkline-mini-charts
+# or
+npm install sparkline-mini-charts
 # or
 yarn add sparkline-mini-charts
 ```
 
-## Basic Usage (Vanilla HTML)
+---
 
-To use the charts, simply import the package in your entry point. The charts will self-register in the browser's `customElements` registry.
+## 🚀 Registration & Import Options
+
+### 1. Automatic Side-Effect Registration (Easiest)
+Import the `/register` entry point once in your application setup to register all 17 elements automatically:
+
+```js
+import "sparkline-mini-charts/register";
+```
+
+### 2. Explicit Registration (Clean & Controlled)
+```js
+import { defineMiniCharts } from "sparkline-mini-charts/define";
+
+defineMiniCharts();
+```
+
+### 3. Individual Component Registration (Optimal Tree-Shaking)
+Import only the components you need:
+
+```js
+import { MiniLineChart } from "sparkline-mini-charts/mini-line-chart";
+import { defineMiniChart } from "sparkline-mini-charts";
+
+defineMiniChart("mini-line-chart", MiniLineChart);
+```
+
+---
+
+## 🌐 Basic HTML Usage
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <!-- Import the module to register the web components -->
+    <meta charset="UTF-8" />
+    <title>Sparkline Demo</title>
     <script type="module">
-      import "sparkline-mini-charts";
+      import "sparkline-mini-charts/register";
     </script>
   </head>
   <body>
-    <!-- Use them as standard HTML tags! -->
-    <mini-line-chart data="[10, 25, 40, 15, 60]"></mini-line-chart>
+    <!-- Use them directly as standard HTML elements -->
+    <mini-line-chart data="[10, 25, 40, 15, 60]" label="Revenue"></mini-line-chart>
+    <mini-bar-chart data="[-5, 12, 18, -8, 24]" label="Variance"></mini-bar-chart>
+    <mini-bullet-chart data="[85, 95, 60, 80, 100]" label="Performance vs Target"></mini-bullet-chart>
   </body>
 </html>
 ```
 
-## Framework Integrations
+---
 
-Because Web Components are native to the browser, they work seamlessly inside your favorite framework.
+## 🧩 Framework Integrations
 
 ### React / Next.js
-React 19 supports Web Components natively. For Next.js App Router, ensure you only import the web components on the client-side (`"use client"`).
+The library provides first-class typed React wrapper components:
 
 ```tsx
-import { useEffect } from "react";
-// Import the registration side-effect on the client
-import "sparkline-mini-charts";
+"use client";
+
+import { 
+  MiniLineChart, 
+  MiniBarChart, 
+  MiniBulletChart 
+} from "sparkline-mini-charts/react";
 
 export function Dashboard() {
   return (
-    <div>
-      <mini-bar-chart data="[10, 25, -15, 40]" label="Revenue"></mini-bar-chart>
+    <div className="flex gap-4">
+      <MiniLineChart data={[10, 25, 40, 15, 60]} label="Weekly Trend" />
+      <MiniBarChart data={[-8, 12, 4, -3, 18]} label="Variance" />
+      <MiniBulletChart data={[85, 90, 50, 75, 100]} label="KPI" />
     </div>
   );
 }
 ```
 
-### Vue / Nuxt
-In Vue, you can use the tags directly in your templates. Tell Vue to treat tags starting with `mini-` as Custom Elements in your `vite.config.js`:
-
-```js
-// vite.config.js
-import vue from '@vitejs/plugin-vue';
-
-export default {
-  plugins: [
-    vue({
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => tag.startsWith('mini-')
-        }
-      }
-    })
-  ]
-}
-```
+### Vue 3 / Nuxt
+Use the Vue 3 component wrappers:
 
 ```vue
 <template>
-  <mini-pie-chart data="[40, 30, 20, 10]" label="Distribution"></mini-pie-chart>
+  <div class="chart-container">
+    <MiniLineChart :data="revenue" label="Revenue Trend" />
+    <MiniPieChart :data="traffic" label="Traffic Sources" />
+  </div>
 </template>
 
-<script setup>
-import 'sparkline-mini-charts';
+<script setup lang="ts">
+import { MiniLineChart, MiniPieChart } from 'sparkline-mini-charts/vue';
+
+const revenue = [10, 25, 40, 15, 60];
+const traffic = [40, 30, 20, 10];
 </script>
 ```
 
 ### Angular
-Angular supports Custom Elements out of the box using `CUSTOM_ELEMENTS_SCHEMA`.
+Use the standalone `MiniChartDirective` from `sparkline-mini-charts/angular`:
 
 ```typescript
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import 'sparkline-mini-charts';
+import { Component } from '@angular/core';
+import { MiniChartDirective } from 'sparkline-mini-charts/angular';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA], // <-- Required for Web Components
+  imports: [MiniChartDirective],
   template: `
-    <mini-gauge-chart data="[65, 0, 100]" label="CPU Load"></mini-gauge-chart>
+    <mini-line-chart [data]="revenue" label="Revenue"></mini-line-chart>
+    <mini-gauge-chart [data]="[65, 0, 100]" label="CPU Load"></mini-gauge-chart>
   `
 })
-export class DashboardComponent {}
+export class DashboardComponent {
+  revenue = [12, 18, 15, 27, 34];
+}
 ```
 
-## Styling
+### Svelte
+Svelte binds directly to native Web Components without wrappers:
 
-Mini charts are heavily encapsulated inside the **Shadow DOM**, which means your global CSS won't accidentally break them. 
+```svelte
+<script>
+  import 'sparkline-mini-charts/register';
+  let revenue = [10, 25, 40, 15, 60];
+</script>
 
-To style them, use **CSS Custom Properties** or the `::part()` selector:
+<mini-line-chart data={JSON.stringify(revenue)} label="Revenue"></mini-line-chart>
+```
+
+---
+
+## 🎨 Styling & Theming
+
+The charts utilize the **Shadow DOM**, protecting them from global CSS leaks while exposing styling hooks via **CSS Custom Properties** and `::part()`:
 
 ```css
 mini-line-chart {
-  /* Override variables */
-  --mini-chart-color-1: #2563eb;
-  --mini-chart-stroke-width: 4;
+  /* Dimensions */
+  inline-size: 12rem;
+  block-size: 3rem;
+
+  /* Theme Tokens */
+  --mini-chart-color-1: #10b981;
+  --mini-chart-stroke-width: 2.5;
 }
 
 mini-line-chart::part(point) {
-  /* Target internal parts directly */
   stroke: white;
   stroke-width: 2;
 }

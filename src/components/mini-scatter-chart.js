@@ -110,17 +110,19 @@ export class MiniScatterChart extends MiniChartElement {
   fill: var(--mini-chart-point-color, var(--mini-chart-color, #3b82f6));
   stroke: var(--mini-chart-point-stroke, var(--surface, #ffffff));
   stroke-width: 1px;
-  transition: cx 0.4s ease-out, cy 0.4s ease-out, r 0.2s ease-out, opacity 0.3s ease-out;
+  transition: opacity 0.2s ease, filter 0.2s ease, stroke-width 0.2s ease;
   cursor: default;
 }
+:host([interactive]) [part~="point"] {
+  cursor: pointer;
+}
 :host([interactive]) [part~="point"]:hover {
-  transform: scale(1.4);
-  transform-origin: center;
+  stroke-width: 2.5px;
   filter: brightness(1.25);
   opacity: 1 !important;
 }
 :host([interactive]) [part="points"]:has([part~="point"]:hover) [part~="point"]:not(:hover) {
-  opacity: 0.35;
+  opacity: 0.45;
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });

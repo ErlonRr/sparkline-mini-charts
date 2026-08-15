@@ -114,8 +114,8 @@ export class MiniLineChart extends MiniChartElement {
 :host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
 [part="line"] { transition: d 0.4s ease-out; }
 [part~="point"] { transition: cx 0.4s ease-out, cy 0.4s ease-out, opacity 0.2s ease-out; }
-[part="crosshair"] { display: none; }
-[part="active-point"] { display: none; fill: var(--mini-chart-point-fill, currentColor); stroke: white; stroke-width: 1.5; }`;
+[part="crosshair"] { display: none; pointer-events: none; }
+[part="active-point"] { display: none; fill: var(--mini-chart-point-fill, currentColor); stroke: white; stroke-width: 1.5; pointer-events: none; }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
 

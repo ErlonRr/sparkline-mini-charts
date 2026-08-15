@@ -104,14 +104,14 @@ export class MiniCandlestickChart extends MiniChartElement {
 
     const style = document.createElement("style");
     style.textContent = `${chartStyles}
-:host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
-[part="candle"] { transition: transform 0.4s ease-out; cursor: default; }
-[part="wick"] { stroke: currentColor; stroke-width: var(--mini-chart-wick-width, ${wickWidth}); transition: all 0.4s ease-out; stroke-linecap: square; }
-[part="body"] { stroke: currentColor; stroke-width: var(--mini-chart-wick-width, ${wickWidth}); transition: all 0.4s ease-out; }
+[part="candle"] { transition: opacity 0.2s ease, filter 0.2s ease; cursor: default; pointer-events: all; }
+[part="wick"] { stroke: currentColor; stroke-width: var(--mini-chart-wick-width, ${wickWidth}); transition: stroke-width 0.2s ease; stroke-linecap: square; pointer-events: none; }
+[part="body"] { stroke: currentColor; stroke-width: var(--mini-chart-wick-width, ${wickWidth}); pointer-events: all; }
 [part="candle"][data-bullish] { color: var(--mini-chart-bullish-color, #10b981); fill: ${isHollow ? "transparent" : "currentColor"}; }
 [part="candle"]:not([data-bullish]) { color: var(--mini-chart-bearish-color, #ef4444); fill: currentColor; }
-:host([interactive]) [part="candle"]:hover { opacity: 1 !important; }
-:host([interactive]) [part="candles"]:has([part="candle"]:hover) [part="candle"]:not(:hover) { opacity: 0.35; }`;
+:host([interactive]) [part="candle"] { cursor: pointer; }
+:host([interactive]) [part="candle"]:hover { opacity: 1 !important; filter: brightness(1.2); }
+:host([interactive]) [part="candles"]:has([part="candle"]:hover) [part="candle"]:not(:hover) { opacity: 0.45; }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
     this.#container = /** @type {SVGGElement} */ (createSvgElement("g", { part: "candles" }));
@@ -149,6 +149,39 @@ export class MiniCandlestickChart extends MiniChartElement {
         isBullish,
         change,
         changePercent: Number(changePercent.toFixed(2)),
+        element: group,
+      },
+    }));
+  };
+
+  #onClick = (/** @type {PointerEvent} */ e) => {
+    if (!this.hasAttribute("interactive")) return;
+    const target = /** @type {Element | null} */ (e.target);
+    const group = target?.closest('[part~="candle"]');
+    if (!group || !group.hasAttribute("data-index")) return;
+
+    const index = parseInt(group.getAttribute("data-index") || "0", 10);
+    const candleData = this.#currentData[index];
+    if (!candleData) return;
+
+    const [open, high, low, close] = candleData;
+    const change = close - open;
+    const changePercent = open !== 0 ? (change / open) * 100 : 0;
+    const isBullish = close >= open;
+
+    this.dispatchEvent(new CustomEvent("sparkline-select", {
+      bubbles: true,
+      composed: true,
+      detail: {
+        index,
+        open,
+        high,
+        low,
+        close,
+        change,
+        changePercent: Number(changePercent.toFixed(2)),
+        isBullish,
+        element: group,
       },
     }));
   };
@@ -163,11 +196,13 @@ export class MiniCandlestickChart extends MiniChartElement {
 
   #setupInteractionListeners() {
     this.#container?.addEventListener("pointerover", this.#onPointerMove);
+    this.#container?.addEventListener("click", this.#onClick);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
   }
 
   #detachInteractionListeners() {
     this.#container?.removeEventListener("pointerover", this.#onPointerMove);
+    this.#container?.removeEventListener("click", this.#onClick);
     this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 

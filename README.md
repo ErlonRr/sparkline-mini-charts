@@ -1,45 +1,76 @@
 <!-- README.md — Installation, API, architecture, and development guide for Sparkline Mini Charts. -->
+
 # Sparkline Mini Charts
 
-Framework-agnostic, zero-dependency sparklines built with native Custom Elements, Shadow DOM, and responsive SVG. Use them in any modern frontend application without Canvas or a charting runtime.
+[![npm version](https://img.shields.io/npm/v/sparkline-mini-charts.svg?style=flat-square&color=0f766e)](https://www.npmjs.com/package/sparkline-mini-charts)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg?style=flat-square)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178c6.svg?style=flat-square)](tsconfig.json)
+[![Demo](https://img.shields.io/badge/Live-Showcase-7c3aed.svg?style=flat-square)](https://sparkline-mini-chart.erlonrru.com)
+
+**Zero-dependency SVG sparkline Web Components with Shadow DOM, CSS theme tokens, responsive scaling, and native framework bindings (Angular, React, Vue, Svelte).**
+
+Use them in any modern frontend application without Canvas, heavy charting runtimes, or external stylesheets.
 
 ```html
-<mini-line-chart data="[10, 20, 14, 28, 35]" label="Revenue over five periods"></mini-line-chart>
+<mini-line-chart
+  data="[10, 20, 14, 28, 35]"
+  label="Revenue over five periods"
+></mini-line-chart>
 ```
 
-## Features
+👉 **[Explore the Live Interactive Showcase & Playground →](https://sparkline-mini-chart.erlonrru.com)**
 
-- Four native SVG components: line, bar, pie, and half-pie.
-- Responsive `viewBox` rendering with no ResizeObserver or layout work in JavaScript.
-- Declarative `data` and `label` attributes plus a JavaScript `data` property.
-- Pure ESM exports for tree-shaking and separate, intentional registration entry points.
-- Safe to evaluate during server-side rendering; Custom Elements register only where a browser registry is available.
-- No runtime dependencies in the native Web Component core.
-- Optional Angular, React, and Vue adapters that remain outside the core bundle.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ErlonRru/sparkline-mini-charts/main/assets/img/live-data-1.png" alt="Sparkline Mini Charts Live Streaming Studio" width="100%" />
+</p>
 
-## Installation
+---
+
+## ⚡ Features
+
+- **17 Native SVG Web Components**: Trend lines, bars, areas, radial gauges, financial candlestick/OHLC, bullet, win/loss, stream, and scatter plots.
+- **Zero Runtime Dependencies**: Ultra-lightweight core built with pure Custom Elements v1 and SVG `<path>` geometry.
+- **100% Shadow DOM Encapsulation**: Isolated styles with customizable CSS Custom Properties and `::part()` pseudo-elements.
+- **Adaptive Dark & Light Theming**: Built-in design token inheritance across all charts (`--mini-chart-color-1..8`, `--mini-chart-safe/warn/danger-color`).
+- **Responsive `viewBox` Scaling**: Automatically adapts to container dimensions with pure vector rendering.
+- **Declarative & Reactive**: Synchronized HTML `data` / `label` attributes and JavaScript properties.
+- **SSR-Safe**: Safe for server-side evaluation (Next.js, Nuxt, Astro, SvelteKit, Angular SSR).
+- **Framework Adapters**: First-class bindings for Angular, React, and Vue included as separate, tree-shakeable entry points.
+
+---
+
+## 📦 Installation
 
 ```sh
 pnpm add sparkline-mini-charts
 ```
 
-`npm install sparkline-mini-charts` and `yarn add sparkline-mini-charts` are also supported. The package publishes typed ESM and CJS distributions with source maps.
+```sh
+npm install sparkline-mini-charts
+# or
+yarn add sparkline-mini-charts
+```
 
-## Registration modes
+The package publishes typed ESM and CJS distributions with source maps and TypeScript definitions (`.d.ts`).
 
-Choose the smallest import that fits the application.
+---
 
-### Register every chart
+## 🚀 Registration Modes
 
-Use the dedicated side-effect entry point once in browser startup code.
+Choose the smallest import strategy that fits your architecture.
+
+### 1. Register All 17 Components Automatically
+
+Use the dedicated side-effect entry point once in your application startup:
 
 ```js
 import "sparkline-mini-charts/register";
 ```
 
-### Register every chart explicitly
+### 2. Register All Components Explicitly
 
-This entry point is side-effect free, which is useful when an application controls its initialization sequence.
+Side-effect free entry point when you want to control execution timing:
 
 ```js
 import { defineMiniCharts } from "sparkline-mini-charts/define";
@@ -47,9 +78,9 @@ import { defineMiniCharts } from "sparkline-mini-charts/define";
 defineMiniCharts();
 ```
 
-### Register one chart only
+### 3. Register Specific Leaf Components (Optimal Bundle Size)
 
-Import a leaf module plus the small registration helper when bundle size matters.
+Import only the individual Custom Element class and the lightweight registration helper:
 
 ```js
 import { MiniLineChart } from "sparkline-mini-charts/mini-line-chart";
@@ -58,59 +89,50 @@ import { defineMiniChart } from "sparkline-mini-charts";
 defineMiniChart("mini-line-chart", MiniLineChart);
 ```
 
-The root import is intentionally side-effect free, so bundlers can remove unused component exports. Only the automatic registration and React wrapper entry points are marked as having side effects.
+---
 
-## Package exports
+## 📊 Complete Component Reference
 
-| Import path | Contents | Runtime dependency |
-| --- | --- | --- |
-| `sparkline-mini-charts` | Pure core exports and `defineMiniChart()` | None |
-| `sparkline-mini-charts/define` | Explicit `defineMiniCharts()` registration | None |
-| `sparkline-mini-charts/register` | Automatically registers every native chart | None |
-| `sparkline-mini-charts/mini-line-chart` (and peers) | A single Custom Element class | None |
-| `sparkline-mini-charts/math` | Shared geometry helpers | None |
-| `sparkline-mini-charts/angular` | Standalone Angular directive | `@angular/core` |
-| `sparkline-mini-charts/react` | React chart wrapper components | `react` |
-| `sparkline-mini-charts/vue` | Vue 3 chart wrapper components | `vue` |
+| Web Component Element       | Category / Best for                  | Value & Data Input Format                     |
+| :-------------------------- | :----------------------------------- | :-------------------------------------------- |
+| `<mini-line-chart>`         | Ordered trend lines                  | `number[]` (e.g. `[10, 20, 14, 28, 35]`)      |
+| `<mini-bar-chart>`          | Signed comparison from baseline      | `number[]` (e.g. `[-8, 12, 4, -3, 18]`)       |
+| `<mini-area-chart>`         | Filled trend with gradient           | `number[]` (e.g. `[12, 18, 15, 27, 34]`)      |
+| `<mini-stacked-area-chart>` | Cumulative multi-layer volume        | `number[][]` (e.g. `[[10, 20], [15, 25]]`)    |
+| `<mini-stream-chart>`       | Organic ThemeRiver flow              | `number[][]` (e.g. multi-layer stream series) |
+| `<mini-pie-chart>`          | 360° Part-to-whole / Donut           | `number[]` (e.g. `[45, 30, 15, 10]`)          |
+| `<mini-half-pie-chart>`     | 180° Semi-radial gauge distribution  | `number[]` (e.g. `[60, 25, 15]`)              |
+| `<mini-radial-bar-chart>`   | Concentric activity rings            | `number[]` or `{ value, color }[]`            |
+| `<mini-progress-chart>`     | Semi-radial progress meter           | `number[]` (e.g. `[75]`, single percentage)   |
+| `<mini-gauge-chart>`        | Speedometer gauge with needle        | `[value, min, max]` + `zones` JSON            |
+| `<mini-candlestick-chart>`  | Financial OHLC candles with wicks    | `[Open, High, Low, Close][]`                  |
+| `<mini-ohlc-chart>`         | Financial tick bar charts            | `[Open, High, Low, Close][]`                  |
+| `<mini-combo-chart>`        | Hybrid Bar + Line trend              | `{ bar: number, line: number }[]`             |
+| `<mini-bullet-chart>`       | Stephen Few KPI benchmark            | `[val, target, r1, r2, r3]`                   |
+| `<mini-range-bar-chart>`    | Floating interval min-max spans      | `[min, max, val?][]`                          |
+| `<mini-win-loss-chart>`     | Edward Tufte binary / status strip   | `(1 \| 0 \| -1)[]`                            |
+| `<mini-scatter-chart>`      | 2D Scatter plot with regression line | `[x, y][]`                                    |
 
-## Components
+---
 
-```html
-<mini-line-chart data="[10, 20, 14, 28, 35]" label="Revenue trend"></mini-line-chart>
-<mini-bar-chart data="[-8, 12, 4, -3, 18]" label="Monthly variance"></mini-bar-chart>
-<mini-pie-chart data="[45, 30, 15, 10]" label="Traffic sources"></mini-pie-chart>
-<mini-half-pie-chart data="[60, 25, 15]" label="Plan adoption"></mini-half-pie-chart>
-```
+### 🛠️ Interactive Sandbox & Playground
 
-| Element | Best for | Value behavior |
-| --- | --- | --- |
-| `<mini-line-chart>` | Ordered trends | Preserves positive and negative values. |
-| `<mini-bar-chart>` | Signed comparison | Renders values from a shared zero baseline. |
-| `<mini-pie-chart>` | Part-to-whole distribution | Treats negative values as zero. |
-| `<mini-half-pie-chart>` | Compact part-to-whole distribution | Treats negative values as zero. |
+Test datasets, tweak styling attributes, and preview responsive SVG rendering in real time:
 
-## API
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ErlonRru/sparkline-mini-charts/main/assets/img/interactive-sandbox.png" alt="Interactive Sandbox & Playground" width="100%" />
+</p>
 
-| Attribute/property | Type | Description |
-| --- | --- | --- |
-| `data` | JSON number array / `number[]` | The chart values. Invalid JSON and non-finite entries are ignored. |
-| `label` | `string` | Accessible name applied to the rendered SVG. |
+---
 
-```js
-const chart = document.querySelector("mini-line-chart");
-chart.data = [12, 18, 15, 27];
-chart.setAttribute("label", "Weekly revenue trend");
-```
+## 🎨 Styling & CSS Custom Properties
 
-Empty, invalid, and zero-total radial data sets render an empty accessible SVG rather than throwing.
-
-## Styling
-
-Set an inline size on the host and the SVG scales to its natural chart ratio.
+Set dimensions on the host element and the SVG will automatically scale cleanly.
 
 ```css
 mini-line-chart {
   inline-size: 12rem;
+  block-size: 3rem;
   --mini-chart-color: #0f766e;
   --mini-chart-stroke-width: 2.5;
 }
@@ -121,22 +143,29 @@ mini-pie-chart {
 }
 ```
 
-| Custom property | Effect |
-| --- | --- |
-| `--mini-chart-color` | Line, bar, and single-value default color. |
-| `--mini-chart-fill` | Bar fill and all radial segment fills. Omit it for the default radial palette. |
-| `--mini-chart-stroke-width` | Line stroke width. |
-| `--mini-chart-aspect-ratio` | Overrides the component’s natural aspect ratio. |
+### Global Design Tokens
 
-The Shadow DOM exposes the `svg`, `line`, `point`, `bar`, and `segment` parts for `::part()` styling.
+| Custom Property                                                                     | Default            | Description                                           |
+| :---------------------------------------------------------------------------------- | :----------------- | :---------------------------------------------------- |
+| `--mini-chart-color`                                                                | `#0ea5e9`          | Primary line, bar, and single-value accent color.     |
+| `--mini-chart-color-1` ... `--mini-chart-color-8`                                   | Built-in Palette   | Theme colors for multi-layer/radial charts.           |
+| `--mini-chart-stroke-width`                                                         | `2`                | Stroke width for lines, wicks, and arcs.              |
+| `--mini-chart-bullish-color`                                                        | `#10b981`          | Bullish positive color for financial charts.          |
+| `--mini-chart-bearish-color`                                                        | `#ef4444`          | Bearish negative color for financial charts.          |
+| `--mini-chart-safe-color` / `--mini-chart-warn-color` / `--mini-chart-danger-color` | Semantic tones     | Status bands for gauges and bullets.                  |
+| `--mini-chart-track-color`                                                          | `rgba(0,0,0,0.08)` | Background track color for progress and radial rings. |
 
-## Framework and SSR use
+---
 
-The core tags work in any framework. Purpose-built adapter entry points are provided for Angular, React, and Vue; Svelte consumes the native elements directly.
+## 🧩 Framework Integrations
+
+Native Web Components work seamlessly in any ecosystem with first-class typed adapters:
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ErlonRru/sparkline-mini-charts/main/assets/img/framework-integrations.png" alt="Framework Integrations for React, Vue, Angular, Svelte" width="100%" />
+</p>
 
 ### Angular
-
-Import the standalone directive to make `[data]` and `[label]` bindings available on every native chart tag.
 
 ```ts
 import { Component } from "@angular/core";
@@ -145,7 +174,10 @@ import { MiniChartDirective } from "sparkline-mini-charts/angular";
 @Component({
   standalone: true,
   imports: [MiniChartDirective],
-  template: `<mini-line-chart [data]="revenue" label="Weekly revenue"></mini-line-chart>`,
+  template: `<mini-line-chart
+    [data]="revenue"
+    label="Weekly revenue"
+  ></mini-line-chart>`,
 })
 export class RevenueCard {
   revenue = [12, 18, 15, 27];
@@ -153,8 +185,6 @@ export class RevenueCard {
 ```
 
 ### React
-
-Use the React subpath from a client component. It registers the required native tags and accepts a number array directly.
 
 ```tsx
 "use client";
@@ -166,9 +196,7 @@ export function RevenueChart() {
 }
 ```
 
-### Vue
-
-Vue wrappers expose typed props while preserving native SVG rendering.
+### Vue 3
 
 ```vue
 <script setup lang="ts">
@@ -182,95 +210,74 @@ const revenue = [12, 18, 15, 27];
 </template>
 ```
 
-### Svelte and native HTML
+### Svelte & Vanilla HTML
 
-Register the Custom Elements once in browser startup code, then use the HTML tags directly.
+```html
+<script>
+  import "sparkline-mini-charts/register";
+</script>
 
-```ts
-import "sparkline-mini-charts/register";
+<mini-line-chart
+  data="[12, 18, 15, 27]"
+  label="Weekly revenue"
+></mini-line-chart>
 ```
 
-For server-rendered applications, all package entry points are safe to evaluate on the server. Register elements only in browser code.
+---
 
-## Accessibility
+## ♿ Accessibility
 
-Each rendered SVG uses `role="img"` and receives its accessible name from `label`. Provide a concise label whenever the chart conveys information that is not already available in nearby text. The demo uses labels for every chart instance.
+Every component renders semantic SVG elements with `role="img"` (or `role="meter"` for gauge/progress) and binds accessible labels via the `label` attribute and internal `<title>` elements.
 
-## Browser support
+---
 
-The library targets current evergreen browsers with ES modules, Custom Elements, Shadow DOM, and SVG support. It does not ship polyfills.
-
-## Demo
-
-The [interactive demo](demo/index.html) shows each component, validates user-supplied JSON, and generates declarative markup.
-
-```sh
-pnpm install
-pnpm dev
-```
-
-Vite serves the demo from `demo/`. Use `pnpm build:demo` to create a deployable static site in `dist-demo/`.
-
-## Project structure
-
-```text
-src/
-├── angular/         # Angular standalone directive
-├── components/      # One Custom Element class per chart
-├── core/            # Shared parsing, geometry, SVG, palette, and registration code
-├── react/           # React wrappers
-├── vue/             # Vue 3 wrappers
-├── define.js         # Explicit all-component registration function
-├── index.js          # Side-effect-free public ESM exports
-└── register.js       # Intentional side-effect entry point
-demo/                 # Interactive static showcase
-test/                 # Node test runner unit and integration coverage
-vite.config.js        # ESM/CJS library distribution build
-vite.config.demo.js   # Demo dev server and static build
-CHANGELOG.md          # Version history
-```
-
-## Recent Releases
+## 🕒 Recent Releases
 
 <details>
-<summary>Click to view recent releases</summary>
+<summary><b>Click to view recent releases (Last 3)</b></summary>
 
-### v1.2.0 (2026-08-15)
-- Adaptive Dark and Light theme token system with instant Shadow DOM cascading.
-- Showcase demo overhaul with real-time streaming, interactive gallery, and sandbox playground.
-- Bilingual i18n support (English & Italian).
+<br/>
 
-### v1.1.0 (2026-08-14)
-- Added 4 new chart components: `<mini-bullet-chart>`, `<mini-range-bar-chart>`, `<mini-win-loss-chart>`, and `<mini-scatter-chart>`.
-- Integrated linear regression trendline computation and Stephen Few bullet charts.
-- Added Angular, React, and Vue framework bindings for all new elements.
+### [v1.2.1] - 2026-08-15
 
+- **Smooth Non-Jitter Interactions**: Replaced disruptive SVG scale transforms with smooth brightness/opacity transitions across all 17 charts.
+- **Showcase SPA Router**: Multi-page client-side router with dedicated views for Overview, Streaming Studio, Component Details, Playground, and Frameworks.
+- **Native Click Events**: Added `sparkline-select` custom event with detailed data payload.
+- **Solid Candlestick Hit Areas**: Added `pointer-events: all` to hollow candles.
 
-### v1.0.1 (2026-08-14)
-- Refinements to candlestick, OHLC, gauge, and progress bar aesthetics and stroke proportions.
-- Radial bar fluid staggered transitions and outer-to-inner ring stacking.
-- Pie and half-pie shadow DOM styling and multi-token part selectors.
+### [v1.2.0] - 2026-08-15
 
+- **Adaptive Theme Tokens**: Full dark & light token system (`--mini-chart-color-1..8`, `--mini-chart-safe/warn/danger-color`, `--mini-chart-track-color`) with instant CSS inheritance.
+- **Showcase Overhaul**: Real-time live streaming grid, 17-component interactive gallery, and sandbox playground at [sparkline-mini-chart.erlonrru.com](https://sparkline-mini-chart.erlonrru.com).
+- **Bilingual i18n**: English and Italiano localization support in demo.
+- **Organic ThemeRiver**: Byron & Wattenberg Last.fm simulation for stream charts.
 
-### v1.0.0 (2026-08-11)
-- Initial release with 13 mini charts.
-- Comprehensive documentation for all components.
-- Native CSS animation and framework integrations.
+### [v1.1.0] - 2026-08-14
+
+- **4 New Chart Types**: Added `<mini-bullet-chart>`, `<mini-range-bar-chart>`, `<mini-win-loss-chart>`, and `<mini-scatter-chart>`.
+- **Pure Algorithms**: Integrated Stephen Few bullet layout, floating range intervals, Tufte binary sparklines, and automatic linear regression trendlines.
+- **Framework Bindings**: Expanded Angular, React, and Vue adapters for all 17 elements.
+
+---
+
+👉 _For older releases and full details, see the [Full CHANGELOG](CHANGELOG.md)._
 
 </details>
 
+---
 
-## Development
+## 🛠 Development & Testing
 
 ```sh
-pnpm test
-pnpm typecheck
-pnpm build
-pnpm build:demo
+pnpm install
+pnpm test          # Run Vitest/Node test runner
+pnpm typecheck     # Validate TypeScript definitions
+pnpm build         # Build typed ESM/CJS bundles in dist/
+pnpm dev           # Launch interactive showcase dev server
 ```
 
-`pnpm build` writes typed ESM/CJS artifacts and source maps to `dist/`. The test suite covers shared data and geometry utilities, component rendering, registration behavior, package exports, and SSR-safe module evaluation.
+---
 
-## Release and license
+## 📄 License
 
-Document user-visible changes in [CHANGELOG.md](CHANGELOG.md) using the Keep a Changelog format. Before publishing this project as open source, add an OSI-approved license with the correct copyright holder.
+Crafted with precision & vibe coding by [Erlon Rru](https://erlonrru.com) · [MIT License](LICENSE) © 2026

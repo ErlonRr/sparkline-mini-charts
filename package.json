@@ -1,10 +1,17 @@
 {
   "name": "sparkline-mini-charts",
-  "version": "1.2.0",
-  "description": "Zero-dependency SVG sparkline Web Components.",
-
-
-
+  "version": "1.2.1",
+  "description": "Zero-dependency SVG sparkline Web Components with Shadow DOM, responsive scaling, and framework bindings.",
+  "author": "Erlon Rru",
+  "license": "MIT",
+  "homepage": "https://sparkline-mini-chart.erlonrru.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ErlonRru/sparkline-mini-charts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ErlonRru/sparkline-mini-charts/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -142,7 +149,8 @@
   "files": [
     "dist",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "vite --config vite.config.demo.js",
