@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-08-15
+
+### Added
+
+- Interactive **Theming & Design Tokens Guide** (`#/theming`) with live real-time cascading theme lab.
+- **Master Design Tokens Configuration Template** accordion with copyable drop-in CSS snippet for custom design system integration.
+- Professional multi-hue color palettes across all 5 built-in themes (Ocean Tech, Emerald Fintech, Cyberpunk Neon, Sunset Horizon, Luxury Velvet) with authentic chromatic gradient synergy.
+- Harmonized stage layout and centering for sparklines and standardized compact sizing for donut/pie charts.
+
+### Fixed
+
+- Visual contrast and alignment of sparklines and multi-layer pie distributions.
+- Sharp, high-resolution vector NPM icon in the showcase header navigation.
+
 ## [1.2.1] - 2026-08-15
 
 ### Added

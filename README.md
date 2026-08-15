@@ -238,6 +238,13 @@ Every component renders semantic SVG elements with `role="img"` (or `role="meter
 
 <br/>
 
+### [v1.3.0] - 2026-08-15
+
+- **Theming & Tokens Studio**: Added dedicated Theming & Design Tokens Guide (`#/theming`) with real-time interactive cascading theme lab.
+- **Master Design Tokens Template**: Drop-in CSS variables accordion for seamless design system integration.
+- **Harmonious Multi-Hue Themes**: Real gradient spectrum synergy across Ocean Tech, Emerald Fintech, Cyberpunk Neon, Sunset Horizon, and Luxury Velvet.
+- **Sparkline Centering & Sizing**: Symmetrical stage centering and standardized compact donut/pie proportions.
+
 ### [v1.2.1] - 2026-08-15
 
 - **Smooth Non-Jitter Interactions**: Replaced disruptive SVG scale transforms with smooth brightness/opacity transitions across all 17 charts.
@@ -251,12 +258,6 @@ Every component renders semantic SVG elements with `role="img"` (or `role="meter
 - **Showcase Overhaul**: Real-time live streaming grid, 17-component interactive gallery, and sandbox playground at [sparkline-mini-chart.erlonrru.com](https://sparkline-mini-chart.erlonrru.com).
 - **Bilingual i18n**: English and Italiano localization support in demo.
 - **Organic ThemeRiver**: Byron & Wattenberg Last.fm simulation for stream charts.
-
-### [v1.1.0] - 2026-08-14
-
-- **4 New Chart Types**: Added `<mini-bullet-chart>`, `<mini-range-bar-chart>`, `<mini-win-loss-chart>`, and `<mini-scatter-chart>`.
-- **Pure Algorithms**: Integrated Stephen Few bullet layout, floating range intervals, Tufte binary sparklines, and automatic linear regression trendlines.
-- **Framework Bindings**: Expanded Angular, React, and Vue adapters for all 17 elements.
 
 ---
 
