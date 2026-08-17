@@ -10,10 +10,11 @@ import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
  * @property {SVGGElement} group
  * @property {SVGPathElement} bg
  * @property {SVGPathElement} fg
+ * @property {SVGLinearGradientElement} gradient
  */
 
 /**
- * Renders multiple data points as concentric radial activity rings with hardware-accelerated stroke transitions.
+ * Renders multiple data points as concentric radial activity rings with gradients and hardware-accelerated stroke transitions.
  *
  * @extends MiniChartElement
  */
@@ -25,6 +26,7 @@ export class MiniRadialBarChart extends MiniChartElement {
     "round-caps",
     "min",
     "max",
+    "gradient",
     "interactive",
   ];
 
@@ -36,6 +38,8 @@ export class MiniRadialBarChart extends MiniChartElement {
 
   /** @type {SVGSVGElement | null} */
   #svg = null;
+  /** @type {SVGDefsElement | null} */
+  #defs = null;
   /** @type {SVGGElement | null} */
   #container = null;
 
@@ -134,9 +138,10 @@ export class MiniRadialBarChart extends MiniChartElement {
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
+    this.#defs = createSvgElement("defs");
     this.#container = /** @type {SVGGElement} */ (createSvgElement("g", { part: "tracks" }));
     
-    this.#svg.append(this.#container);
+    this.#svg.append(this.#defs, this.#container);
     this.shadowRoot?.replaceChildren(style, this.#svg);
 
     this.#setupInteractionListeners();
@@ -178,10 +183,38 @@ export class MiniRadialBarChart extends MiniChartElement {
   }
 
   /**
+   * Resolves gradient colors for a specific track index.
+   * @param {number} index
+   * @param {string} baseColor
+   * @returns {string[] | null}
+   */
+  #resolveTrackGradient(index, baseColor) {
+    const raw = this.getAttribute("gradient");
+    if (raw === null || raw === "false") return null;
+    if (raw === "" || raw === "true") {
+      // Create vibrant multi-hue gradient based on base color
+      return [baseColor, getSegmentColor(index + 3)];
+    }
+    try {
+      const normalized = raw.replace(/'/g, '"');
+      const parsed = JSON.parse(normalized);
+      if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed[index])) return parsed[index];
+        if (typeof parsed[0] === "string") return parsed;
+      }
+    } catch {}
+    if (raw.includes(",")) {
+      const colors = raw.replace(/[\[\]'"]/g, "").split(",").map((s) => s.trim()).filter(Boolean);
+      if (colors.length >= 2) return colors;
+    }
+    return null;
+  }
+
+  /**
    * @param {any[]} data 
    */
   #updateChart(data) {
-    if (!this.#container || !this.#svg) return;
+    if (!this.#container || !this.#svg || !this.#defs) return;
     if (this.#timerId !== null) {
       clearTimeout(this.#timerId);
       this.#timerId = null;
@@ -218,6 +251,17 @@ export class MiniRadialBarChart extends MiniChartElement {
     const trackWidth = Math.max(2, Math.min(10, 36 / (tracks.length || 1)));
 
     while (this.#tracks.length < tracks.length) {
+      const index = this.#tracks.length;
+      const gradId = `radial-grad-${index}-${Math.random().toString(36).slice(2, 9)}`;
+      const gradient = /** @type {SVGLinearGradientElement} */ (createSvgElement("linearGradient", {
+        id: gradId,
+        x1: "0%",
+        y1: "0%",
+        x2: "100%",
+        y2: "100%",
+      }));
+      this.#defs.append(gradient);
+
       const group = /** @type {SVGGElement} */ (createSvgElement("g", { part: "track" }));
       const bg = /** @type {SVGPathElement} */ (createSvgElement("path", { part: "track-bg" }));
       const fg = /** @type {SVGPathElement} */ (createSvgElement("path", {
@@ -228,7 +272,7 @@ export class MiniRadialBarChart extends MiniChartElement {
       
       group.append(bg, fg);
       this.#container.append(group);
-      this.#tracks.push({ group, bg, fg });
+      this.#tracks.push({ group, bg, fg, gradient });
     }
 
     if (isInitial) {
@@ -248,9 +292,21 @@ export class MiniRadialBarChart extends MiniChartElement {
         cache.fg.style.transition = "none";
         cache.fg.style.strokeDashoffset = "100";
         cache.fg.style.opacity = geo.value > 0 ? "1" : "0";
+        
         const item = data[index];
-        const color = (typeof item === "object" && item.color) || `var(--mini-chart-color-${index + 1}, ${getSegmentColor(index)})`;
-        cache.fg.style.stroke = color;
+        const baseColor = (typeof item === "object" && item.color) || `var(--mini-chart-color-${index + 1}, ${getSegmentColor(index)})`;
+        const gradStops = this.#resolveTrackGradient(index, typeof item === "object" && item.color ? item.color : getSegmentColor(index));
+
+        if (gradStops && cache.gradient) {
+          cache.gradient.innerHTML = "";
+          gradStops.forEach((col, sIdx) => {
+            const offset = gradStops.length > 1 ? `${(sIdx / (gradStops.length - 1)) * 100}%` : "0%";
+            cache.gradient.append(createSvgElement("stop", { offset, "stop-color": col }));
+          });
+          cache.fg.style.stroke = `url(#${cache.gradient.id})`;
+        } else {
+          cache.fg.style.stroke = baseColor;
+        }
       });
 
       // Step 2: Single batch reflow
@@ -299,10 +355,20 @@ export class MiniRadialBarChart extends MiniChartElement {
         cache.fg.style.opacity = geo.value > 0 ? "1" : "0";
 
         const item = data[index];
-        const color = (typeof item === "object" && item.color) || `var(--mini-chart-color-${index + 1}, ${getSegmentColor(index)})`;
-        cache.fg.style.stroke = color;
+        const baseColor = (typeof item === "object" && item.color) || `var(--mini-chart-color-${index + 1}, ${getSegmentColor(index)})`;
+        const gradStops = this.#resolveTrackGradient(index, typeof item === "object" && item.color ? item.color : getSegmentColor(index));
+
+        if (gradStops && cache.gradient) {
+          cache.gradient.innerHTML = "";
+          gradStops.forEach((col, sIdx) => {
+            const offset = gradStops.length > 1 ? `${(sIdx / (gradStops.length - 1)) * 100}%` : "0%";
+            cache.gradient.append(createSvgElement("stop", { offset, "stop-color": col }));
+          });
+          cache.fg.style.stroke = `url(#${cache.gradient.id})`;
+        } else {
+          cache.fg.style.stroke = baseColor;
+        }
       });
     }
-
   }
 }

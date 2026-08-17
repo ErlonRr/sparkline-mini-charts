@@ -3,21 +3,30 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Sparkline Mini Charts — Zero-dependency SVG micro-charts Web Components with Shadow DOM and framework bindings for modern dashboards." />
+    <meta
+      name="description"
+      content="Sparkline Mini Charts — Zero-dependency SVG micro-charts Web Components with Shadow DOM and framework bindings for modern dashboards."
+    />
     <title>Sparkline Mini Charts — Interactive Showcase & Documentation</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
 
     <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
     <script type="module" src="./app.js"></script>
 
     <style>
       :root {
-        --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        --font-mono: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        --font-sans:
+          "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+        --font-mono:
+          "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
         /* Light Theme Tokens */
         --bg-light: hsl(210 40% 98%);
@@ -81,7 +90,7 @@
         --mini-chart-range-1: rgba(255, 255, 255, 0.08);
         --mini-chart-range-2: rgba(255, 255, 255, 0.15);
         --mini-chart-range-3: rgba(255, 255, 255, 0.24);
-        
+
         --mini-chart-color-1: #38bdf8;
         --mini-chart-color-2: #a78bfa;
         --mini-chart-color-3: #f472b6;
@@ -93,7 +102,7 @@
 
         --sidebar-width: 280px;
         --header-height: 68px;
-        
+
         font-family: var(--font-sans);
         color-scheme: dark;
       }
@@ -129,7 +138,7 @@
         --mini-chart-bar-color: rgba(0, 0, 0, 0.12);
         --mini-chart-range-1: rgba(0, 0, 0, 0.05);
         --mini-chart-range-2: rgba(0, 0, 0, 0.12);
-        --mini-chart-range-3: rgba(0, 0, 0, 0.20);
+        --mini-chart-range-3: rgba(0, 0, 0, 0.2);
 
         --mini-chart-color-1: #0284c7;
         --mini-chart-color-2: #7c3aed;
@@ -143,7 +152,9 @@
         color-scheme: light;
       }
 
-      *, *::before, *::after {
+      *,
+      *::before,
+      *::after {
         box-sizing: border-box;
       }
 
@@ -155,7 +166,9 @@
         line-height: 1.6;
         min-height: 100vh;
         overflow-x: hidden;
-        transition: background-color 0.25s ease, color 0.25s ease;
+        transition:
+          background-color 0.25s ease,
+          color 0.25s ease;
       }
 
       /* Dotted Matrix Background Grid */
@@ -178,16 +191,23 @@
         -webkit-backdrop-filter: blur(16px);
         border: 1px solid var(--border);
         border-radius: 14px;
-        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        transition:
+          transform 0.2s ease,
+          border-color 0.2s ease,
+          box-shadow 0.2s ease;
       }
 
       .glass-card:hover {
         border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
-        box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--primary) 15%, transparent);
+        box-shadow: 0 10px 30px -10px
+          color-mix(in srgb, var(--primary) 15%, transparent);
       }
 
       /* Typography */
-      h1, h2, h3, h4 {
+      h1,
+      h2,
+      h3,
+      h4 {
         color: var(--text);
         font-weight: 700;
         letter-spacing: -0.02em;
@@ -195,10 +215,22 @@
         margin: 0;
       }
 
-      h1 { font-size: clamp(2.2rem, 4.5vw, 3.25rem); font-weight: 800; }
-      h2 { font-size: clamp(1.4rem, 2.5vw, 1.85rem); margin-block-end: 0.5rem; }
-      h3 { font-size: 1.15rem; font-weight: 650; }
-      p { margin: 0; color: var(--text-muted); }
+      h1 {
+        font-size: clamp(2.2rem, 4.5vw, 3.25rem);
+        font-weight: 800;
+      }
+      h2 {
+        font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+        margin-block-end: 0.5rem;
+      }
+      h3 {
+        font-size: 1.15rem;
+        font-weight: 650;
+      }
+      p {
+        margin: 0;
+        color: var(--text-muted);
+      }
 
       a {
         color: var(--primary);
@@ -209,7 +241,8 @@
         color: var(--primary-hover);
       }
 
-      code, pre {
+      code,
+      pre {
         font-family: var(--font-mono);
         font-size: 0.85em;
       }
@@ -234,7 +267,8 @@
       .btn-primary {
         background: var(--primary);
         color: white;
-        box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 40%, transparent);
+        box-shadow: 0 4px 14px
+          color-mix(in srgb, var(--primary) 40%, transparent);
       }
       .btn-primary:hover {
         background: var(--primary-hover);
@@ -247,7 +281,11 @@
         border-color: var(--border);
       }
       .btn-secondary:hover {
-        background: color-mix(in srgb, var(--surface-muted) 80%, var(--primary));
+        background: color-mix(
+          in srgb,
+          var(--surface-muted) 80%,
+          var(--primary)
+        );
         border-color: var(--primary);
       }
 
@@ -305,7 +343,8 @@
         justify-content: center;
         color: white;
         font-size: 1.1rem;
-        box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 40%, transparent);
+        box-shadow: 0 4px 14px
+          color-mix(in srgb, var(--primary) 40%, transparent);
       }
 
       .navbar-actions {
@@ -330,7 +369,11 @@
       }
       .install-pill:hover {
         border-color: var(--primary);
-        background: color-mix(in srgb, var(--surface-muted) 80%, var(--primary));
+        background: color-mix(
+          in srgb,
+          var(--surface-muted) 80%,
+          var(--primary)
+        );
       }
       .install-pill .copy-icon {
         color: var(--text-muted);
@@ -470,8 +513,14 @@
       }
 
       @keyframes fadeInView {
-        from { opacity: 0; transform: translateY(6px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       /* Hero Section */
@@ -514,7 +563,11 @@
       /* Live Real-time Stream Dashboard */
       .stream-dashboard {
         border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
-        background: linear-gradient(180deg, color-mix(in srgb, var(--primary-subtle) 40%, transparent), transparent 70%);
+        background: linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--primary-subtle) 40%, transparent),
+          transparent 70%
+        );
         padding: 1.75rem;
         border-radius: 18px;
         display: flex;
@@ -588,9 +641,19 @@
       }
 
       @keyframes pulseLive {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 color-mix(in srgb, var(--emerald) 70%, transparent); }
-        70% { transform: scale(1); box-shadow: 0 0 0 6px transparent; }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 transparent; }
+        0% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0
+            color-mix(in srgb, var(--emerald) 70%, transparent);
+        }
+        70% {
+          transform: scale(1);
+          box-shadow: 0 0 0 6px transparent;
+        }
+        100% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0 transparent;
+        }
       }
 
       .stream-stage {
@@ -818,7 +881,8 @@
         font-size: 0.875rem;
         margin-block-start: 1rem;
       }
-      .detail-table th, .detail-table td {
+      .detail-table th,
+      .detail-table td {
         padding: 0.75rem 1rem;
         text-align: left;
         border-bottom: 1px solid var(--border);
@@ -938,7 +1002,7 @@
         border-radius: 10px;
         font-weight: 600;
         font-size: 0.875rem;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -974,7 +1038,7 @@
           bottom: 0;
           z-index: 100;
           transition: left 0.25s ease;
-          box-shadow: 10px 0 30px rgba(0,0,0,0.3);
+          box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
         }
 
         .sidebar.open {
@@ -1144,7 +1208,8 @@
         margin-block-top: 1rem;
         font-size: 0.85rem;
       }
-      .token-table th, .token-table td {
+      .token-table th,
+      .token-table td {
         padding: 0.75rem 1rem;
         text-align: left;
         border-bottom: 1px solid var(--border);
@@ -1165,41 +1230,101 @@
 
     <!-- Top Navigation Header -->
     <header class="navbar">
-      <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle navigation">☰</button>
+      <div style="display: flex; align-items: center; gap: 0.75rem">
+        <button
+          id="mobile-menu-btn"
+          class="mobile-menu-btn"
+          aria-label="Toggle navigation"
+        >
+          ☰
+        </button>
         <a href="#/overview" class="navbar-brand">
           <div class="logo-icon">📈</div>
           <span>Sparkline Mini Charts</span>
-          <span class="badge">v1.2.1</span>
+          <span class="badge">v1.4.0</span>
         </a>
       </div>
 
       <div class="navbar-actions">
         <!-- Quick Install Copy Pill -->
-        <button id="quick-install-btn" class="install-pill" aria-label="Copy install command" title="Click to copy install command">
+        <button
+          id="quick-install-btn"
+          class="install-pill"
+          aria-label="Copy install command"
+          title="Click to copy install command"
+        >
           <span>pnpm add sparkline-mini-charts</span>
-          <svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <svg
+            class="copy-icon"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path
+              d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+            ></path>
+          </svg>
         </button>
 
         <!-- Author Portfolio Link -->
-        <a href="https://erlonrru.com" target="_blank" rel="noopener noreferrer" class="author-pill" title="Visit Erlon Rru's website">
+        <a
+          href="https://erlonrru.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="author-pill"
+          title="Visit Erlon Rru's website"
+        >
           <span class="dot"></span>
           <span>erlonrru.com</span>
         </a>
 
         <!-- NPM Link -->
-        <a href="https://www.npmjs.com/package/sparkline-mini-charts" target="_blank" rel="noopener noreferrer" class="nav-btn" title="View on NPM">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg>
+        <a
+          href="https://www.npmjs.com/package/sparkline-mini-charts"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="nav-btn"
+          title="View on NPM"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"
+            />
+          </svg>
         </a>
 
         <!-- GitHub Link -->
-        <a href="https://github.com/ErlonRru/sparkline-mini-charts" target="_blank" rel="noopener noreferrer" class="nav-btn" title="View on GitHub">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <a
+          href="https://github.com/ErlonRru/sparkline-mini-charts"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="nav-btn"
+          title="View on GitHub"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+            />
+          </svg>
         </a>
 
         <!-- i18n & Theme Switches -->
-        <button id="lang-toggle-btn" class="nav-btn" aria-label="Toggle language">🇬🇧 EN</button>
-        <button id="theme-toggle-btn" class="nav-btn" aria-label="Toggle color theme">
+        <button
+          id="lang-toggle-btn"
+          class="nav-btn"
+          aria-label="Toggle language"
+        >
+          🇬🇧 EN
+        </button>
+        <button
+          id="theme-toggle-btn"
+          class="nav-btn"
+          aria-label="Toggle color theme"
+        >
           <span id="theme-icon">🌙</span>
         </button>
       </div>
@@ -1209,62 +1334,166 @@
       <!-- Left Sticky Sidebar -->
       <aside id="docs-sidebar" class="sidebar">
         <div>
-          <div class="sidebar-group-title" data-i18n="groupGettingStarted">Getting Started</div>
+          <div class="sidebar-group-title" data-i18n="groupGettingStarted">
+            Getting Started
+          </div>
           <ul class="sidebar-menu">
-            <li><a href="#/overview" class="sidebar-link active" data-route="overview" data-i18n="itemOverview">Overview & Features</a></li>
+            <li>
+              <a
+                href="#/overview"
+                class="sidebar-link active"
+                data-route="overview"
+                data-i18n="itemOverview"
+                >Overview & Features</a
+              >
+            </li>
           </ul>
         </div>
 
         <div>
-          <div class="sidebar-group-title" data-i18n="groupLiveStream">Live Studio</div>
+          <div class="sidebar-group-title" data-i18n="groupLiveStream">
+            Live Studio
+          </div>
           <ul class="sidebar-menu">
-            <li><a href="#/streaming" class="sidebar-link" data-route="streaming" data-i18n="itemStreamingDashboard">Streaming Dashboard (17)</a></li>
+            <li>
+              <a
+                href="#/streaming"
+                class="sidebar-link"
+                data-route="streaming"
+                data-i18n="itemStreamingDashboard"
+                >Streaming Dashboard (17)</a
+              >
+            </li>
           </ul>
         </div>
 
         <div>
-          <div class="sidebar-group-title" data-i18n="groupComponents">Components Catalog</div>
+          <div class="sidebar-group-title" data-i18n="groupComponents">
+            Components Catalog
+          </div>
           <ul class="sidebar-menu">
-            <li><a href="#/components" class="sidebar-link" data-route="components" data-i18n="itemAllComponents">All 17 Primitives</a></li>
-            <li><a href="#/components/mini-line-chart" class="sidebar-link" data-route="components/mini-line-chart">Line Chart</a></li>
-            <li><a href="#/components/mini-bullet-chart" class="sidebar-link" data-route="components/mini-bullet-chart">Bullet KPI Chart</a></li>
-            <li><a href="#/components/mini-gauge-chart" class="sidebar-link" data-route="components/mini-gauge-chart">Speedometer Gauge</a></li>
-            <li><a href="#/components/mini-candlestick-chart" class="sidebar-link" data-route="components/mini-candlestick-chart">Candlestick Financial</a></li>
+            <li>
+              <a
+                href="#/components"
+                class="sidebar-link"
+                data-route="components"
+                data-i18n="itemAllComponents"
+                >All 17 Primitives</a
+              >
+            </li>
+            <li>
+              <a
+                href="#/components/mini-line-chart"
+                class="sidebar-link"
+                data-route="components/mini-line-chart"
+                >Line Chart</a
+              >
+            </li>
+            <li>
+              <a
+                href="#/components/mini-bullet-chart"
+                class="sidebar-link"
+                data-route="components/mini-bullet-chart"
+                >Bullet KPI Chart</a
+              >
+            </li>
+            <li>
+              <a
+                href="#/components/mini-gauge-chart"
+                class="sidebar-link"
+                data-route="components/mini-gauge-chart"
+                >Speedometer Gauge</a
+              >
+            </li>
+            <li>
+              <a
+                href="#/components/mini-candlestick-chart"
+                class="sidebar-link"
+                data-route="components/mini-candlestick-chart"
+                >Candlestick Financial</a
+              >
+            </li>
           </ul>
         </div>
 
         <div>
-          <div class="sidebar-group-title" data-i18n="groupTheming">Theming & Tokens</div>
+          <div class="sidebar-group-title" data-i18n="groupTheming">
+            Theming & Tokens
+          </div>
           <ul class="sidebar-menu">
-            <li><a href="#/theming" class="sidebar-link" data-route="theming" data-i18n="itemTheming">Theming & CSS Tokens</a></li>
+            <li>
+              <a
+                href="#/theming"
+                class="sidebar-link"
+                data-route="theming"
+                data-i18n="itemTheming"
+                >Theming & CSS Tokens</a
+              >
+            </li>
+            <li>
+              <a
+                href="#/gradients"
+                class="sidebar-link"
+                data-route="gradients"
+                data-i18n="itemGradients"
+                >✨ Gradients Studio</a
+              >
+            </li>
           </ul>
         </div>
 
         <div>
-          <div class="sidebar-group-title" data-i18n="groupPlayground">Interactive Sandbox</div>
+          <div class="sidebar-group-title" data-i18n="groupPlayground">
+            Interactive Sandbox
+          </div>
           <ul class="sidebar-menu">
-            <li><a href="#/playground" class="sidebar-link" data-route="playground" data-i18n="itemPlayground">Live Playground</a></li>
+            <li>
+              <a
+                href="#/playground"
+                class="sidebar-link"
+                data-route="playground"
+                data-i18n="itemPlayground"
+                >Live Playground</a
+              >
+            </li>
           </ul>
         </div>
 
         <div>
-          <div class="sidebar-group-title" data-i18n="groupFrameworks">Framework Guides</div>
+          <div class="sidebar-group-title" data-i18n="groupFrameworks">
+            Framework Guides
+          </div>
           <ul class="sidebar-menu">
-            <li><a href="#/frameworks" class="sidebar-link" data-route="frameworks" data-i18n="itemFrameworks">React, Vue, Angular, Svelte</a></li>
+            <li>
+              <a
+                href="#/frameworks"
+                class="sidebar-link"
+                data-route="frameworks"
+                data-i18n="itemFrameworks"
+                >React, Vue, Angular, Svelte</a
+              >
+            </li>
           </ul>
         </div>
       </aside>
 
       <!-- Main Content Container with SPA Page Views -->
       <main class="main-content">
-        
         <!-- ================= PAGE 1: OVERVIEW ================= -->
         <div id="view-overview" class="page-view active">
           <section class="hero">
-            <div class="badge" data-i18n="tagline">Native Web Components · SVG · Zero runtime dependencies</div>
+            <div class="badge" data-i18n="tagline">
+              Native Web Components · SVG · Zero runtime dependencies
+            </div>
             <h1 data-i18n="heroTitle">Sparkline Mini Charts</h1>
-            <p data-i18n="heroDesc" style="font-size: 1.15rem; max-width: 780px;">
-              Ultra-lightweight, reactive, framework-agnostic micro data visualizations. Drop semantic SVG sparkline tags into any table, dashboard, card, or metric widget with 100% Shadow DOM encapsulation.
+            <p
+              data-i18n="heroDesc"
+              style="font-size: 1.15rem; max-width: 780px"
+            >
+              Ultra-lightweight, reactive, framework-agnostic micro data
+              visualizations. Drop semantic SVG sparkline tags into any table,
+              dashboard, card, or metric widget with 100% Shadow DOM
+              encapsulation.
             </p>
 
             <div class="hero-grid">
@@ -1286,16 +1515,29 @@
               </div>
             </div>
 
-            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block-top: 1rem;">
-              <a href="#/streaming" class="btn btn-primary">⚡ Explore Live Streaming Studio</a>
-              <a href="#/components" class="btn btn-secondary">📊 Browse All 17 Components</a>
-              <a href="#/playground" class="btn btn-secondary">🛠️ Open Sandbox</a>
+            <div
+              style="
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                margin-block-top: 1rem;
+              "
+            >
+              <a href="#/streaming" class="btn btn-primary"
+                >⚡ Explore Live Streaming Studio</a
+              >
+              <a href="#/components" class="btn btn-secondary"
+                >📊 Browse All 17 Components</a
+              >
+              <a href="#/playground" class="btn btn-secondary"
+                >🛠️ Open Sandbox</a
+              >
             </div>
           </section>
 
           <section>
             <h2>Installation & Quick Start</h2>
-            <div class="tabs-container" style="margin-block-start: 1rem;">
+            <div class="tabs-container" style="margin-block-start: 1rem">
               <div class="tab-list">
                 <button class="tab-btn active">pnpm</button>
                 <button class="tab-btn">npm</button>
@@ -1316,20 +1558,54 @@
               <div>
                 <div class="live-indicator">
                   <span class="live-pulse"></span>
-                  <span style="letter-spacing: 0.05em;">LIVE WEBSOCKET / POLLING STREAMING TICKER</span>
+                  <span style="letter-spacing: 0.05em"
+                    >LIVE WEBSOCKET / POLLING STREAMING TICKER</span
+                  >
                 </div>
-                <h2 data-i18n="streamTitle" style="margin-block-start: 0.3rem;">Live Real-Time Streaming Studio (All 17 Charts)</h2>
-                <p data-i18n="streamSubtitle">Witness smooth SVG path morphing, synchronized point tracking, staggered bar physics, and authentic ThemeRiver organic flows in real time.</p>
+                <h2 data-i18n="streamTitle" style="margin-block-start: 0.3rem">
+                  Live Real-Time Streaming Studio (All 17 Charts)
+                </h2>
+                <p data-i18n="streamSubtitle">
+                  Witness smooth SVG path morphing, synchronized point tracking,
+                  staggered bar physics, and authentic ThemeRiver organic flows
+                  in real time.
+                </p>
               </div>
 
               <div class="stream-controls">
-                <button id="stream-toggle-btn" class="btn btn-secondary btn-sm" data-i18n="btnPause">⏸ Pause Stream</button>
-                <button id="stream-step-btn" class="btn btn-secondary btn-sm" data-i18n="btnStep">⏭ Single Step</button>
-                <button id="stream-random-btn" class="btn btn-secondary btn-sm" data-i18n="btnRandom">🎲 Randomize</button>
-                <select id="stream-speed-select" class="stream-select" aria-label="Stream speed">
+                <button
+                  id="stream-toggle-btn"
+                  class="btn btn-secondary btn-sm"
+                  data-i18n="btnPause"
+                >
+                  ⏸ Pause Stream
+                </button>
+                <button
+                  id="stream-step-btn"
+                  class="btn btn-secondary btn-sm"
+                  data-i18n="btnStep"
+                >
+                  ⏭ Single Step
+                </button>
+                <button
+                  id="stream-random-btn"
+                  class="btn btn-secondary btn-sm"
+                  data-i18n="btnRandom"
+                >
+                  🎲 Randomize
+                </button>
+                <select
+                  id="stream-speed-select"
+                  class="stream-select"
+                  aria-label="Stream speed"
+                >
                   <option value="600" data-i18n="speedFast">Fast (0.6s)</option>
-                  <option value="1200" selected data-i18n="speedNormal">Normal (1.2s)</option>
-                  <option value="2500" data-i18n="speedSlow">Slow (2.5s)</option>
+                  <option value="1200" selected data-i18n="speedNormal">
+                    Normal (1.2s)
+                  </option>
+                  <option value="2500" data-i18n="speedSlow">
+                    Slow (2.5s)
+                  </option>
                 </select>
               </div>
             </div>
@@ -1338,187 +1614,360 @@
               <!-- Live 1: Line -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamLineLabel">Live Market Ticker (10 Ticks)</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamLineLabel"
+                    >Live Market Ticker (10 Ticks)</span
+                  >
                   <code>&lt;mini-line-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-line-chart id="stream-line-chart" data="[24, 28, 25, 32, 30, 42, 48, 45, 54, 52]" curve="smooth" trend-color="auto" points="last" interactive label="Live market ticker"></mini-line-chart>
+                  <mini-line-chart
+                    id="stream-line-chart"
+                    data="[24, 28, 25, 32, 30, 42, 48, 45, 54, 52]"
+                    curve="smooth"
+                    trend-color="auto"
+                    points="last"
+                    interactive
+                    label="Live market ticker"
+                  ></mini-line-chart>
                 </div>
               </div>
 
               <!-- Live 2: Area -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamAreaLabel">Server CPU Load (10 Ticks)</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamAreaLabel"
+                    >Server CPU Load (10 Ticks)</span
+                  >
                   <code>&lt;mini-area-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-area-chart id="stream-area-chart" data="[42, 48, 45, 55, 58, 52, 64, 68, 62, 70]" curve="smooth" gradient="true" trend-color="auto" label="Server CPU load"></mini-area-chart>
+                  <mini-area-chart
+                    id="stream-area-chart"
+                    data="[42, 48, 45, 55, 58, 52, 64, 68, 62, 70]"
+                    curve="smooth"
+                    gradient="true"
+                    trend-color="auto"
+                    label="Server CPU load"
+                  ></mini-area-chart>
                 </div>
               </div>
 
               <!-- Live 3: Bar -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamBarLabel">Network I/O Variance (8 Ticks)</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamBarLabel"
+                    >Network I/O Variance (8 Ticks)</span
+                  >
                   <code>&lt;mini-bar-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-bar-chart id="stream-bar-chart" data="[-12, 18, 28, -6, 22, -10, 32, 15]" gap="0.2" radius="2" label="Network I/O variance"></mini-bar-chart>
+                  <mini-bar-chart
+                    id="stream-bar-chart"
+                    data="[-12, 18, 28, -6, 22, -10, 32, 15]"
+                    gap="0.2"
+                    radius="2"
+                    label="Network I/O variance"
+                  ></mini-bar-chart>
                 </div>
               </div>
 
               <!-- Live 4: Pie -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamPieLabel">Traffic Share Distribution</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamPieLabel"
+                    >Traffic Share Distribution</span
+                  >
                   <code>&lt;mini-pie-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-pie-chart id="stream-pie-chart" data="[42, 28, 18, 12]" donut="0.6" interactive label="Traffic share distribution"></mini-pie-chart>
+                  <mini-pie-chart
+                    id="stream-pie-chart"
+                    data="[42, 28, 18, 12]"
+                    donut="0.6"
+                    interactive
+                    label="Traffic share distribution"
+                  ></mini-pie-chart>
                 </div>
               </div>
 
               <!-- Live 5: Half Pie -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamHalfPieLabel">Tier Subscription Split</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamHalfPieLabel"
+                    >Tier Subscription Split</span
+                  >
                   <code>&lt;mini-half-pie-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-half-pie-chart id="stream-half-pie-chart" data="[55, 28, 17]" donut="0.55" interactive label="Tier subscription split"></mini-half-pie-chart>
+                  <mini-half-pie-chart
+                    id="stream-half-pie-chart"
+                    data="[55, 28, 17]"
+                    donut="0.55"
+                    interactive
+                    label="Tier subscription split"
+                  ></mini-half-pie-chart>
                 </div>
               </div>
 
               <!-- Live 6: Radial Bar -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamRadialLabel">Multi-Core Utilization (Rings)</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamRadialLabel"
+                    >Multi-Core Utilization (Rings)</span
+                  >
                   <code>&lt;mini-radial-bar-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-radial-bar-chart id="stream-radial-chart" data='[{"value": 72, "color": "#6366f1"}, {"value": 54, "color": "#06b6d4"}, {"value": 86, "color": "#10b981"}]' sweep="270" round-caps label="Multi-core utilization"></mini-radial-bar-chart>
+                  <mini-radial-bar-chart
+                    id="stream-radial-chart"
+                    data='[{"value": 72, "color": "#6366f1"}, {"value": 54, "color": "#06b6d4"}, {"value": 86, "color": "#10b981"}]'
+                    sweep="270"
+                    round-caps
+                    label="Multi-core utilization"
+                  ></mini-radial-bar-chart>
                 </div>
               </div>
 
               <!-- Live 7: Progress -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamProgressLabel">Task Completion Arc</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamProgressLabel"
+                    >Task Completion Arc</span
+                  >
                   <code>&lt;mini-progress-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-progress-chart id="stream-progress-chart" data="[68]" max="100" show-value unit="%" label="Task completion arc"></mini-progress-chart>
+                  <mini-progress-chart
+                    id="stream-progress-chart"
+                    data="[68]"
+                    max="100"
+                    show-value
+                    unit="%"
+                    label="Task completion arc"
+                  ></mini-progress-chart>
                 </div>
               </div>
 
               <!-- Live 8: Gauge -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamGaugeLabel">Core Temperature Gauge</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamGaugeLabel"
+                    >Core Temperature Gauge</span
+                  >
                   <code>&lt;mini-gauge-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-gauge-chart id="stream-gauge-chart" data="[62, 0, 100]" label="Core temperature"></mini-gauge-chart>
+                  <mini-gauge-chart
+                    id="stream-gauge-chart"
+                    data="[62, 0, 100]"
+                    label="Core temperature"
+                  ></mini-gauge-chart>
                 </div>
               </div>
 
               <!-- Live 9: Candlestick -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamCandleLabel">Financial Asset Candlesticks (18 Candles)</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamCandleLabel"
+                    >Financial Asset Candlesticks (18 Candles)</span
+                  >
                   <code>&lt;mini-candlestick-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-candlestick-chart id="stream-candle-chart" data="[[100,105,98,103],[103,108,100,107],[107,110,104,106],[106,112,105,110],[110,114,108,112],[112,118,110,117],[117,120,114,115],[115,122,113,120],[120,124,118,122],[122,126,119,124],[124,128,122,125],[125,130,123,128],[128,132,125,130],[130,134,127,131],[131,135,128,133],[133,137,130,135],[135,140,132,138],[138,142,135,140]]" hollow-bullish gap="0.28" wick-width="0.75" label="Financial candlesticks"></mini-candlestick-chart>
+                  <mini-candlestick-chart
+                    id="stream-candle-chart"
+                    data="[[100,105,98,103],[103,108,100,107],[107,110,104,106],[106,112,105,110],[110,114,108,112],[112,118,110,117],[117,120,114,115],[115,122,113,120],[120,124,118,122],[122,126,119,124],[124,128,122,125],[125,130,123,128],[128,132,125,130],[130,134,127,131],[131,135,128,133],[133,137,130,135],[135,140,132,138],[138,142,135,140]]"
+                    hollow-bullish
+                    gap="0.28"
+                    wick-width="0.75"
+                    label="Financial candlesticks"
+                  ></mini-candlestick-chart>
                 </div>
               </div>
 
               <!-- Live 10: OHLC -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamOhlcLabel">Asset OHLC Tick Bars (18 Ticks)</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamOhlcLabel"
+                    >Asset OHLC Tick Bars (18 Ticks)</span
+                  >
                   <code>&lt;mini-ohlc-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-ohlc-chart id="stream-ohlc-chart" data="[[100,105,98,103],[103,108,100,107],[107,110,104,106],[106,112,105,110],[110,114,108,112],[112,118,110,117],[117,120,114,115],[115,122,113,120],[120,124,118,122],[122,126,119,124],[124,128,122,125],[125,130,123,128],[128,132,125,130],[130,134,127,131],[131,135,128,133],[133,137,130,135],[135,140,132,138],[138,142,135,140]]" tick-width="0.75" gap="0.28" label="Asset OHLC ticks"></mini-ohlc-chart>
+                  <mini-ohlc-chart
+                    id="stream-ohlc-chart"
+                    data="[[100,105,98,103],[103,108,100,107],[107,110,104,106],[106,112,105,110],[110,114,108,112],[112,118,110,117],[117,120,114,115],[115,122,113,120],[120,124,118,122],[122,126,119,124],[124,128,122,125],[125,130,123,128],[128,132,125,130],[130,134,127,131],[131,135,128,133],[133,137,130,135],[135,140,132,138],[138,142,135,140]]"
+                    tick-width="0.75"
+                    gap="0.28"
+                    label="Asset OHLC ticks"
+                  ></mini-ohlc-chart>
                 </div>
               </div>
 
               <!-- Live 11: Stacked Area -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamStackedLabel">Multi-Channel Resource Flow</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamStackedLabel"
+                    >Multi-Channel Resource Flow</span
+                  >
                   <code>&lt;mini-stacked-area-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-stacked-area-chart id="stream-stacked-chart" data="[[12,18,24,22,28,32,30,36],[15,14,18,20,16,22,25,24],[8,12,10,15,14,16,18,20]]" curve="smooth" label="Multi-channel flow"></mini-stacked-area-chart>
+                  <mini-stacked-area-chart
+                    id="stream-stacked-chart"
+                    data="[[12,18,24,22,28,32,30,36],[15,14,18,20,16,22,25,24],[8,12,10,15,14,16,18,20]]"
+                    curve="smooth"
+                    label="Multi-channel flow"
+                  ></mini-stacked-area-chart>
                 </div>
               </div>
 
               <!-- Live 12: Stream -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamStreamLabel">Authentic ThemeRiver Organic Flow</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamStreamLabel"
+                    >Authentic ThemeRiver Organic Flow</span
+                  >
                   <code>&lt;mini-stream-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-stream-chart id="stream-stream-chart" data="[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,49,67,15,6,19,19,9,0,1,10,5,6,1,1,0,25,0,3,0],[0,6,1,34,0,16,1,0,3,1,5,6,1,56,0,7,0,7,6,0],[0,8,13,15,0,12,23,0,0,1,0,1,0,0,8,0,8,1,8,1],[0,9,28,0,91,6,1,0,6,7,18,0,9,16,0,1,0,0,0,0],[0,3,42,36,21,5,1,0,0,0,16,30,1,4,62,55,1,5,0,0],[0,7,13,12,64,5,0,0,6,8,17,3,72,1,1,53,1,0,0,0],[1,14,13,7,8,8,7,8,1,1,14,6,44,0,7,17,21,1,0,0],[0,6,14,2,14,1,0,0,3,0,2,2,7,15,6,3,0,0,0,0],[0,9,11,3,0,8,0,0,14,2,8,1,1,7,13,2,1,0,0,0],[0,7,5,10,8,21,0,0,110,1,2,18,6,1,5,1,4,1,0,7],[0,2,15,1,5,5,0,0,0,0,4,1,3,1,17,8,0,9,0,0],[0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0],[6,27,26,1,0,11,1,0,0,0,1,1,2,0,0,9,1,0,0,0],[31,81,11,8,11,0,0,0,0,0,8,3,2,8,3,14,6,8,12,0],[19,53,6,20,6,4,37,0,38,86,43,7,5,7,17,19,2,0,0,5],[0,22,14,6,18,24,18,3,13,21,5,7,13,35,7,1,8,0,0,1],[0,58,5,0,0,8,0,7,24,8,17,7,0,8,3,0,8,8,0,0],[18,29,3,6,11,35,0,12,42,37,0,3,3,13,8,0,0,1,0,0],[32,39,37,5,33,21,6,3,4,17,0,11,0,2,3,0,23,0,17,0],[72,15,28,0,0,8,0,1,3,0,35,0,9,17,1,9,1,8,8,0],[11,15,4,2,0,18,0,26,3,0,6,2,8,0,2,2,36,0,0,0],[14,29,19,5,2,17,13,9,7,12,2,0,6,0,1,1,34,0,1,0],[1,1,7,6,1,1,15,1,1,2,1,3,1,1,9,1,1,25,1,72]]" curve="smooth" label="ThemeRiver silhouette"></mini-stream-chart>
+                  <mini-stream-chart
+                    id="stream-stream-chart"
+                    data="[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,49,67,15,6,19,19,9,0,1,10,5,6,1,1,0,25,0,3,0],[0,6,1,34,0,16,1,0,3,1,5,6,1,56,0,7,0,7,6,0],[0,8,13,15,0,12,23,0,0,1,0,1,0,0,8,0,8,1,8,1],[0,9,28,0,91,6,1,0,6,7,18,0,9,16,0,1,0,0,0,0],[0,3,42,36,21,5,1,0,0,0,16,30,1,4,62,55,1,5,0,0],[0,7,13,12,64,5,0,0,6,8,17,3,72,1,1,53,1,0,0,0],[1,14,13,7,8,8,7,8,1,1,14,6,44,0,7,17,21,1,0,0],[0,6,14,2,14,1,0,0,3,0,2,2,7,15,6,3,0,0,0,0],[0,9,11,3,0,8,0,0,14,2,8,1,1,7,13,2,1,0,0,0],[0,7,5,10,8,21,0,0,110,1,2,18,6,1,5,1,4,1,0,7],[0,2,15,1,5,5,0,0,0,0,4,1,3,1,17,8,0,9,0,0],[0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0],[6,27,26,1,0,11,1,0,0,0,1,1,2,0,0,9,1,0,0,0],[31,81,11,8,11,0,0,0,0,0,8,3,2,8,3,14,6,8,12,0],[19,53,6,20,6,4,37,0,38,86,43,7,5,7,17,19,2,0,0,5],[0,22,14,6,18,24,18,3,13,21,5,7,13,35,7,1,8,0,0,1],[0,58,5,0,0,8,0,7,24,8,17,7,0,8,3,0,8,8,0,0],[18,29,3,6,11,35,0,12,42,37,0,3,3,13,8,0,0,1,0,0],[32,39,37,5,33,21,6,3,4,17,0,11,0,2,3,0,23,0,17,0],[72,15,28,0,0,8,0,1,3,0,35,0,9,17,1,9,1,8,8,0],[11,15,4,2,0,18,0,26,3,0,6,2,8,0,2,2,36,0,0,0],[14,29,19,5,2,17,13,9,7,12,2,0,6,0,1,1,34,0,1,0],[1,1,7,6,1,1,15,1,1,2,1,3,1,1,9,1,1,25,1,72]]"
+                    curve="smooth"
+                    label="ThemeRiver silhouette"
+                  ></mini-stream-chart>
                 </div>
               </div>
 
               <!-- Live 13: Combo -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamComboLabel">Volume vs Target Combo</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamComboLabel"
+                    >Volume vs Target Combo</span
+                  >
                   <code>&lt;mini-combo-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-combo-chart id="stream-combo-chart" data='[{"bar":12,"line":18},{"bar":16,"line":15},{"bar":10,"line":22},{"bar":24,"line":28},{"bar":18,"line":25},{"bar":28,"line":34}]' shared-domain="true" curve="smooth" label="Volume vs target combo"></mini-combo-chart>
+                  <mini-combo-chart
+                    id="stream-combo-chart"
+                    data='[{"bar":12,"line":18},{"bar":16,"line":15},{"bar":10,"line":22},{"bar":24,"line":28},{"bar":18,"line":25},{"bar":28,"line":34}]'
+                    shared-domain="true"
+                    curve="smooth"
+                    label="Volume vs target combo"
+                  ></mini-combo-chart>
                 </div>
               </div>
 
               <!-- Live 14: Bullet -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamBulletLabel">Revenue KPI vs Target (Bullet)</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamBulletLabel"
+                    >Revenue KPI vs Target (Bullet)</span
+                  >
                   <code>&lt;mini-bullet-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-bullet-chart id="stream-bullet-chart" data='{"value":74,"target":85,"ranges":[50,80,100],"min":0,"max":100}' interactive label="Revenue KPI vs Target"></mini-bullet-chart>
+                  <mini-bullet-chart
+                    id="stream-bullet-chart"
+                    data='{"value":74,"target":85,"ranges":[50,80,100],"min":0,"max":100}'
+                    interactive
+                    label="Revenue KPI vs Target"
+                  ></mini-bullet-chart>
                 </div>
               </div>
 
               <!-- Live 15: Win/Loss -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamWinLossLabel">CI/CD Build History (Win/Loss)</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamWinLossLabel"
+                    >CI/CD Build History (Win/Loss)</span
+                  >
                   <code>&lt;mini-win-loss-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-win-loss-chart id="stream-win-loss-chart" data="[1,1,-1,1,0,1,-1,1,1,0,1,1]" gap="0.2" radius="2" interactive label="CI/CD build history"></mini-win-loss-chart>
+                  <mini-win-loss-chart
+                    id="stream-win-loss-chart"
+                    data="[1,1,-1,1,0,1,-1,1,1,0,1,1]"
+                    gap="0.2"
+                    radius="2"
+                    interactive
+                    label="CI/CD build history"
+                  ></mini-win-loss-chart>
                 </div>
               </div>
 
               <!-- Live 16: Range Bar -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamRangeBarLabel">52-Week Price Range (Range Bar)</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamRangeBarLabel"
+                    >52-Week Price Range (Range Bar)</span
+                  >
                   <code>&lt;mini-range-bar-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-range-bar-chart id="stream-range-bar-chart" data="[[15,45,32],[22,68,54],[18,52,48],[30,85,62],[25,70,44]]" gap="0.25" radius="3" interactive label="52-week price range"></mini-range-bar-chart>
+                  <mini-range-bar-chart
+                    id="stream-range-bar-chart"
+                    data="[[15,45,32],[22,68,54],[18,52,48],[30,85,62],[25,70,44]]"
+                    gap="0.25"
+                    radius="3"
+                    interactive
+                    label="52-week price range"
+                  ></mini-range-bar-chart>
                 </div>
               </div>
 
               <!-- Live 17: Scatter -->
               <div class="stream-card">
                 <div class="stream-card-header">
-                  <span style="font-weight: 650; font-size: 0.85rem;" data-i18n="streamScatterLabel">Latency vs Throughput (Scatter)</span>
+                  <span
+                    style="font-weight: 650; font-size: 0.85rem"
+                    data-i18n="streamScatterLabel"
+                    >Latency vs Throughput (Scatter)</span
+                  >
                   <code>&lt;mini-scatter-chart&gt;</code>
                 </div>
                 <div class="stream-stage">
-                  <mini-scatter-chart id="stream-scatter-chart" data="[[10,25],[18,42],[28,30],[35,65],[44,52],[58,80],[65,74],[78,90]]" trend-line="true" point-radius="3.5" interactive label="Latency vs throughput"></mini-scatter-chart>
+                  <mini-scatter-chart
+                    id="stream-scatter-chart"
+                    data="[[10,25],[18,42],[28,30],[35,65],[44,52],[58,80],[65,74],[78,90]]"
+                    trend-line="true"
+                    point-radius="3.5"
+                    interactive
+                    label="Latency vs throughput"
+                  ></mini-scatter-chart>
                 </div>
               </div>
             </div>
@@ -1529,7 +1978,10 @@
         <div id="view-components" class="page-view">
           <div>
             <h2 data-i18n="galleryTitle">Components Catalog & Code Explorer</h2>
-            <p data-i18n="gallerySubtitle">Explore all 17 primitives with uniform cards, multi-framework code snippets, and deep-dive documentation.</p>
+            <p data-i18n="gallerySubtitle">
+              Explore all 17 primitives with uniform cards, multi-framework code
+              snippets, and deep-dive documentation.
+            </p>
           </div>
 
           <!-- Category 1: Continuous Trends & Flow -->
@@ -1582,37 +2034,69 @@
         <div id="view-component-detail" class="page-view">
           <div class="detail-header">
             <div>
-              <a href="#/components" class="btn btn-secondary btn-sm" style="margin-block-end: 0.75rem;">← Back to All Components</a>
+              <a
+                href="#/components"
+                class="btn btn-secondary btn-sm"
+                style="margin-block-end: 0.75rem"
+                >← Back to All Components</a
+              >
               <h1 id="detail-title">Component Name</h1>
-              <code id="detail-tag" style="color: var(--primary); font-size: 1rem;">&lt;mini-chart&gt;</code>
-              <p id="detail-desc" style="margin-block-top: 0.5rem; font-size: 1.05rem;"></p>
+              <code
+                id="detail-tag"
+                style="color: var(--primary); font-size: 1rem"
+                >&lt;mini-chart&gt;</code
+              >
+              <p
+                id="detail-desc"
+                style="margin-block-top: 0.5rem; font-size: 1.05rem"
+              ></p>
             </div>
             <div class="badge" id="detail-cat-badge">Category</div>
           </div>
 
           <div class="detail-stage-wrapper">
-            <div class="glass-card" style="padding: 1.5rem;">
-              <h3 style="margin-block-end: 1rem;">Live Rendered Stage</h3>
-              <div id="detail-stage" class="gallery-stage" style="min-height: 160px;"></div>
+            <div class="glass-card" style="padding: 1.5rem">
+              <h3 style="margin-block-end: 1rem">Live Rendered Stage</h3>
+              <div
+                id="detail-stage"
+                class="gallery-stage"
+                style="min-height: 160px"
+              ></div>
             </div>
 
-            <div class="glass-card" style="padding: 1.5rem;">
-              <h3 style="margin-block-end: 1rem;">Component Attributes</h3>
-              <div id="detail-attrs-panel" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+            <div class="glass-card" style="padding: 1.5rem">
+              <h3 style="margin-block-end: 1rem">Component Attributes</h3>
+              <div
+                id="detail-attrs-panel"
+                style="display: flex; flex-direction: column; gap: 0.75rem"
+              ></div>
             </div>
           </div>
 
           <div class="tabs-container">
             <div class="tab-list">
-              <button class="tab-btn active" data-detail-tab="html">HTML</button>
+              <button class="tab-btn active" data-detail-tab="html">
+                HTML
+              </button>
               <button class="tab-btn" data-detail-tab="react">React</button>
               <button class="tab-btn" data-detail-tab="vue">Vue 3</button>
               <button class="tab-btn" data-detail-tab="angular">Angular</button>
             </div>
             <div class="tab-panels">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-block-end: 0.5rem;">
-                <span style="font-weight: 650; font-size: 0.85rem;">Ready-to-use Code:</span>
-                <button id="detail-copy-btn" class="btn btn-secondary btn-sm">📋 Copy Code</button>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-block-end: 0.5rem;
+                "
+              >
+                <span style="font-weight: 650; font-size: 0.85rem"
+                  >Ready-to-use Code:</span
+                >
+                <button id="detail-copy-btn" class="btn btn-secondary btn-sm">
+                  📋 Copy Code
+                </button>
               </div>
               <pre><code id="detail-code-output"></code></pre>
             </div>
@@ -1622,54 +2106,136 @@
         <!-- ================= PAGE 5: PLAYGROUND ================= -->
         <div id="view-playground" class="page-view">
           <div>
-            <h2 data-i18n="playgroundTitle">Interactive Sandbox & Playground</h2>
-            <p data-i18n="playgroundSubtitle">Experiment with chart attributes, test custom datasets, and export ready-to-use markup.</p>
+            <h2 data-i18n="playgroundTitle">
+              Interactive Sandbox & Playground
+            </h2>
+            <p data-i18n="playgroundSubtitle">
+              Experiment with chart attributes, test custom datasets, and export
+              ready-to-use markup.
+            </p>
           </div>
 
-          <div class="glass-card" style="padding: 1.75rem;">
+          <div class="glass-card" style="padding: 1.75rem">
             <div class="playground-wrapper">
               <div>
                 <div class="form-group">
-                  <label for="pg-chart-type" data-i18n="selectChartType">Select Component:</label>
+                  <label for="pg-chart-type" data-i18n="selectChartType"
+                    >Select Component:</label
+                  >
                   <select id="pg-chart-type" class="form-control">
-                    <option value="mini-line-chart">&lt;mini-line-chart&gt;</option>
-                    <option value="mini-area-chart">&lt;mini-area-chart&gt;</option>
-                    <option value="mini-bar-chart">&lt;mini-bar-chart&gt;</option>
-                    <option value="mini-pie-chart">&lt;mini-pie-chart&gt;</option>
-                    <option value="mini-half-pie-chart">&lt;mini-half-pie-chart&gt;</option>
-                    <option value="mini-radial-bar-chart">&lt;mini-radial-bar-chart&gt;</option>
-                    <option value="mini-progress-chart">&lt;mini-progress-chart&gt;</option>
-                    <option value="mini-gauge-chart">&lt;mini-gauge-chart&gt;</option>
-                    <option value="mini-candlestick-chart">&lt;mini-candlestick-chart&gt;</option>
-                    <option value="mini-ohlc-chart">&lt;mini-ohlc-chart&gt;</option>
-                    <option value="mini-stacked-area-chart">&lt;mini-stacked-area-chart&gt;</option>
-                    <option value="mini-stream-chart">&lt;mini-stream-chart&gt;</option>
-                    <option value="mini-combo-chart">&lt;mini-combo-chart&gt;</option>
-                    <option value="mini-bullet-chart">&lt;mini-bullet-chart&gt;</option>
-                    <option value="mini-win-loss-chart">&lt;mini-win-loss-chart&gt;</option>
-                    <option value="mini-range-bar-chart">&lt;mini-range-bar-chart&gt;</option>
-                    <option value="mini-scatter-chart">&lt;mini-scatter-chart&gt;</option>
+                    <option value="mini-line-chart">
+                      &lt;mini-line-chart&gt;
+                    </option>
+                    <option value="mini-area-chart">
+                      &lt;mini-area-chart&gt;
+                    </option>
+                    <option value="mini-bar-chart">
+                      &lt;mini-bar-chart&gt;
+                    </option>
+                    <option value="mini-pie-chart">
+                      &lt;mini-pie-chart&gt;
+                    </option>
+                    <option value="mini-half-pie-chart">
+                      &lt;mini-half-pie-chart&gt;
+                    </option>
+                    <option value="mini-radial-bar-chart">
+                      &lt;mini-radial-bar-chart&gt;
+                    </option>
+                    <option value="mini-progress-chart">
+                      &lt;mini-progress-chart&gt;
+                    </option>
+                    <option value="mini-gauge-chart">
+                      &lt;mini-gauge-chart&gt;
+                    </option>
+                    <option value="mini-candlestick-chart">
+                      &lt;mini-candlestick-chart&gt;
+                    </option>
+                    <option value="mini-ohlc-chart">
+                      &lt;mini-ohlc-chart&gt;
+                    </option>
+                    <option value="mini-stacked-area-chart">
+                      &lt;mini-stacked-area-chart&gt;
+                    </option>
+                    <option value="mini-stream-chart">
+                      &lt;mini-stream-chart&gt;
+                    </option>
+                    <option value="mini-combo-chart">
+                      &lt;mini-combo-chart&gt;
+                    </option>
+                    <option value="mini-bullet-chart">
+                      &lt;mini-bullet-chart&gt;
+                    </option>
+                    <option value="mini-win-loss-chart">
+                      &lt;mini-win-loss-chart&gt;
+                    </option>
+                    <option value="mini-range-bar-chart">
+                      &lt;mini-range-bar-chart&gt;
+                    </option>
+                    <option value="mini-scatter-chart">
+                      &lt;mini-scatter-chart&gt;
+                    </option>
                   </select>
                 </div>
 
                 <div class="form-group">
-                  <label for="pg-chart-data" data-i18n="editDataLabel">JSON Data Array:</label>
-                  <textarea id="pg-chart-data" class="form-control" spellcheck="false"></textarea>
+                  <label for="pg-chart-data" data-i18n="editDataLabel"
+                    >JSON Data Array:</label
+                  >
+                  <textarea
+                    id="pg-chart-data"
+                    class="form-control"
+                    spellcheck="false"
+                  ></textarea>
                 </div>
 
                 <div class="form-group">
-                  <label for="pg-chart-label" data-i18n="editLabelLabel">Accessible Label (aria-label):</label>
+                  <label for="pg-chart-label" data-i18n="editLabelLabel"
+                    >Accessible Label (aria-label):</label
+                  >
                   <input id="pg-chart-label" type="text" class="form-control" />
                 </div>
               </div>
 
               <div>
-                <div style="font-weight: 650; font-size: 0.85rem; margin-block-end: 0.4rem; color: var(--text);">Live Sandbox Preview:</div>
-                <div id="pg-preview-container" class="gallery-stage" style="min-height: 140px; margin-block-end: 1rem;"></div>
+                <div
+                  style="
+                    font-weight: 650;
+                    font-size: 0.85rem;
+                    margin-block-end: 0.4rem;
+                    color: var(--text);
+                  "
+                >
+                  Live Sandbox Preview:
+                </div>
+                <div
+                  id="pg-preview-container"
+                  class="gallery-stage"
+                  style="min-height: 140px; margin-block-end: 1rem"
+                ></div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-block-end: 0.4rem;">
-                  <span style="font-weight: 650; font-size: 0.85rem; color: var(--text);">Generated Markup:</span>
-                  <button id="copy-code-btn" class="btn btn-secondary btn-sm" data-i18n="btnCopyCode">📋 Copy Markup</button>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-block-end: 0.4rem;
+                  "
+                >
+                  <span
+                    style="
+                      font-weight: 650;
+                      font-size: 0.85rem;
+                      color: var(--text);
+                    "
+                    >Generated Markup:</span
+                  >
+                  <button
+                    id="copy-code-btn"
+                    class="btn btn-secondary btn-sm"
+                    data-i18n="btnCopyCode"
+                  >
+                    📋 Copy Markup
+                  </button>
                 </div>
                 <pre><code id="pg-code-output"></code></pre>
               </div>
@@ -1681,33 +2247,80 @@
         <div id="view-theming" class="page-view">
           <div>
             <h2 data-i18n="themingTitle">Theming & Design Tokens Guide</h2>
-            <p data-i18n="themingSubtitle">Discover how to brand, customize, and integrate Sparkline Mini Charts with your Design System using CSS Custom Properties and Shadow Parts.</p>
+            <p data-i18n="themingSubtitle">
+              Discover how to brand, customize, and integrate Sparkline Mini
+              Charts with your Design System using CSS Custom Properties and
+              Shadow Parts.
+            </p>
           </div>
 
           <!-- Interactive Live Theming Lab -->
           <div class="theming-lab">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 1rem;
+              "
+            >
               <div>
-                <div style="font-weight: 750; font-size: 1.1rem; color: var(--text);" data-i18n="themingLabTitle">🧪 Interactive Theming Lab</div>
-                <div style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="themingLabSubtitle">Select a preset or tweak individual CSS tokens to see real-time 60fps cascading theme updates:</div>
+                <div
+                  style="
+                    font-weight: 750;
+                    font-size: 1.1rem;
+                    color: var(--text);
+                  "
+                  data-i18n="themingLabTitle"
+                >
+                  🧪 Interactive Theming Lab
+                </div>
+                <div
+                  style="font-size: 0.85rem; color: var(--text-muted)"
+                  data-i18n="themingLabSubtitle"
+                >
+                  Select a preset or tweak individual CSS tokens to see
+                  real-time 60fps cascading theme updates:
+                </div>
               </div>
-              
+
               <!-- Presets -->
               <div class="theming-presets">
                 <button class="preset-pill active" data-preset="ocean">
-                  <span class="preset-swatch" style="background: #0284c7;"></span> Ocean Tech
+                  <span
+                    class="preset-swatch"
+                    style="background: #0284c7"
+                  ></span>
+                  Ocean Tech
                 </button>
                 <button class="preset-pill" data-preset="emerald">
-                  <span class="preset-swatch" style="background: #059669;"></span> Emerald Fintech
+                  <span
+                    class="preset-swatch"
+                    style="background: #059669"
+                  ></span>
+                  Emerald Fintech
                 </button>
                 <button class="preset-pill" data-preset="cyberpunk">
-                  <span class="preset-swatch" style="background: #00f0ff;"></span> Cyberpunk Neon
+                  <span
+                    class="preset-swatch"
+                    style="background: #00f0ff"
+                  ></span>
+                  Cyberpunk Neon
                 </button>
                 <button class="preset-pill" data-preset="sunset">
-                  <span class="preset-swatch" style="background: #f97316;"></span> Sunset Horizon
+                  <span
+                    class="preset-swatch"
+                    style="background: #f97316"
+                  ></span>
+                  Sunset Horizon
                 </button>
                 <button class="preset-pill" data-preset="monochrome">
-                  <span class="preset-swatch" style="background: #8b5cf6;"></span> Luxury Velvet
+                  <span
+                    class="preset-swatch"
+                    style="background: #8b5cf6"
+                  ></span>
+                  Luxury Velvet
                 </button>
               </div>
             </div>
@@ -1717,40 +2330,102 @@
               <div class="theme-ctrl">
                 <label>--mini-chart-color</label>
                 <div class="theme-ctrl-input-wrapper">
-                  <input type="color" id="theme-token-primary" value="#0ea5e9" />
-                  <input type="text" id="theme-token-primary-text" value="#0ea5e9" readonly />
+                  <input
+                    type="color"
+                    id="theme-token-primary"
+                    value="#0ea5e9"
+                  />
+                  <input
+                    type="text"
+                    id="theme-token-primary-text"
+                    value="#0ea5e9"
+                    readonly
+                  />
                 </div>
               </div>
               <div class="theme-ctrl">
                 <label>--mini-chart-point-fill</label>
                 <div class="theme-ctrl-input-wrapper">
                   <input type="color" id="theme-token-point" value="#38bdf8" />
-                  <input type="text" id="theme-token-point-text" value="#38bdf8" readonly />
+                  <input
+                    type="text"
+                    id="theme-token-point-text"
+                    value="#38bdf8"
+                    readonly
+                  />
                 </div>
               </div>
               <div class="theme-ctrl">
                 <label>--mini-chart-bullish-color</label>
                 <div class="theme-ctrl-input-wrapper">
-                  <input type="color" id="theme-token-bullish" value="#10b981" />
-                  <input type="text" id="theme-token-bullish-text" value="#10b981" readonly />
+                  <input
+                    type="color"
+                    id="theme-token-bullish"
+                    value="#10b981"
+                  />
+                  <input
+                    type="text"
+                    id="theme-token-bullish-text"
+                    value="#10b981"
+                    readonly
+                  />
                 </div>
               </div>
               <div class="theme-ctrl">
                 <label>--mini-chart-bearish-color</label>
                 <div class="theme-ctrl-input-wrapper">
-                  <input type="color" id="theme-token-bearish" value="#ef4444" />
-                  <input type="text" id="theme-token-bearish-text" value="#ef4444" readonly />
+                  <input
+                    type="color"
+                    id="theme-token-bearish"
+                    value="#ef4444"
+                  />
+                  <input
+                    type="text"
+                    id="theme-token-bearish-text"
+                    value="#ef4444"
+                    readonly
+                  />
                 </div>
               </div>
               <div class="theme-ctrl">
                 <label>--mini-chart-stroke-width</label>
-                <input type="range" id="theme-token-stroke" min="1" max="4" step="0.5" value="2" />
-                <span id="theme-token-stroke-val" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">2px</span>
+                <input
+                  type="range"
+                  id="theme-token-stroke"
+                  min="1"
+                  max="4"
+                  step="0.5"
+                  value="2"
+                />
+                <span
+                  id="theme-token-stroke-val"
+                  style="
+                    font-size: 0.75rem;
+                    color: var(--text-muted);
+                    font-family: var(--font-mono);
+                  "
+                  >2px</span
+                >
               </div>
               <div class="theme-ctrl">
                 <label>--mini-chart-inactive-opacity</label>
-                <input type="range" id="theme-token-opacity" min="0.1" max="0.9" step="0.05" value="0.45" />
-                <span id="theme-token-opacity-val" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">0.45</span>
+                <input
+                  type="range"
+                  id="theme-token-opacity"
+                  min="0.1"
+                  max="0.9"
+                  step="0.05"
+                  value="0.45"
+                />
+                <span
+                  id="theme-token-opacity-val"
+                  style="
+                    font-size: 0.75rem;
+                    color: var(--text-muted);
+                    font-family: var(--font-mono);
+                  "
+                  >0.45</span
+                >
               </div>
             </div>
 
@@ -1758,89 +2433,208 @@
             <div id="theming-preview-board" class="theming-preview-board">
               <div class="theming-preview-card">
                 <div class="theming-preview-card-header">
-                  <span class="theming-preview-card-title">Trend Line with Endpoint</span>
-                  <span class="theming-preview-card-tag">&lt;mini-line-chart&gt;</span>
+                  <span class="theming-preview-card-title"
+                    >Trend Line with Endpoint</span
+                  >
+                  <span class="theming-preview-card-tag"
+                    >&lt;mini-line-chart&gt;</span
+                  >
                 </div>
                 <div class="theming-preview-card-stage">
-                  <mini-line-chart data="[12, 19, 15, 27, 24, 38, 45]" curve="smooth" endpoint="last" label="Themed trend line"></mini-line-chart>
+                  <mini-line-chart
+                    data="[12, 19, 15, 27, 24, 38, 45]"
+                    curve="smooth"
+                    endpoint="last"
+                    label="Themed trend line"
+                  ></mini-line-chart>
                 </div>
               </div>
 
               <div class="theming-preview-card">
                 <div class="theming-preview-card-header">
-                  <span class="theming-preview-card-title">Signed Bar Comparison</span>
-                  <span class="theming-preview-card-tag">&lt;mini-bar-chart&gt;</span>
+                  <span class="theming-preview-card-title"
+                    >Signed Bar Comparison</span
+                  >
+                  <span class="theming-preview-card-tag"
+                    >&lt;mini-bar-chart&gt;</span
+                  >
                 </div>
                 <div class="theming-preview-card-stage">
-                  <mini-bar-chart data="[-8, 14, 22, -12, 19, 31, -5]" label="Themed signed bars"></mini-bar-chart>
+                  <mini-bar-chart
+                    data="[-8, 14, 22, -12, 19, 31, -5]"
+                    label="Themed signed bars"
+                  ></mini-bar-chart>
                 </div>
               </div>
 
               <div class="theming-preview-card">
                 <div class="theming-preview-card-header">
-                  <span class="theming-preview-card-title">5-Slice Donut Distribution</span>
-                  <span class="theming-preview-card-tag">&lt;mini-pie-chart donut="0.55"&gt;</span>
+                  <span class="theming-preview-card-title"
+                    >5-Slice Donut Distribution</span
+                  >
+                  <span class="theming-preview-card-tag"
+                    >&lt;mini-pie-chart donut="0.55"&gt;</span
+                  >
                 </div>
                 <div class="theming-preview-card-stage">
-                  <mini-pie-chart data="[35, 25, 20, 12, 8]" donut="0.55" interactive label="Themed 5-slice donut"></mini-pie-chart>
+                  <mini-pie-chart
+                    data="[35, 25, 20, 12, 8]"
+                    donut="0.55"
+                    interactive
+                    label="Themed 5-slice donut"
+                  ></mini-pie-chart>
                 </div>
               </div>
 
               <div class="theming-preview-card">
                 <div class="theming-preview-card-header">
-                  <span class="theming-preview-card-title">Financial Candlestick</span>
-                  <span class="theming-preview-card-tag">&lt;mini-candlestick-chart&gt;</span>
+                  <span class="theming-preview-card-title"
+                    >Financial Candlestick</span
+                  >
+                  <span class="theming-preview-card-tag"
+                    >&lt;mini-candlestick-chart&gt;</span
+                  >
                 </div>
                 <div class="theming-preview-card-stage">
-                  <mini-candlestick-chart data="[[20,28,18,25],[25,32,22,23],[23,30,21,29],[29,35,27,34],[34,36,28,30],[30,38,29,36],[36,42,34,40]]" label="Themed candlestick"></mini-candlestick-chart>
+                  <mini-candlestick-chart
+                    data="[[20,28,18,25],[25,32,22,23],[23,30,21,29],[29,35,27,34],[34,36,28,30],[30,38,29,36],[36,42,34,40]]"
+                    label="Themed candlestick"
+                  ></mini-candlestick-chart>
                 </div>
               </div>
 
               <div class="theming-preview-card">
                 <div class="theming-preview-card-header">
-                  <span class="theming-preview-card-title">ThemeRiver Stream</span>
-                  <span class="theming-preview-card-tag">&lt;mini-stream-chart&gt;</span>
+                  <span class="theming-preview-card-title"
+                    >ThemeRiver Stream</span
+                  >
+                  <span class="theming-preview-card-tag"
+                    >&lt;mini-stream-chart&gt;</span
+                  >
                 </div>
                 <div class="theming-preview-card-stage">
-                  <mini-stream-chart data="[[10,25,18,30,22,35],[15,20,28,24,31,26],[8,14,19,22,18,29]]" label="Themed stream"></mini-stream-chart>
+                  <mini-stream-chart
+                    data="[[10,25,18,30,22,35],[15,20,28,24,31,26],[8,14,19,22,18,29]]"
+                    label="Themed stream"
+                  ></mini-stream-chart>
                 </div>
               </div>
 
               <div class="theming-preview-card">
                 <div class="theming-preview-card-header">
-                  <span class="theming-preview-card-title">Stephen Few KPI Bullet</span>
-                  <span class="theming-preview-card-tag">&lt;mini-bullet-chart&gt;</span>
+                  <span class="theming-preview-card-title"
+                    >Stephen Few KPI Bullet</span
+                  >
+                  <span class="theming-preview-card-tag"
+                    >&lt;mini-bullet-chart&gt;</span
+                  >
                 </div>
                 <div class="theming-preview-card-stage">
-                  <mini-bullet-chart data="[78, 85, 40, 70, 100]" label="Themed bullet chart"></mini-bullet-chart>
+                  <mini-bullet-chart
+                    data="[78, 85, 40, 70, 100]"
+                    label="Themed bullet chart"
+                  ></mini-bullet-chart>
                 </div>
               </div>
             </div>
 
             <!-- Copyable Generated CSS Block -->
             <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-block-end: 0.5rem;">
-                <span style="font-weight: 650; font-size: 0.85rem; color: var(--text);" data-i18n="themingCssOutputTitle">Generated CSS Token Snippet:</span>
-                <button id="copy-theme-css-btn" class="btn btn-secondary btn-sm" data-i18n="btnCopyCss">📋 Copy CSS</button>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-block-end: 0.5rem;
+                "
+              >
+                <span
+                  style="
+                    font-weight: 650;
+                    font-size: 0.85rem;
+                    color: var(--text);
+                  "
+                  data-i18n="themingCssOutputTitle"
+                  >Generated CSS Token Snippet:</span
+                >
+                <button
+                  id="copy-theme-css-btn"
+                  class="btn btn-secondary btn-sm"
+                  data-i18n="btnCopyCss"
+                >
+                  📋 Copy CSS
+                </button>
               </div>
               <pre><code id="theming-css-output"></code></pre>
             </div>
           </div>
 
           <!-- Mega Accordion: Master Design Tokens Configuration Template -->
-          <div class="card" style="padding: 1.75rem; margin-block: 2rem; border-color: color-mix(in srgb, var(--primary) 40%, var(--border));">
+          <div
+            class="card"
+            style="
+              padding: 1.75rem;
+              margin-block: 2rem;
+              border-color: color-mix(
+                in srgb,
+                var(--primary) 40%,
+                var(--border)
+              );
+            "
+          >
             <details class="tokens-accordion" open>
-              <summary style="cursor: pointer; font-weight: 750; font-size: 1.1rem; color: var(--text); display: flex; justify-content: space-between; align-items: center; user-select: none;">
-                <span>📦 Complete Design Tokens Master Snippet (Ready to Copy)</span>
-                <span class="badge" style="background: var(--primary-subtle); color: var(--primary);">Drop-in CSS</span>
+              <summary
+                style="
+                  cursor: pointer;
+                  font-weight: 750;
+                  font-size: 1.1rem;
+                  color: var(--text);
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  user-select: none;
+                "
+              >
+                <span
+                  >📦 Complete Design Tokens Master Snippet (Ready to
+                  Copy)</span
+                >
+                <span
+                  class="badge"
+                  style="
+                    background: var(--primary-subtle);
+                    color: var(--primary);
+                  "
+                  >Drop-in CSS</span
+                >
               </summary>
-              
-              <p style="font-size: 0.875rem; color: var(--text-muted); margin-block: 1rem 0.5rem;">
-                Copy and paste this master snippet into your global stylesheet (e.g. <code>index.css</code>, <code>styles.css</code>, or your Design System root). Simply replace the fallback values with your own CSS variables:
+
+              <p
+                style="
+                  font-size: 0.875rem;
+                  color: var(--text-muted);
+                  margin-block: 1rem 0.5rem;
+                "
+              >
+                Copy and paste this master snippet into your global stylesheet
+                (e.g. <code>index.css</code>, <code>styles.css</code>, or your
+                Design System root). Simply replace the fallback values with
+                your own CSS variables:
               </p>
 
-              <div style="position: relative;">
-                <button id="copy-master-tokens-btn" class="btn btn-secondary btn-sm" style="position: absolute; top: 12px; right: 12px; z-index: 10;">📋 Copy All Tokens</button>
+              <div style="position: relative">
+                <button
+                  id="copy-master-tokens-btn"
+                  class="btn btn-secondary btn-sm"
+                  style="
+                    position: absolute;
+                    top: 12px;
+                    right: 12px;
+                    z-index: 10;
+                  "
+                >
+                  📋 Copy All Tokens
+                </button>
                 <pre><code id="master-tokens-code">/* ==========================================================================
    Sparkline Mini Charts — Master Design Tokens & Theming Configuration
    Drop this into :root or any container class (e.g. .theme-dark, .my-dashboard)
@@ -1904,24 +2698,48 @@
           </div>
 
           <!-- Theming Architecture & Strategies Guide -->
-          <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-block-top: 2.5rem;">
-            <h3 data-i18n="themingStrategiesTitle">The 4 Levels of Customization</h3>
-            
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 1.5rem;
+              margin-block-top: 2.5rem;
+            "
+          >
+            <h3 data-i18n="themingStrategiesTitle">
+              The 4 Levels of Customization
+            </h3>
+
             <div class="grid grid-2">
-              <div class="card" style="padding: 1.5rem;">
+              <div class="card" style="padding: 1.5rem">
                 <h4>1. Zero-Config (`currentColor`)</h4>
-                <p style="font-size: 0.875rem; color: var(--text-muted); margin-block: 0.5rem;">
-                  All single-series charts inherit their primary color from CSS <code>color</code>. When your theme switches or changes text color, the sparklines update automatically.
+                <p
+                  style="
+                    font-size: 0.875rem;
+                    color: var(--text-muted);
+                    margin-block: 0.5rem;
+                  "
+                >
+                  All single-series charts inherit their primary color from CSS
+                  <code>color</code>. When your theme switches or changes text
+                  color, the sparklines update automatically.
                 </p>
                 <pre><code>.metric-card.success {
   color: var(--brand-success); /* Chart inherits automatically! */
 }</code></pre>
               </div>
 
-              <div class="card" style="padding: 1.5rem;">
+              <div class="card" style="padding: 1.5rem">
                 <h4>2. CSS Custom Properties (`--mini-chart-*`)</h4>
-                <p style="font-size: 0.875rem; color: var(--text-muted); margin-block: 0.5rem;">
-                  Map your Design System tokens directly to our standardized CSS properties at the root or container level.
+                <p
+                  style="
+                    font-size: 0.875rem;
+                    color: var(--text-muted);
+                    margin-block: 0.5rem;
+                  "
+                >
+                  Map your Design System tokens directly to our standardized CSS
+                  properties at the root or container level.
                 </p>
                 <pre><code>:root {
   --mini-chart-color: var(--color-primary-500);
@@ -1930,10 +2748,18 @@
 }</code></pre>
               </div>
 
-              <div class="card" style="padding: 1.5rem;">
+              <div class="card" style="padding: 1.5rem">
                 <h4>3. Shadow Parts (`::part(...)`)</h4>
-                <p style="font-size: 0.875rem; color: var(--text-muted); margin-block: 0.5rem;">
-                  Target discrete SVG elements inside the Shadow DOM like <code>::part(line)</code>, <code>::part(point-last)</code>, or <code>::part(wick)</code> for advanced design control.
+                <p
+                  style="
+                    font-size: 0.875rem;
+                    color: var(--text-muted);
+                    margin-block: 0.5rem;
+                  "
+                >
+                  Target discrete SVG elements inside the Shadow DOM like
+                  <code>::part(line)</code>, <code>::part(point-last)</code>, or
+                  <code>::part(wick)</code> for advanced design control.
                 </p>
                 <pre><code>mini-line-chart::part(point-last) {
   fill: var(--color-accent);
@@ -1942,10 +2768,17 @@
 }</code></pre>
               </div>
 
-              <div class="card" style="padding: 1.5rem;">
+              <div class="card" style="padding: 1.5rem">
                 <h4>4. Motion & Performance Tuning</h4>
-                <p style="font-size: 0.875rem; color: var(--text-muted); margin-block: 0.5rem;">
-                  Control or disable transitions across entire dashboards for high-frequency streaming or accessibility compliance.
+                <p
+                  style="
+                    font-size: 0.875rem;
+                    color: var(--text-muted);
+                    margin-block: 0.5rem;
+                  "
+                >
+                  Control or disable transitions across entire dashboards for
+                  high-frequency streaming or accessibility compliance.
                 </p>
                 <pre><code>/* Instant high-frequency real-time update mode */
 .high-frequency-table {
@@ -1956,8 +2789,10 @@
             </div>
 
             <!-- Design Tokens Reference Table -->
-            <div class="card" style="padding: 1.5rem; margin-block-top: 1rem;">
-              <h4 data-i18n="themingTableTitle">Complete Design Tokens Reference</h4>
+            <div class="card" style="padding: 1.5rem; margin-block-top: 1rem">
+              <h4 data-i18n="themingTableTitle">
+                Complete Design Tokens Reference
+              </h4>
               <table class="token-table">
                 <thead>
                   <tr>
@@ -1972,7 +2807,10 @@
                     <td><code>--mini-chart-color</code></td>
                     <td><code>#2563eb</code></td>
                     <td>Line, Bar, Area, Combo, Progress, Scatter</td>
-                    <td>Primary brand tone for paths, bars, and single-value fills.</td>
+                    <td>
+                      Primary brand tone for paths, bars, and single-value
+                      fills.
+                    </td>
                   </tr>
                   <tr>
                     <td><code>--mini-chart-color-1..8</code></td>
@@ -1990,13 +2828,17 @@
                     <td><code>--mini-chart-bullish-color</code></td>
                     <td><code>#10b981</code></td>
                     <td>Candlestick, OHLC, Win/Loss</td>
-                    <td>Color for positive/bullish trading periods and wins.</td>
+                    <td>
+                      Color for positive/bullish trading periods and wins.
+                    </td>
                   </tr>
                   <tr>
                     <td><code>--mini-chart-bearish-color</code></td>
                     <td><code>#ef4444</code></td>
                     <td>Candlestick, OHLC, Win/Loss</td>
-                    <td>Color for negative/bearish trading periods and losses.</td>
+                    <td>
+                      Color for negative/bearish trading periods and losses.
+                    </td>
                   </tr>
                   <tr>
                     <td><code>--mini-chart-track-color</code></td>
@@ -2014,7 +2856,9 @@
                     <td><code>--mini-chart-inactive-opacity</code></td>
                     <td><code>0.45</code></td>
                     <td>All interactive charts</td>
-                    <td>Opacity applied to non-hovered items during hover focus.</td>
+                    <td>
+                      Opacity applied to non-hovered items during hover focus.
+                    </td>
                   </tr>
                   <tr>
                     <td><code>--mini-chart-transition-duration</code></td>
@@ -2028,26 +2872,321 @@
           </div>
         </div>
 
+        <!-- ================= PAGE: GRADIENTS STUDIO ================= -->
+        <div id="view-gradients" class="page-view">
+          <div>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-block-end: 0.5rem;
+              "
+            >
+              <h2 style="margin: 0" data-i18n="gradientsTitle">
+                Gradients Studio & Multi-Stop Colors
+              </h2>
+              <span class="badge badge-accent" style="font-size: 0.75rem">v1.4.0 New Feature</span>
+            </div>
+            <p data-i18n="gradientsSubtitle">
+              Explore hardware-accelerated continuous SVG gradients and multi-stop chromatic transitions across Gauge, Progress, Radial Rings, Bullet, and Area sparklines.
+            </p>
+          </div>
+
+          <!-- Interactive Gradient Preset Picker -->
+          <div class="card" style="padding: 1.5rem; margin-block: 1.5rem">
+            <div style="margin-block-end: 1rem">
+              <h3 style="margin: 0; font-size: 1.1rem" data-i18n="gradientsLabTitle">
+                🎨 Continuous Multi-Stop Color Lab
+              </h3>
+              <p
+                style="
+                  font-size: 0.85rem;
+                  color: var(--text-muted);
+                  margin-block: 0.35rem;
+                "
+                data-i18n="gradientsLabSubtitle"
+              >
+                Select a chromatic preset or live-tweak stops to see real-time gradient rendering across all compatible charts:
+              </p>
+            </div>
+
+            <!-- Gradient Preset Pills -->
+            <div class="theming-presets" id="gradient-presets-bar">
+              <button class="preset-pill active" data-grad-preset="thermal">
+                <span class="preset-swatch" style="background: linear-gradient(135deg, #10b981, #f59e0b, #ef4444)"></span>
+                🔥 Thermal Gauge (6 Stops)
+              </button>
+              <button class="preset-pill" data-grad-preset="cyber">
+                <span class="preset-swatch" style="background: linear-gradient(135deg, #06b6d4, #10b981)"></span>
+                ⚡ Cyber Cyan & Lime
+              </button>
+              <button class="preset-pill" data-grad-preset="sunset">
+                <span class="preset-swatch" style="background: linear-gradient(135deg, #f59e0b, #f43f5e, #8b5cf6)"></span>
+                🌅 Sunset Horizon
+              </button>
+              <button class="preset-pill" data-grad-preset="aurora">
+                <span class="preset-swatch" style="background: linear-gradient(135deg, #10b981, #06b6d4, #8b5cf6)"></span>
+                🌌 Aurora Borealis
+              </button>
+              <button class="preset-pill" data-grad-preset="neon">
+                <span class="preset-swatch" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)"></span>
+                💜 Neon Violet & Fuchsia
+              </button>
+            </div>
+
+            <!-- Live Gradient Showcase Grid -->
+            <div class="theming-preview-board" id="gradients-preview-board" style="margin-block: 1.5rem">
+              <!-- Card 1: Gauge Chart -->
+              <div class="theming-preview-card">
+                <div class="theming-preview-card-header">
+                  <span class="theming-preview-card-title">Speedometer Gauge</span>
+                  <span class="theming-preview-card-tag">&lt;mini-gauge-chart&gt;</span>
+                </div>
+                <div class="theming-preview-card-stage">
+                  <mini-gauge-chart
+                    id="demo-grad-gauge"
+                    data="[72, 0, 100]"
+                    gradient="true"
+                    interactive
+                    label="Continuous gradient temperature gauge"
+                    style="width: 170px"
+                  ></mini-gauge-chart>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted)">
+                  Smooth 6-color continuous arc with interactive pointer hover.
+                </div>
+              </div>
+
+              <!-- Card 2: Progress Arc -->
+              <div class="theming-preview-card">
+                <div class="theming-preview-card-header">
+                  <span class="theming-preview-card-title">Progress Score Arc</span>
+                  <span class="theming-preview-card-tag">&lt;mini-progress-chart&gt;</span>
+                </div>
+                <div class="theming-preview-card-stage">
+                  <mini-progress-chart
+                    id="demo-grad-progress"
+                    data="[84]"
+                    gradient="['#3b82f6', '#06b6d4', '#10b981']"
+                    interactive
+                    show-value
+                    unit="%"
+                    label="Multi-stop gradient progress"
+                    style="width: 170px"
+                  ></mini-progress-chart>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted)">
+                  Gradient along the stroke track with elastic spring animation.
+                </div>
+              </div>
+
+              <!-- Card 3: Radial Activity Rings -->
+              <div class="theming-preview-card">
+                <div class="theming-preview-card-header">
+                  <span class="theming-preview-card-title">Concentric Activity Rings</span>
+                  <span class="theming-preview-card-tag">&lt;mini-radial-bar-chart&gt;</span>
+                </div>
+                <div class="theming-preview-card-stage">
+                  <mini-radial-bar-chart
+                    id="demo-grad-radial"
+                    data="[90, 75, 55]"
+                    gradient="true"
+                    interactive
+                    label="Gradient fitness activity rings"
+                    style="width: 120px"
+                  ></mini-radial-bar-chart>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted)">
+                  Per-ring gradient transitions inspired by Apple Health activity rings.
+                </div>
+              </div>
+
+              <!-- Card 4: Performance Bullet -->
+              <div class="theming-preview-card">
+                <div class="theming-preview-card-header">
+                  <span class="theming-preview-card-title">Performance Bullet</span>
+                  <span class="theming-preview-card-tag">&lt;mini-bullet-chart&gt;</span>
+                </div>
+                <div class="theming-preview-card-stage">
+                  <mini-bullet-chart
+                    id="demo-grad-bullet"
+                    data="[82, 90, 40, 70, 100]"
+                    gradient="['#3b82f6', '#8b5cf6', '#ec4899']"
+                    interactive
+                    label="Gradient KPI measure bar"
+                    style="width: 100%; max-width: 260px"
+                  ></mini-bullet-chart>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted)">
+                  Intensity gradient fill along the performance measure bar.
+                </div>
+              </div>
+
+              <!-- Card 5: Fintech Area Trend -->
+              <div class="theming-preview-card" style="grid-column: span 2">
+                <div class="theming-preview-card-header">
+                  <span class="theming-preview-card-title">Fintech Multi-Hue Area Trend</span>
+                  <span class="theming-preview-card-tag">&lt;mini-area-chart&gt;</span>
+                </div>
+                <div class="theming-preview-card-stage">
+                  <mini-area-chart
+                    id="demo-grad-area"
+                    data="[14, 22, 19, 32, 28, 45, 40, 58, 62]"
+                    curve="smooth"
+                    points="last"
+                    gradient="['#06b6d4', '#3b82f6', '#8b5cf6']"
+                    interactive
+                    label="Smooth area sparkline with multi-hue gradient"
+                    style="width: 100%; max-width: 520px"
+                  ></mini-area-chart>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted)">
+                  Dual-stop & multi-color vertical opacity fade for modern dashboards.
+                </div>
+              </div>
+            </div>
+
+            <!-- Code Generation Box -->
+            <div style="margin-block-top: 1.5rem">
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-block-end: 0.5rem;
+                "
+              >
+                <span
+                  style="
+                    font-weight: 650;
+                    font-size: 0.85rem;
+                    color: var(--text);
+                  "
+                  data-i18n="gradientsSnippetTitle"
+                  >HTML Declarative Syntax:</span
+                >
+                <button
+                  id="copy-grad-code-btn"
+                  class="btn btn-secondary btn-sm"
+                  data-i18n="btnCopyCode"
+                >
+                  📋 Copy Code
+                </button>
+              </div>
+              <pre><code id="gradients-code-output"></code></pre>
+            </div>
+          </div>
+
+          <!-- Documentation on Gradient Specifications -->
+          <div class="card" style="padding: 1.5rem; margin-block: 1.5rem">
+            <h3 style="margin-block-end: 1rem">📚 Gradient Attributes Reference</h3>
+            <table class="token-table">
+              <thead>
+                <tr>
+                  <th>Component</th>
+                  <th>Attribute Syntax</th>
+                  <th>Examples</th>
+                  <th>Visual Outcome</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>&lt;mini-gauge-chart&gt;</code></td>
+                  <td><code>gradient="true | ['#c1','#c2',...]"</code></td>
+                  <td><code>gradient="true"</code></td>
+                  <td>Replaces segmented zones with a continuous smooth multi-stop arc gradient.</td>
+                </tr>
+                <tr>
+                  <td><code>&lt;mini-progress-chart&gt;</code></td>
+                  <td><code>gradient="true | ['#c1','#c2',...]"</code></td>
+                  <td><code>gradient="['#3b82f6','#10b981']"</code></td>
+                  <td>Linear gradient mapped directly across the active progress stroke path.</td>
+                </tr>
+                <tr>
+                  <td><code>&lt;mini-radial-bar-chart&gt;</code></td>
+                  <td><code>gradient="true | [['#c1','#c2'],...]"</code></td>
+                  <td><code>gradient="true"</code></td>
+                  <td>Generates individual radiant color shifts for each concentric activity ring.</td>
+                </tr>
+                <tr>
+                  <td><code>&lt;mini-bullet-chart&gt;</code></td>
+                  <td><code>gradient="true | ['#c1','#c2',...]"</code></td>
+                  <td><code>gradient="['#8b5cf6','#ec4899']"</code></td>
+                  <td>Draws a horizontal chromatic fill across the measure bar <code>[part="measure"]</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>&lt;mini-area-chart&gt;</code></td>
+                  <td><code>gradient="true | ['#c1','#c2',...]"</code></td>
+                  <td><code>gradient="['#06b6d4','#8b5cf6']"</code></td>
+                  <td>Fills the area beneath the curve with multi-stop color stops and gradual vertical opacity falloff.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- ================= PAGE 6: FRAMEWORKS ================= -->
         <div id="view-frameworks" class="page-view">
           <div>
             <h2 data-i18n="integrationsTitle">Framework Integrations</h2>
-            <p data-i18n="integrationsSubtitle">Standard Web Components work in any environment. Use native Custom Elements directly or via first-class typed wrappers.</p>
+            <p data-i18n="integrationsSubtitle">
+              Standard Web Components work in any environment. Use native Custom
+              Elements directly or via first-class typed wrappers.
+            </p>
           </div>
 
           <div class="tabs-container">
             <div class="tab-list" role="tablist">
-              <button class="tab-btn active" role="tab" data-tab="tab-html" data-i18n="tabVanilla">Vanilla / HTML</button>
-              <button class="tab-btn" role="tab" data-tab="tab-react" data-i18n="tabReact">React 18 / 19+</button>
-              <button class="tab-btn" role="tab" data-tab="tab-vue" data-i18n="tabVue">Vue 3 (SFC)</button>
-              <button class="tab-btn" role="tab" data-tab="tab-angular" data-i18n="tabAngular">Angular 18 / 19 / 20+</button>
-              <button class="tab-btn" role="tab" data-tab="tab-svelte" data-i18n="tabSvelte">Svelte</button>
+              <button
+                class="tab-btn active"
+                role="tab"
+                data-tab="tab-html"
+                data-i18n="tabVanilla"
+              >
+                Vanilla / HTML
+              </button>
+              <button
+                class="tab-btn"
+                role="tab"
+                data-tab="tab-react"
+                data-i18n="tabReact"
+              >
+                React 18 / 19+
+              </button>
+              <button
+                class="tab-btn"
+                role="tab"
+                data-tab="tab-vue"
+                data-i18n="tabVue"
+              >
+                Vue 3 (SFC)
+              </button>
+              <button
+                class="tab-btn"
+                role="tab"
+                data-tab="tab-angular"
+                data-i18n="tabAngular"
+              >
+                Angular 18 / 19 / 20+
+              </button>
+              <button
+                class="tab-btn"
+                role="tab"
+                data-tab="tab-svelte"
+                data-i18n="tabSvelte"
+              >
+                Svelte
+              </button>
             </div>
 
             <div class="tab-panels">
               <!-- Vanilla HTML -->
               <div id="tab-html" class="tab-content active">
-                <p style="margin-block-end: 0.75rem;">Import the registration script once and use standard Custom Elements in your HTML.</p>
+                <p style="margin-block-end: 0.75rem">
+                  Import the registration script once and use standard Custom
+                  Elements in your HTML.
+                </p>
                 <pre><code>&lt;!-- Include registration bundle --&gt;
 &lt;script type="module" src="https://cdn.jsdelivr.net/npm/sparkline-mini-charts/register"&gt;&lt;/script&gt;
 
@@ -2061,21 +3200,32 @@
               </div>
 
               <!-- React -->
-              <div id="tab-react" class="tab-content" style="display: none;">
-                <p style="margin-block-end: 0.75rem;">First-class React components with full TypeScript prop typings.</p>
-                <pre><code>import { MiniLineChart, MiniAreaChart } from 'sparkline-mini-charts/react';
+              <div id="tab-react" class="tab-content" style="display: none">
+                <p style="margin-block-end: 0.75rem">
+                  First-class React components with full TypeScript prop typings and event listeners.
+                </p>
+                <pre><code>import { MiniLineChart, MiniGaugeChart, MiniProgressChart } from 'sparkline-mini-charts/react';
 
 export function MetricsWidget() {
   const weeklyData = [18, 23, 20, 31, 27, 38, 44];
 
   return (
     &lt;div className="metric-card"&gt;
-      &lt;span&gt;Revenue&lt;/span&gt;
+      &lt;span&gt;Revenue Trend&lt;/span&gt;
       &lt;MiniLineChart 
         data={weeklyData} 
         curve="smooth" 
-        trendColor="auto" 
+        trend-color="auto" 
+        interactive
+        onPointerEnter={(e) =&gt; console.log('Hovering line chart', e)}
         label="Revenue trend" 
+      /&gt;
+
+      &lt;!-- Gauge with Continuous Multi-Stop Gradient --&gt;
+      &lt;MiniGaugeChart
+        data={[72, 0, 100]}
+        gradient={['#10b981', '#f59e0b', '#ef4444']}
+        interactive
       /&gt;
     &lt;/div&gt;
   );
@@ -2083,12 +3233,17 @@ export function MetricsWidget() {
               </div>
 
               <!-- Vue 3 -->
-              <div id="tab-vue" class="tab-content" style="display: none;">
-                <p style="margin-block-end: 0.75rem;">Typed Vue 3 Composition API components for SFC templates.</p>
+              <div id="tab-vue" class="tab-content" style="display: none">
+                <p style="margin-block-end: 0.75rem">
+                  Typed Vue 3 Composition API components with full attribute forwarding and `@sparkline-hover` events.
+                </p>
                 <pre><code>&lt;script setup lang="ts"&gt;
-import { MiniLineChart, MiniAreaChart } from 'sparkline-mini-charts/vue';
+import { MiniLineChart, MiniProgressChart } from 'sparkline-mini-charts/vue';
 
 const revenueData = [18, 23, 20, 31, 27, 38, 44];
+const onHover = (event: CustomEvent) =&gt; {
+  console.log('Hovered chart payload:', event.detail);
+};
 &lt;/script&gt;
 
 &lt;template&gt;
@@ -2097,39 +3252,74 @@ const revenueData = [18, 23, 20, 31, 27, 38, 44];
       :data="revenueData" 
       curve="smooth" 
       trend-color="auto" 
+      interactive
+      @sparkline-hover="onHover"
       label="Revenue trend" 
+    /&gt;
+
+    &lt;!-- Progress with Stroke Gradient --&gt;
+    &lt;MiniProgressChart
+      :data="[84]"
+      :gradient="['#3b82f6', '#06b6d4', '#10b981']"
+      show-value
+      unit="%"
+      interactive
     /&gt;
   &lt;/div&gt;
 &lt;/template&gt;</code></pre>
               </div>
 
               <!-- Angular -->
-              <div id="tab-angular" class="tab-content" style="display: none;">
-                <p style="margin-block-end: 0.75rem;">Standalone Angular directive from <code>sparkline-mini-charts/angular</code>.</p>
-                <pre><code>import { Component } from '@angular/core';
-import { MiniChartDirective } from 'sparkline-mini-charts/angular';
+              <div id="tab-angular" class="tab-content" style="display: none">
+                <p style="margin-block-end: 0.75rem">
+                  Modern Angular 22+ standalone Signal directives from
+                  <code>sparkline-mini-charts/angular</code> (100% zoneless-ready, native <code>input()</code> & <code>output()</code>).
+                </p>
+                <pre><code>import { Component, signal } from '@angular/core';
+import { MiniLineChartDirective, MiniGaugeChartDirective, SPARKLINE_DIRECTIVES } from 'sparkline-mini-charts/angular';
 
 @Component({
   selector: 'app-metric-card',
   standalone: true,
-  imports: [MiniChartDirective],
+  imports: [MiniLineChartDirective, MiniGaugeChartDirective], // or imports: [SPARKLINE_DIRECTIVES]
   template: `
     &lt;mini-line-chart 
-      [data]="data" 
+      [data]="data()" 
       curve="smooth" 
       trend-color="auto" 
+      interactive
+      (sparklineHover)="onHover($event)"
       label="Revenue trend"&gt;
     &lt;/mini-line-chart&gt;
+
+    &lt;!-- Gauge with Reactive Signal Gradient & Zone Change Output --&gt;
+    &lt;mini-gauge-chart
+      [data]="gaugeValue()"
+      [gradient]="['#10b981', '#f59e0b', '#ef4444']"
+      interactive
+      (zoneChange)="onZoneChange($event)"&gt;
+    &lt;/mini-gauge-chart&gt;
   `
 })
 export class MetricCardComponent {
-  data = [18, 23, 20, 31, 27, 38, 44];
+  readonly data = signal([18, 23, 20, 31, 27, 38, 44]);
+  readonly gaugeValue = signal([75, 0, 100]);
+
+  onHover(event: CustomEvent) {
+    console.log('Hover point:', event.detail);
+  }
+
+  onZoneChange(event: CustomEvent) {
+    console.log('Zone changed:', event.detail);
+  }
 }</code></pre>
               </div>
 
               <!-- Svelte -->
-              <div id="tab-svelte" class="tab-content" style="display: none;">
-                <p style="margin-block-end: 0.75rem;">Direct Custom Element usage in Svelte without wrappers.</p>
+              <div id="tab-svelte" class="tab-content" style="display: none">
+                <p style="margin-block-end: 0.75rem">
+                  Direct Custom Element usage in Svelte without wrappers.
+                </p>
                 <pre><code>&lt;script&gt;
   import 'sparkline-mini-charts/register';
   let data = [18, 23, 20, 31, 27, 38, 44];
@@ -2145,18 +3335,59 @@ export class MetricCardComponent {
         </div>
 
         <!-- Global Footer -->
-        <footer style="border-top: 1px solid var(--border); padding-block: 2.5rem; margin-block-top: 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+        <footer
+          style="
+            border-top: 1px solid var(--border);
+            padding-block: 2.5rem;
+            margin-block-top: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+          "
+        >
           <div>
-            <div style="font-weight: 750; font-size: 1.05rem; color: var(--text);">Sparkline Mini Charts</div>
-            <div style="color: var(--text-muted); font-size: 0.85rem; margin-block-top: 0.25rem;">
-              Crafted with precision &amp; vibe coding by <a href="https://erlonrru.com" target="_blank" rel="noopener noreferrer" style="font-weight: 600;">Erlon Rru</a> · MIT License.
+            <div
+              style="font-weight: 750; font-size: 1.05rem; color: var(--text)"
+            >
+              Sparkline Mini Charts
+            </div>
+            <div
+              style="
+                color: var(--text-muted);
+                font-size: 0.85rem;
+                margin-block-top: 0.25rem;
+              "
+            >
+              Crafted with precision &amp; vibe coding by
+              <a
+                href="https://erlonrru.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="font-weight: 600"
+                >Erlon Rru</a
+              >
+              · MIT License.
             </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 1rem;">
-            <a href="https://sparkline-mini-chart.erlonrru.com">Live Demo</a>
-            <a href="https://github.com/ErlonRru/sparkline-mini-charts" target="_blank" rel="noreferrer">GitHub</a>
-            <a href="https://www.npmjs.com/package/sparkline-mini-charts" target="_blank" rel="noreferrer">NPM</a>
-            <a href="https://erlonrru.com" target="_blank" rel="noreferrer">erlonrru.com</a>
+          <div style="display: flex; align-items: center; gap: 1rem">
+            <a href="https://sparkline-mini-charts.erlonrru.com">Live Demo</a>
+            <a
+              href="https://github.com/ErlonRru/sparkline-mini-charts"
+              target="_blank"
+              rel="noreferrer"
+              >GitHub</a
+            >
+            <a
+              href="https://www.npmjs.com/package/sparkline-mini-charts"
+              target="_blank"
+              rel="noreferrer"
+              >NPM</a
+            >
+            <a href="https://erlonrru.com" target="_blank" rel="noreferrer"
+              >erlonrru.com</a
+            >
           </div>
         </footer>
       </main>

@@ -23,7 +23,7 @@ import { defineMiniChart } from "../core/registration.js";
 function createVueChart(componentName: string, tagName: string, component: CustomElementConstructor) {
   return defineComponent({
     name: componentName,
-    inheritAttrs: false,
+    inheritAttrs: true,
     props: {
       data: {
         type: [Array, Object, String] as PropType<any>,
@@ -33,16 +33,32 @@ function createVueChart(componentName: string, tagName: string, component: Custo
         type: String,
         default: undefined,
       },
+      interactive: {
+        type: [Boolean, String] as PropType<boolean | string>,
+        default: undefined,
+      },
     },
-    setup(props, { attrs }) {
+    emits: ["sparkline-hover", "sparkline-leave", "slice-select", "zone-change"],
+    setup(props, { attrs, emit }) {
       defineMiniChart(tagName, component);
 
-      return () =>
-        h(tagName, {
+      return () => {
+        const domAttrs: Record<string, any> = {
           ...attrs,
           data: typeof props.data === "string" ? props.data : JSON.stringify(props.data),
           label: props.label,
-        });
+          "onSparkline-hover": (e: CustomEvent) => emit("sparkline-hover", e),
+          "onSparkline-leave": (e: CustomEvent) => emit("sparkline-leave", e),
+          "onSlice-select": (e: CustomEvent) => emit("slice-select", e),
+          "onZone-change": (e: CustomEvent) => emit("zone-change", e),
+        };
+
+        if (props.interactive === true || props.interactive === "" || props.interactive === "true") {
+          domAttrs.interactive = "";
+        }
+
+        return h(tagName, domAttrs);
+      };
     },
   });
 }

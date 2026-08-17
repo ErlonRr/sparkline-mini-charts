@@ -5,7 +5,7 @@ import { MiniChartElement } from "../core/mini-chart-element.js";
 import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
 
 /**
- * Renders a Stephen Few bullet graph for performance tracking against targets and qualitative ranges.
+ * Renders a Stephen Few bullet graph for performance tracking with optional gradient fills.
  *
  * @extends MiniChartElement
  */
@@ -17,6 +17,7 @@ export class MiniBulletChart extends MiniChartElement {
     "min",
     "max",
     "ranges",
+    "gradient",
     "interactive",
   ];
 
@@ -28,6 +29,12 @@ export class MiniBulletChart extends MiniChartElement {
 
   /** @type {SVGSVGElement | null} */
   #svg = null;
+  /** @type {SVGDefsElement | null} */
+  #defs = null;
+  /** @type {SVGLinearGradientElement | null} */
+  #gradient = null;
+  /** @type {string} */
+  #gradId = "";
   /** @type {SVGGElement | null} */
   #rangesGroup = null;
   /** @type {SVGRectElement | null} */
@@ -108,6 +115,9 @@ export class MiniBulletChart extends MiniChartElement {
   transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
   cursor: default;
 }
+:host([gradient]) [part="measure"] {
+  fill: unset;
+}
 [part="target"] {
   stroke: var(--mini-chart-target-color, var(--mini-chart-danger-color, #ef4444));
   stroke-width: var(--mini-chart-target-width, 2.5px);
@@ -125,11 +135,22 @@ export class MiniBulletChart extends MiniChartElement {
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
     this.#svg.setAttribute("role", "meter");
 
+    this.#defs = createSvgElement("defs");
+    this.#gradId = `bullet-grad-${Math.random().toString(36).slice(2, 9)}`;
+    this.#gradient = /** @type {SVGLinearGradientElement} */ (createSvgElement("linearGradient", {
+      id: this.#gradId,
+      x1: "0%",
+      y1: "0%",
+      x2: "100%",
+      y2: "0%",
+    }));
+    this.#defs.append(this.#gradient);
+
     this.#rangesGroup = /** @type {SVGGElement} */ (createSvgElement("g", { part: "ranges" }));
     this.#measureRect = /** @type {SVGRectElement} */ (createSvgElement("rect", { part: "measure" }));
     this.#targetMarker = /** @type {SVGLineElement} */ (createSvgElement("line", { part: "target" }));
 
-    this.#svg.append(this.#rangesGroup, this.#measureRect, this.#targetMarker);
+    this.#svg.append(this.#defs, this.#rangesGroup, this.#measureRect, this.#targetMarker);
     this.shadowRoot?.replaceChildren(style, this.#svg);
 
     this.#setupInteractionListeners();
@@ -166,10 +187,31 @@ export class MiniBulletChart extends MiniChartElement {
   }
 
   /**
+   * Resolves gradient colors for measure bar.
+   * @returns {string[] | null}
+   */
+  #resolveGradientStops() {
+    const raw = this.getAttribute("gradient");
+    if (raw === null || raw === "false") return null;
+    if (raw === "" || raw === "true") {
+      return ["#3b82f6", "#8b5cf6", "#ec4899"];
+    }
+    try {
+      const normalized = raw.replace(/'/g, '"');
+      const parsed = JSON.parse(normalized);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {}
+    if (raw.includes(",")) {
+      return raw.replace(/[\[\]'"]/g, "").split(",").map((s) => s.trim()).filter(Boolean);
+    }
+    return null;
+  }
+
+  /**
    * @param {any} data 
    */
   #updateChart(data) {
-    if (!this.#rangesGroup || !this.#measureRect || !this.#targetMarker || !this.#svg) return;
+    if (!this.#rangesGroup || !this.#measureRect || !this.#targetMarker || !this.#svg || !this.#gradient) return;
     if (this.#rafId !== null && typeof cancelAnimationFrame !== "undefined") {
       cancelAnimationFrame(this.#rafId);
       this.#rafId = null;
@@ -234,6 +276,19 @@ export class MiniBulletChart extends MiniChartElement {
       });
       this.#rangesGroup?.append(rect);
     });
+
+    // Configure gradient fill on measure bar
+    const gradStops = this.#resolveGradientStops();
+    if (gradStops) {
+      this.#gradient.innerHTML = "";
+      gradStops.forEach((col, idx) => {
+        const offset = gradStops.length > 1 ? `${(idx / (gradStops.length - 1)) * 100}%` : "0%";
+        this.#gradient?.append(createSvgElement("stop", { offset, "stop-color": col }));
+      });
+      this.#measureRect.style.fill = `url(#${this.#gradId})`;
+    } else {
+      this.#measureRect.style.fill = "";
+    }
 
     const isInitial = !this.#measureRect.dataset.rendered;
     if (isInitial) {

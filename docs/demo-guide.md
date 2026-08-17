@@ -1,6 +1,6 @@
 # Demo Showcase & Interactive Playground Guide
 
-Sparkline Mini Charts includes an interactive showcase and playground (`demo/`) that acts as both a visual test harness and a live demonstration deployed at **[sparkline-mini-chart.erlonrru.com](https://sparkline-mini-chart.erlonrru.com)**.
+Sparkline Mini Charts includes an interactive showcase and playground (`demo/`) that acts as both a visual test harness and a live demonstration deployed at **[sparkline-mini-charts.erlonrru.com](https://sparkline-mini-charts.erlonrru.com)**.
 
 ---
 
@@ -34,6 +34,7 @@ The Vite dev server will start at `http://localhost:5173`.
 ## 🏗️ Demo Architecture
 
 The showcase is organized in `demo/`:
+
 - **`demo/index.html`**: Semantic HTML structure containing layout panels, navigation, and theme switches.
 - **`demo/app.js`**: Core client application logic, real-time data generators, live streaming loops, and sandbox controls.
 - **`demo/i18n.js`**: Bilingual dictionary and instant locale switching engine.

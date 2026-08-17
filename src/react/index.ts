@@ -1,6 +1,14 @@
 // index.ts — React wrappers for the native Sparkline Mini Charts elements.
 
-import { createElement, forwardRef, type HTMLAttributes } from "react";
+import {
+  createElement,
+  forwardRef,
+  type CSSProperties,
+  type DOMAttributes,
+  type ForwardRefExoticComponent,
+  type HTMLAttributes,
+  type RefAttributes,
+} from "react";
 import { MiniAreaChart as MiniAreaChartElement } from "../components/mini-area-chart.js";
 import { MiniBarChart as MiniBarChartElement } from "../components/mini-bar-chart.js";
 import { MiniBulletChart as MiniBulletChartElement } from "../components/mini-bullet-chart.js";
@@ -20,76 +28,300 @@ import { MiniStreamChart as MiniStreamChartElement } from "../components/mini-st
 import { MiniWinLossChart as MiniWinLossChartElement } from "../components/mini-win-loss-chart.js";
 import { defineMiniChart } from "../core/registration.js";
 
-/** Properties shared by every React sparkline wrapper. */
-export interface MiniChartProps extends HTMLAttributes<HTMLElement> {
+/** Event map for Sparkline custom DOM events */
+export interface SparklineEventHandlers {
+  onSparklineHover?: (event: CustomEvent) => void;
+  onSparklineLeave?: (event: CustomEvent) => void;
+  onSliceSelect?: (event: CustomEvent) => void;
+  onZoneChange?: (event: CustomEvent) => void;
+}
+
+/** Base attributes shared across every sparkline React component. */
+export interface BaseSparklineProps extends Omit<HTMLAttributes<HTMLElement>, "data">, SparklineEventHandlers {
   data?: any;
   label?: string;
+  interactive?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Per-Chart Props Interfaces
+// ---------------------------------------------------------------------------
+
+export interface MiniLineChartProps extends BaseSparklineProps {
+  curve?: "linear" | "smooth" | "step";
+  points?: "none" | "all" | "last" | "ends";
+  min?: number;
+  max?: number;
+  "reference-value"?: number;
+  referenceValue?: number;
+  "trend-color"?: "auto" | "none";
+  trendColor?: "auto" | "none";
+}
+
+export interface MiniBarChartProps extends BaseSparklineProps {
+  gap?: number;
+  radius?: number;
+  baseline?: number;
+  min?: number;
+  max?: number;
+}
+
+export interface MiniAreaChartProps extends BaseSparklineProps {
+  curve?: "linear" | "smooth" | "step";
+  points?: "none" | "all" | "last" | "ends";
+  gradient?: boolean | string | string[];
+  min?: number;
+  max?: number;
+  "reference-value"?: number;
+  referenceValue?: number;
+  "trend-color"?: "auto" | "none";
+  trendColor?: "auto" | "none";
+}
+
+export interface MiniStackedAreaChartProps extends BaseSparklineProps {
+  curve?: "linear" | "smooth" | "step";
+  normalize?: boolean;
+}
+
+export interface MiniStreamChartProps extends BaseSparklineProps {
+  curve?: "linear" | "smooth" | "step";
+}
+
+export interface MiniPieChartProps extends BaseSparklineProps {
+  "inner-radius"?: number;
+  innerRadius?: number;
+  donut?: number;
+  "pad-angle"?: number;
+  padAngle?: number;
+  "start-angle"?: number;
+  startAngle?: number;
+}
+
+export interface MiniHalfPieChartProps extends BaseSparklineProps {
+  "inner-radius"?: number;
+  innerRadius?: number;
+  donut?: number;
+}
+
+export interface MiniRadialBarChartProps extends BaseSparklineProps {
+  sweep?: number;
+  "round-caps"?: boolean;
+  roundCaps?: boolean;
+  min?: number;
+  max?: number;
+  gradient?: boolean | string | string[] | string[][];
+}
+
+export interface MiniProgressChartProps extends BaseSparklineProps {
+  min?: number;
+  max?: number;
+  "show-value"?: boolean;
+  showValue?: boolean;
+  unit?: string;
+  gradient?: boolean | string | string[];
+}
+
+export interface MiniGaugeChartProps extends BaseSparklineProps {
+  min?: number;
+  max?: number;
+  zones?: any;
+  "needle-type"?: "triangle" | "line";
+  needleType?: "triangle" | "line";
+  "show-value"?: boolean;
+  showValue?: boolean;
+  gradient?: boolean | string | string[];
+}
+
+export interface MiniCandlestickChartProps extends BaseSparklineProps {
+  "hollow-bullish"?: boolean;
+  hollowBullish?: boolean;
+  "wick-width"?: number;
+  wickWidth?: number;
+  gap?: number;
+  min?: number;
+  max?: number;
+}
+
+export interface MiniOhlcChartProps extends BaseSparklineProps {
+  "tick-width"?: number;
+  tickWidth?: number;
+  gap?: number;
+  min?: number;
+  max?: number;
+}
+
+export interface MiniComboChartProps extends BaseSparklineProps {
+  "shared-domain"?: boolean;
+  sharedDomain?: boolean;
+  curve?: "linear" | "smooth" | "step";
+  "bar-gap"?: number;
+  barGap?: number;
+}
+
+export interface MiniBulletChartProps extends BaseSparklineProps {
+  target?: number;
+  min?: number;
+  max?: number;
+  ranges?: any;
+  gradient?: boolean | string | string[];
+}
+
+export interface MiniWinLossChartProps extends BaseSparklineProps {
+  gap?: number;
+  radius?: number;
+  mode?: "win-loss" | "uptime";
+  "win-color"?: string;
+  winColor?: string;
+  "loss-color"?: string;
+  lossColor?: string;
+  "tie-color"?: string;
+  tieColor?: string;
+}
+
+export interface MiniRangeBarChartProps extends BaseSparklineProps {
+  gap?: number;
+  radius?: number;
+  min?: number;
+  max?: number;
+}
+
+export interface MiniScatterChartProps extends BaseSparklineProps {
+  "point-radius"?: number;
+  pointRadius?: number;
+  "trend-line"?: boolean;
+  trendLine?: boolean;
+  "min-x"?: number;
+  minX?: number;
+  "max-x"?: number;
+  maxX?: number;
+  "min-y"?: number;
+  minY?: number;
+  "max-y"?: number;
+  maxY?: number;
+}
+
+/** General backwards-compatible props interface. */
+export interface MiniChartProps extends BaseSparklineProps {
   [key: string]: any;
 }
 
-function createReactChart(tagName: string, component: CustomElementConstructor, displayName: string) {
+// ---------------------------------------------------------------------------
+// Component Factory
+// ---------------------------------------------------------------------------
+
+function createReactChart<P extends BaseSparklineProps>(
+  tagName: string,
+  component: CustomElementConstructor,
+  displayName: string,
+): ForwardRefExoticComponent<P & RefAttributes<HTMLElement>> {
   defineMiniChart(tagName, component);
 
-  const Chart = forwardRef<HTMLElement, MiniChartProps>(function SparklineChart({ data = [], label, ...attributes }, ref) {
-    return createElement(tagName, {
-      ...attributes,
+  const Chart = forwardRef<HTMLElement, P>(function SparklineChart(props, ref) {
+    const {
+      data = [],
+      label,
+      interactive,
+      onSparklineHover,
+      onSparklineLeave,
+      onSliceSelect,
+      onZoneChange,
+      ...rawProps
+    } = props as any;
+
+    const domAttributes: Record<string, any> = {
       ref,
       data: typeof data === "string" ? data : JSON.stringify(data),
       label,
-    });
+    };
+
+    if (interactive) {
+      domAttributes.interactive = "";
+    }
+
+    // Convert camelCase props to kebab-case attributes
+    for (const [key, val] of Object.entries(rawProps)) {
+      if (val === undefined || val === null) continue;
+
+      if (key === "onSparkline-hover" || key === "onSparkline-leave" || key === "onSlice-select" || key === "onZone-change") {
+        domAttributes[key] = val;
+        continue;
+      }
+
+      if (key.startsWith("on") && typeof val === "function") {
+        domAttributes[key] = val;
+        continue;
+      }
+
+      if (typeof val === "object") {
+        const kebabKey = key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+        domAttributes[kebabKey] = JSON.stringify(val);
+      } else if (typeof val === "boolean") {
+        const kebabKey = key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+        if (val) domAttributes[kebabKey] = "";
+      } else {
+        const kebabKey = key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+        domAttributes[kebabKey] = val;
+      }
+    }
+
+    return createElement(tagName, domAttributes);
   });
 
   Chart.displayName = displayName;
-  return Chart;
+  return Chart as unknown as ForwardRefExoticComponent<P & RefAttributes<HTMLElement>>;
 }
 
+// ---------------------------------------------------------------------------
+// Exported React Wrappers
+// ---------------------------------------------------------------------------
+
 /** React wrapper for `<mini-line-chart>`. */
-export const MiniLineChart = createReactChart("mini-line-chart", MiniLineChartElement, "MiniLineChart");
+export const MiniLineChart = createReactChart<MiniLineChartProps>("mini-line-chart", MiniLineChartElement, "MiniLineChart");
 
 /** React wrapper for `<mini-bar-chart>`. */
-export const MiniBarChart = createReactChart("mini-bar-chart", MiniBarChartElement, "MiniBarChart");
+export const MiniBarChart = createReactChart<MiniBarChartProps>("mini-bar-chart", MiniBarChartElement, "MiniBarChart");
 
 /** React wrapper for `<mini-area-chart>`. */
-export const MiniAreaChart = createReactChart("mini-area-chart", MiniAreaChartElement, "MiniAreaChart");
+export const MiniAreaChart = createReactChart<MiniAreaChartProps>("mini-area-chart", MiniAreaChartElement, "MiniAreaChart");
 
 /** React wrapper for `<mini-stacked-area-chart>`. */
-export const MiniStackedAreaChart = createReactChart("mini-stacked-area-chart", MiniStackedAreaChartElement, "MiniStackedAreaChart");
+export const MiniStackedAreaChart = createReactChart<MiniStackedAreaChartProps>("mini-stacked-area-chart", MiniStackedAreaChartElement, "MiniStackedAreaChart");
 
 /** React wrapper for `<mini-stream-chart>`. */
-export const MiniStreamChart = createReactChart("mini-stream-chart", MiniStreamChartElement, "MiniStreamChart");
+export const MiniStreamChart = createReactChart<MiniStreamChartProps>("mini-stream-chart", MiniStreamChartElement, "MiniStreamChart");
 
 /** React wrapper for `<mini-pie-chart>`. */
-export const MiniPieChart = createReactChart("mini-pie-chart", MiniPieChartElement, "MiniPieChart");
+export const MiniPieChart = createReactChart<MiniPieChartProps>("mini-pie-chart", MiniPieChartElement, "MiniPieChart");
 
 /** React wrapper for `<mini-half-pie-chart>`. */
-export const MiniHalfPieChart = createReactChart("mini-half-pie-chart", MiniHalfPieChartElement, "MiniHalfPieChart");
+export const MiniHalfPieChart = createReactChart<MiniHalfPieChartProps>("mini-half-pie-chart", MiniHalfPieChartElement, "MiniHalfPieChart");
 
 /** React wrapper for `<mini-radial-bar-chart>`. */
-export const MiniRadialBarChart = createReactChart("mini-radial-bar-chart", MiniRadialBarChartElement, "MiniRadialBarChart");
+export const MiniRadialBarChart = createReactChart<MiniRadialBarChartProps>("mini-radial-bar-chart", MiniRadialBarChartElement, "MiniRadialBarChart");
 
 /** React wrapper for `<mini-progress-chart>`. */
-export const MiniProgressChart = createReactChart("mini-progress-chart", MiniProgressChartElement, "MiniProgressChart");
+export const MiniProgressChart = createReactChart<MiniProgressChartProps>("mini-progress-chart", MiniProgressChartElement, "MiniProgressChart");
 
 /** React wrapper for `<mini-gauge-chart>`. */
-export const MiniGaugeChart = createReactChart("mini-gauge-chart", MiniGaugeChartElement, "MiniGaugeChart");
+export const MiniGaugeChart = createReactChart<MiniGaugeChartProps>("mini-gauge-chart", MiniGaugeChartElement, "MiniGaugeChart");
 
 /** React wrapper for `<mini-candlestick-chart>`. */
-export const MiniCandlestickChart = createReactChart("mini-candlestick-chart", MiniCandlestickChartElement, "MiniCandlestickChart");
+export const MiniCandlestickChart = createReactChart<MiniCandlestickChartProps>("mini-candlestick-chart", MiniCandlestickChartElement, "MiniCandlestickChart");
 
 /** React wrapper for `<mini-ohlc-chart>`. */
-export const MiniOhlcChart = createReactChart("mini-ohlc-chart", MiniOhlcChartElement, "MiniOhlcChart");
+export const MiniOhlcChart = createReactChart<MiniOhlcChartProps>("mini-ohlc-chart", MiniOhlcChartElement, "MiniOhlcChart");
 
 /** React wrapper for `<mini-combo-chart>`. */
-export const MiniComboChart = createReactChart("mini-combo-chart", MiniComboChartElement, "MiniComboChart");
+export const MiniComboChart = createReactChart<MiniComboChartProps>("mini-combo-chart", MiniComboChartElement, "MiniComboChart");
 
 /** React wrapper for `<mini-bullet-chart>`. */
-export const MiniBulletChart = createReactChart("mini-bullet-chart", MiniBulletChartElement, "MiniBulletChart");
+export const MiniBulletChart = createReactChart<MiniBulletChartProps>("mini-bullet-chart", MiniBulletChartElement, "MiniBulletChart");
 
 /** React wrapper for `<mini-win-loss-chart>`. */
-export const MiniWinLossChart = createReactChart("mini-win-loss-chart", MiniWinLossChartElement, "MiniWinLossChart");
+export const MiniWinLossChart = createReactChart<MiniWinLossChartProps>("mini-win-loss-chart", MiniWinLossChartElement, "MiniWinLossChart");
 
 /** React wrapper for `<mini-range-bar-chart>`. */
-export const MiniRangeBarChart = createReactChart("mini-range-bar-chart", MiniRangeBarChartElement, "MiniRangeBarChart");
+export const MiniRangeBarChart = createReactChart<MiniRangeBarChartProps>("mini-range-bar-chart", MiniRangeBarChartElement, "MiniRangeBarChart");
 
 /** React wrapper for `<mini-scatter-chart>`. */
-export const MiniScatterChart = createReactChart("mini-scatter-chart", MiniScatterChartElement, "MiniScatterChart");
+export const MiniScatterChart = createReactChart<MiniScatterChartProps>("mini-scatter-chart", MiniScatterChartElement, "MiniScatterChart");

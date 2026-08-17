@@ -25,9 +25,8 @@ function defaultZones(min, max) {
   ];
 }
 
-
 /**
- * Renders a meter gauge with colored threshold zones and an animated rotating needle.
+ * Renders a meter gauge with colored threshold zones or multi-stop gradients and an animated rotating needle.
  *
  * @extends MiniChartElement
  */
@@ -40,6 +39,8 @@ export class MiniGaugeChart extends MiniChartElement {
     "zones",
     "needle-type",
     "show-value",
+    "gradient",
+    "interactive",
   ];
 
   /** @type {boolean} */
@@ -50,6 +51,12 @@ export class MiniGaugeChart extends MiniChartElement {
 
   /** @type {SVGSVGElement | null} */
   #svg = null;
+  /** @type {SVGDefsElement | null} */
+  #defs = null;
+  /** @type {SVGLinearGradientElement | null} */
+  #gradient = null;
+  /** @type {string} */
+  #gradId = "";
   /** @type {SVGGElement | null} */
   #zonesGroup = null;
   /** @type {SVGPathElement | null} */
@@ -62,6 +69,10 @@ export class MiniGaugeChart extends MiniChartElement {
 
   /** @type {number} */
   #currentZoneIndex = -1;
+  /** @type {number} */
+  #currentValue = 0;
+  /** @type {ZoneConfig[]} */
+  #currentZones = [];
 
   /** @returns {number} SVG viewBox height. */
   get chartHeight() {
@@ -79,7 +90,7 @@ export class MiniGaugeChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending frames on disconnection.
+   * Cleans up pending frames and interaction listeners on disconnection.
    * @override
    */
   cleanup() {
@@ -87,6 +98,7 @@ export class MiniGaugeChart extends MiniChartElement {
       cancelAnimationFrame(this.#rafId);
       this.#rafId = null;
     }
+    this.#detachInteractionListeners();
   }
 
   render() {
@@ -130,10 +142,28 @@ export class MiniGaugeChart extends MiniChartElement {
   font-size: 11px;
   font-weight: 600;
   text-anchor: middle;
+}
+:host([interactive]) [part="track"],
+:host([interactive]) [part="needle"] {
+  cursor: pointer;
+}
+:host([interactive]) [part="track"]:hover {
+  filter: brightness(1.15);
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
     this.#svg.setAttribute("role", "meter");
+
+    this.#defs = createSvgElement("defs");
+    this.#gradId = `gauge-grad-${Math.random().toString(36).slice(2, 9)}`;
+    this.#gradient = /** @type {SVGLinearGradientElement} */ (createSvgElement("linearGradient", {
+      id: this.#gradId,
+      x1: "0%",
+      y1: "0%",
+      x2: "100%",
+      y2: "0%",
+    }));
+    this.#defs.append(this.#gradient);
 
     this.#zonesGroup = /** @type {SVGGElement} */ (createSvgElement("g", { part: "zones" }));
 
@@ -166,8 +196,66 @@ export class MiniGaugeChart extends MiniChartElement {
     }));
     this.#valueText.style.display = "none";
 
-    this.#svg.append(this.#zonesGroup, this.#needle, pivot, this.#valueText);
+    this.#svg.append(this.#defs, this.#zonesGroup, this.#needle, pivot, this.#valueText);
     this.shadowRoot?.replaceChildren(style, this.#svg);
+
+    this.#setupInteractionListeners();
+  }
+
+  #onPointerMove = (/** @type {PointerEvent} */ e) => {
+    if (!this.hasAttribute("interactive") || !this.#svg) return;
+    const rect = this.#svg.getBoundingClientRect();
+    if (rect.width === 0) return;
+
+    this.dispatchEvent(new CustomEvent("sparkline-hover", {
+      bubbles: true,
+      composed: true,
+      detail: {
+        value: this.#currentValue,
+        zoneIndex: this.#currentZoneIndex,
+        zoneColor: this.#currentZones[this.#currentZoneIndex]?.color,
+      },
+    }));
+  };
+
+  #onPointerLeave = () => {
+    if (!this.hasAttribute("interactive")) return;
+    this.dispatchEvent(new CustomEvent("sparkline-leave", {
+      bubbles: true,
+      composed: true,
+    }));
+  };
+
+  #setupInteractionListeners() {
+    this.#svg?.addEventListener("pointermove", this.#onPointerMove);
+    this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
+  }
+
+  #detachInteractionListeners() {
+    this.#svg?.removeEventListener("pointermove", this.#onPointerMove);
+    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
+  }
+
+  /**
+   * Resolves gradient colors if specified as boolean true, array, or comma-separated string.
+   * @returns {string[] | null}
+   */
+  #resolveGradientStops() {
+    const raw = this.getAttribute("gradient");
+    if (raw === null || raw === "false") return null;
+    if (raw === "" || raw === "true") {
+      // Default 6-stop smooth gradient from safe (green) to warning (amber) to danger (red)
+      return ["#10b981", "#84cc16", "#eab308", "#f59e0b", "#f97316", "#ef4444"];
+    }
+    try {
+      const normalized = raw.replace(/'/g, '"');
+      const parsed = JSON.parse(normalized);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {}
+    if (raw.includes(",")) {
+      return raw.replace(/[\[\]'"]/g, "").split(",").map((s) => s.trim()).filter(Boolean);
+    }
+    return null;
   }
 
   /**
@@ -194,7 +282,7 @@ export class MiniGaugeChart extends MiniChartElement {
    * @param {number[]} data 
    */
   #updateChart(data) {
-    if (!this.#needle || !this.#zonesGroup || !this.#svg || !this.#valueText) return;
+    if (!this.#needle || !this.#zonesGroup || !this.#svg || !this.#valueText || !this.#gradient) return;
     if (this.#rafId !== null && typeof cancelAnimationFrame !== "undefined") {
       cancelAnimationFrame(this.#rafId);
       this.#rafId = null;
@@ -219,6 +307,8 @@ export class MiniGaugeChart extends MiniChartElement {
     const range = max - min || 1;
     const progress = (clampedVal - min) / range;
 
+    this.#currentValue = clampedVal;
+
     // -90deg = gauge min (left), 0deg = mid (up), +90deg = gauge max (right)
     const angleDeg = -90 + progress * 180;
 
@@ -233,32 +323,58 @@ export class MiniGaugeChart extends MiniChartElement {
       this.#valueText.style.display = "none";
     }
 
-    // Build zones
+    const gradientStops = this.#resolveGradientStops();
     const zones = this.#resolveZones(min, max);
-    const signature = `${min}|${max}|${JSON.stringify(zones)}`;
+    this.#currentZones = zones;
+
+    const signature = `${min}|${max}|${JSON.stringify(zones)}|${JSON.stringify(gradientStops)}`;
 
     if (signature !== this.#zonesSignature) {
       this.#zonesSignature = signature;
       this.#zonesGroup.innerHTML = "";
 
-      let prevUpTo = min;
-      zones.forEach((zone) => {
-        const startAngle = Math.PI + Math.PI * ((prevUpTo - min) / range);
-        const endAngle = Math.PI + Math.PI * ((zone.upTo - min) / range);
-        prevUpTo = zone.upTo;
-
-        const arcPath = describeArc(50, 50, 40, startAngle, endAngle);
-        if (arcPath) {
-          const zoneEl = createSvgElement("path", {
-            part: "track",
-            stroke: zone.color,
-            d: arcPath,
+      if (gradientStops) {
+        // Continuous smooth gradient mode
+        this.#gradient.innerHTML = "";
+        const count = gradientStops.length;
+        gradientStops.forEach((color, idx) => {
+          const offset = count > 1 ? `${(idx / (count - 1)) * 100}%` : "0%";
+          const stop = createSvgElement("stop", {
+            offset,
+            "stop-color": color,
           });
-          this.#zonesGroup?.append(zoneEl);
-        }
-      });
-    }
+          this.#gradient?.append(stop);
+        });
 
+        const fullArc = describeArc(50, 50, 40, Math.PI, 2 * Math.PI);
+        if (fullArc) {
+          const trackEl = createSvgElement("path", {
+            part: "track",
+            stroke: `url(#${this.#gradId})`,
+            d: fullArc,
+          });
+          this.#zonesGroup.append(trackEl);
+        }
+      } else {
+        // Segmented discrete zones mode
+        let prevUpTo = min;
+        zones.forEach((zone) => {
+          const startAngle = Math.PI + Math.PI * ((prevUpTo - min) / range);
+          const endAngle = Math.PI + Math.PI * ((zone.upTo - min) / range);
+          prevUpTo = zone.upTo;
+
+          const arcPath = describeArc(50, 50, 40, startAngle, endAngle);
+          if (arcPath) {
+            const zoneEl = createSvgElement("path", {
+              part: "track",
+              stroke: zone.color,
+              d: arcPath,
+            });
+            this.#zonesGroup?.append(zoneEl);
+          }
+        });
+      }
+    }
 
     // Identify active zone
     let activeZoneIdx = zones.findIndex((z) => clampedVal <= z.upTo);

@@ -39,6 +39,11 @@ class TestNode {
 
   querySelector(selector) {
     if (selector === "title") return this.children.find(n => n.name === "title") ?? null;
+    if (selector === "defs") return this.children.find(n => n.name === "defs") ?? null;
+    if (selector === "defs linearGradient" || selector === "linearGradient") {
+      const defs = this.children.find(n => n.name === "defs");
+      return defs?.children.find(n => n.name === "linearGradient") ?? null;
+    }
     if (selector.startsWith('[part="') || selector.startsWith('[part~="')) {
       const part = selector.match(/\[part[~=]*"([^"]+)"\]/)?.[1];
       const findNode = (nodes) => {
@@ -329,7 +334,6 @@ test("bullet, win-loss, range-bar and scatter elements construct their specific 
 });
 
 test("chart components gracefully clean up on disconnection", () => {
-
   const chart = new charts.MiniLineChart();
   chart.setAttribute("data", "[1, 2, 3]");
   chart.isConnected = true;
@@ -341,4 +345,67 @@ test("chart components gracefully clean up on disconnection", () => {
   assert.ok(true);
 });
 
+test("gauge, progress, radial-bar, and bullet support custom gradients and interactive attributes", () => {
+  const gauge = new charts.MiniGaugeChart();
+  gauge.setAttribute("data", "[80]");
+  gauge.setAttribute("gradient", "true");
+  gauge.setAttribute("interactive", "");
+  gauge.isConnected = true;
+  gauge.connectedCallback();
+  const gaugeSvg = gauge.shadowRoot.children.find(c => c.name === "svg");
+  assert.ok(gaugeSvg?.querySelector("defs linearGradient"));
 
+  const progress = new charts.MiniProgressChart();
+  progress.setAttribute("data", "[45]");
+  progress.setAttribute("gradient", "true");
+  progress.setAttribute("interactive", "");
+  progress.isConnected = true;
+  progress.connectedCallback();
+  const progressSvg = progress.shadowRoot.children.find(c => c.name === "svg");
+  assert.ok(progressSvg?.querySelector("defs linearGradient"));
+
+  const bullet = new charts.MiniBulletChart();
+  bullet.setAttribute("data", JSON.stringify({ value: 60, target: 80 }));
+  bullet.setAttribute("gradient", "true");
+  bullet.setAttribute("interactive", "");
+  bullet.isConnected = true;
+  bullet.connectedCallback();
+  const bulletSvg = bullet.shadowRoot.children.find(c => c.name === "svg");
+  assert.ok(bulletSvg?.querySelector("defs linearGradient"));
+
+  const radial = new charts.MiniRadialBarChart();
+  radial.setAttribute("data", "[90, 70, 50]");
+  radial.setAttribute("gradient", "true");
+  radial.setAttribute("interactive", "");
+  radial.isConnected = true;
+  radial.connectedCallback();
+  const radialSvg = radial.shadowRoot.children.find(c => c.name === "svg");
+  assert.ok(radialSvg?.querySelector("defs linearGradient"));
+});
+
+test("framework entry points export specialized wrappers for React, Vue, and Angular", async () => {
+  const reactAdapters = await import("../dist/react.js");
+  const vueAdapters = await import("../dist/vue.js");
+  const angularAdapters = await import("../dist/angular.js");
+
+  // React tests
+  assert.equal(typeof reactAdapters.MiniLineChart, "object");
+  assert.equal(typeof reactAdapters.MiniGaugeChart, "object");
+  assert.equal(typeof reactAdapters.MiniBulletChart, "object");
+  assert.equal(typeof reactAdapters.MiniProgressChart, "object");
+
+  // Vue tests
+  assert.equal(typeof vueAdapters.MiniLineChart, "object");
+  assert.equal(typeof vueAdapters.MiniGaugeChart, "object");
+  assert.equal(typeof vueAdapters.MiniBulletChart, "object");
+  assert.equal(typeof vueAdapters.MiniProgressChart, "object");
+
+  // Angular Signal Directives tests
+  assert.equal(typeof angularAdapters.MiniLineChartDirective, "function");
+  assert.equal(typeof angularAdapters.MiniGaugeChartDirective, "function");
+  assert.equal(typeof angularAdapters.MiniBulletChartDirective, "function");
+  assert.equal(typeof angularAdapters.MiniProgressChartDirective, "function");
+  assert.equal(typeof angularAdapters.MiniRadialBarChartDirective, "function");
+  assert.equal(typeof angularAdapters.MiniChartDirective, "function");
+  assert.equal(angularAdapters.SPARKLINE_DIRECTIVES.length, 17);
+});

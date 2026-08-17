@@ -4,7 +4,7 @@ import { MiniChartElement } from "../core/mini-chart-element.js";
 import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
 
 /**
- * Renders a single numeric value as a semi-circular progress meter with smooth/elastic animations.
+ * Renders a single numeric value as a semi-circular progress meter with gradients, smooth animations, and interaction.
  *
  * @extends MiniChartElement
  */
@@ -16,6 +16,8 @@ export class MiniProgressChart extends MiniChartElement {
     "max",
     "show-value",
     "unit",
+    "gradient",
+    "interactive",
   ];
 
   /** @type {boolean} */
@@ -26,10 +28,21 @@ export class MiniProgressChart extends MiniChartElement {
 
   /** @type {SVGSVGElement | null} */
   #svg = null;
+  /** @type {SVGDefsElement | null} */
+  #defs = null;
+  /** @type {SVGLinearGradientElement | null} */
+  #gradient = null;
+  /** @type {string} */
+  #gradId = "";
   /** @type {SVGPathElement | null} */
   #valuePath = null;
   /** @type {SVGTextElement | null} */
   #valueText = null;
+
+  /** @type {number} */
+  #currentValue = 0;
+  /** @type {number} */
+  #currentProgress = 0;
 
   /** @returns {number} SVG viewBox height. */
   get chartHeight() {
@@ -47,7 +60,7 @@ export class MiniProgressChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending frames on disconnection.
+   * Cleans up pending frames and interaction listeners on disconnection.
    * @override
    */
   cleanup() {
@@ -55,6 +68,7 @@ export class MiniProgressChart extends MiniChartElement {
       cancelAnimationFrame(this.#rafId);
       this.#rafId = null;
     }
+    this.#detachInteractionListeners();
   }
 
   render() {
@@ -91,7 +105,10 @@ export class MiniProgressChart extends MiniChartElement {
   stroke: var(--mini-chart-value-color, var(--mini-chart-color, #3b82f6));
   stroke-width: var(--mini-chart-stroke-width, 12);
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, filter 0.2s ease;
+}
+:host([gradient]) [part="value"] {
+  stroke: unset;
 }
 [part="text"] {
   fill: var(--mini-chart-text-color, currentColor);
@@ -100,10 +117,27 @@ export class MiniProgressChart extends MiniChartElement {
   font-weight: 700;
   text-anchor: middle;
   dominant-baseline: middle;
+}
+:host([interactive]) [part="value"] {
+  cursor: pointer;
+}
+:host([interactive]) [part="value"]:hover {
+  filter: brightness(1.18);
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
     this.#svg.setAttribute("role", "meter");
+
+    this.#defs = createSvgElement("defs");
+    this.#gradId = `prog-grad-${Math.random().toString(36).slice(2, 9)}`;
+    this.#gradient = /** @type {SVGLinearGradientElement} */ (createSvgElement("linearGradient", {
+      id: this.#gradId,
+      x1: "0%",
+      y1: "0%",
+      x2: "100%",
+      y2: "0%",
+    }));
+    this.#defs.append(this.#gradient);
 
     const track = createSvgElement("path", {
       part: "track",
@@ -125,15 +159,71 @@ export class MiniProgressChart extends MiniChartElement {
     }));
     this.#valueText.style.display = "none";
 
-    this.#svg.append(track, this.#valuePath, this.#valueText);
+    this.#svg.append(this.#defs, track, this.#valuePath, this.#valueText);
     this.shadowRoot?.replaceChildren(style, this.#svg);
+
+    this.#setupInteractionListeners();
+  }
+
+  #onPointerMove = (/** @type {PointerEvent} */ e) => {
+    if (!this.hasAttribute("interactive") || !this.#svg) return;
+    const rect = this.#svg.getBoundingClientRect();
+    if (rect.width === 0) return;
+
+    this.dispatchEvent(new CustomEvent("sparkline-hover", {
+      bubbles: true,
+      composed: true,
+      detail: {
+        value: this.#currentValue,
+        progress: this.#currentProgress,
+      },
+    }));
+  };
+
+  #onPointerLeave = () => {
+    if (!this.hasAttribute("interactive")) return;
+    this.dispatchEvent(new CustomEvent("sparkline-leave", {
+      bubbles: true,
+      composed: true,
+    }));
+  };
+
+  #setupInteractionListeners() {
+    this.#svg?.addEventListener("pointermove", this.#onPointerMove);
+    this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
+  }
+
+  #detachInteractionListeners() {
+    this.#svg?.removeEventListener("pointermove", this.#onPointerMove);
+    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
+  }
+
+  /**
+   * Resolves gradient colors if specified.
+   * @returns {string[] | null}
+   */
+  #resolveGradientStops() {
+    const raw = this.getAttribute("gradient");
+    if (raw === null || raw === "false") return null;
+    if (raw === "" || raw === "true") {
+      return ["#3b82f6", "#06b6d4", "#10b981"];
+    }
+    try {
+      const normalized = raw.replace(/'/g, '"');
+      const parsed = JSON.parse(normalized);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {}
+    if (raw.includes(",")) {
+      return raw.replace(/[\[\]'"]/g, "").split(",").map((s) => s.trim()).filter(Boolean);
+    }
+    return null;
   }
 
   /**
    * @param {number[]} data 
    */
   #updateChart(data) {
-    if (!this.#valuePath || !this.#svg || !this.#valueText) return;
+    if (!this.#valuePath || !this.#svg || !this.#valueText || !this.#gradient) return;
     if (this.#rafId !== null && typeof cancelAnimationFrame !== "undefined") {
       cancelAnimationFrame(this.#rafId);
       this.#rafId = null;
@@ -149,6 +239,9 @@ export class MiniProgressChart extends MiniChartElement {
     const progress = (clampedVal - min) / (max - min);
     const targetOffset = 100 - progress * 100;
 
+    this.#currentValue = clampedVal;
+    this.#currentProgress = progress;
+
     this.#svg.setAttribute("aria-valuenow", String(clampedVal));
     this.#svg.setAttribute("aria-valuemin", String(min));
     this.#svg.setAttribute("aria-valuemax", String(max));
@@ -163,6 +256,24 @@ export class MiniProgressChart extends MiniChartElement {
       this.#valueText.style.display = "none";
     }
 
+    // Configure gradient if enabled
+    const gradientStops = this.#resolveGradientStops();
+    if (gradientStops) {
+      this.#gradient.innerHTML = "";
+      const count = gradientStops.length;
+      gradientStops.forEach((color, idx) => {
+        const offset = count > 1 ? `${(idx / (count - 1)) * 100}%` : "0%";
+        const stop = createSvgElement("stop", {
+          offset,
+          "stop-color": color,
+        });
+        this.#gradient?.append(stop);
+      });
+      this.#valuePath.style.stroke = `url(#${this.#gradId})`;
+    } else {
+      this.#valuePath.style.stroke = "";
+    }
+
     const isInitial = this.#valuePath.style.strokeDashoffset === "100" && !this.#valuePath.dataset.rendered;
 
     if (isInitial) {
@@ -175,7 +286,7 @@ export class MiniProgressChart extends MiniChartElement {
         this.#rafId = requestAnimationFrame(() => {
           this.#rafId = requestAnimationFrame(() => {
             if (!this.#valuePath) return;
-            this.#valuePath.style.transition = "stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease";
+            this.#valuePath.style.transition = "stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, filter 0.2s ease";
             this.#valuePath.style.strokeDashoffset = String(targetOffset);
           });
         });
@@ -183,7 +294,7 @@ export class MiniProgressChart extends MiniChartElement {
         this.#valuePath.style.strokeDashoffset = String(targetOffset);
       }
     } else {
-      this.#valuePath.style.transition = "stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease";
+      this.#valuePath.style.transition = "stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, filter 0.2s ease";
       this.#valuePath.style.strokeDashoffset = String(targetOffset);
       this.#valuePath.style.opacity = progress > 0 ? "1" : "0";
     }

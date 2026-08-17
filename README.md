@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg?style=flat-square)](package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178c6.svg?style=flat-square)](tsconfig.json)
-[![Demo](https://img.shields.io/badge/Live-Showcase-7c3aed.svg?style=flat-square)](https://sparkline-mini-chart.erlonrru.com)
+[![Demo](https://img.shields.io/badge/Live-Showcase-7c3aed.svg?style=flat-square)](https://sparkline-mini-charts.erlonrru.com)
 
 **Zero-dependency SVG sparkline Web Components with Shadow DOM, CSS theme tokens, responsive scaling, and native framework bindings (Angular, React, Vue, Svelte).**
 
@@ -19,7 +19,7 @@ Use them in any modern frontend application without Canvas, heavy charting runti
 ></mini-line-chart>
 ```
 
-👉 **[Explore the Live Interactive Showcase & Playground →](https://sparkline-mini-chart.erlonrru.com)**
+👉 **[Explore the Live Interactive Showcase & Playground →](https://sparkline-mini-charts.erlonrru.com)**
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/ErlonRr/sparkline-mini-charts/refs/heads/main/assets/img/live-data-1.png" alt="Sparkline Mini Charts Live Streaming Studio" width="100%" />
@@ -238,26 +238,25 @@ Every component renders semantic SVG elements with `role="img"` (or `role="meter
 
 <br/>
 
+### [v1.4.0] - 2026-08-17
+
+- **Modern Angular 22+ Signals Architecture**: 17 dedicated standalone signal directives (`MiniLineChartDirective`, `MiniGaugeChartDirective`, etc.) with native `input()`, `output()`, and `effect()`, plus `SPARKLINE_DIRECTIVES` array.
+- **Dedicated React 19+ Interfaces**: Per-component TypeScript interfaces with automatic camelCase prop normalization and event callbacks.
+- **Gradients Studio**: Dedicated interactive lab (`#/gradients`) for multi-stop SVG linear gradients.
+- **Single-Quote JSON Parsing**: Fixed `gradient` attribute parsing across all supported charts.
+
+### [v1.3.1] - 2026-08-17
+
+- **Multi-Stop Gradients**: Added native multi-color `<linearGradient>` support to Gauge, Progress, Radial Bar, Bullet, and Area charts.
+- **Universal Interactive Coverage**: 100% of the 17 sparkline components now support `interactive` with `sparkline-hover` and `sparkline-leave` events.
+- **Showcase Link Fix**: Corrected live showcase homepage URL to `https://sparkline-mini-charts.erlonrru.com`.
+
 ### [v1.3.0] - 2026-08-15
 
 - **Theming & Tokens Studio**: Added dedicated Theming & Design Tokens Guide (`#/theming`) with real-time interactive cascading theme lab.
 - **Master Design Tokens Template**: Drop-in CSS variables accordion for seamless design system integration.
 - **Harmonious Multi-Hue Themes**: Real gradient spectrum synergy across Ocean Tech, Emerald Fintech, Cyberpunk Neon, Sunset Horizon, and Luxury Velvet.
 - **Sparkline Centering & Sizing**: Symmetrical stage centering and standardized compact donut/pie proportions.
-
-### [v1.2.1] - 2026-08-15
-
-- **Smooth Non-Jitter Interactions**: Replaced disruptive SVG scale transforms with smooth brightness/opacity transitions across all 17 charts.
-- **Showcase SPA Router**: Multi-page client-side router with dedicated views for Overview, Streaming Studio, Component Details, Playground, and Frameworks.
-- **Native Click Events**: Added `sparkline-select` custom event with detailed data payload.
-- **Solid Candlestick Hit Areas**: Added `pointer-events: all` to hollow candles.
-
-### [v1.2.0] - 2026-08-15
-
-- **Adaptive Theme Tokens**: Full dark & light token system (`--mini-chart-color-1..8`, `--mini-chart-safe/warn/danger-color`, `--mini-chart-track-color`) with instant CSS inheritance.
-- **Showcase Overhaul**: Real-time live streaming grid, 17-component interactive gallery, and sandbox playground at [sparkline-mini-chart.erlonrru.com](https://sparkline-mini-chart.erlonrru.com).
-- **Bilingual i18n**: English and Italiano localization support in demo.
-- **Organic ThemeRiver**: Byron & Wattenberg Last.fm simulation for stream charts.
 
 ---
 

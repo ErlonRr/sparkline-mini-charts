@@ -52,10 +52,19 @@ export const translations = {
     catFinancial: "5. Financial & 2D Coordinates",
     groupTheming: "Theming & Tokens",
     itemTheming: "Theming & CSS Tokens",
+    itemGradients: "✨ Gradients Studio",
     groupPlayground: "Interactive Sandbox",
     itemPlayground: "Live Playground",
     groupFrameworks: "Framework Guides",
     itemFrameworks: "React, Vue, Angular, Svelte",
+
+    // Gradients Studio
+    gradientsTitle: "Gradients Studio & Multi-Stop Colors",
+    gradientsSubtitle: "Explore hardware-accelerated continuous SVG gradients and multi-stop chromatic transitions across Gauge, Progress, Radial Rings, Bullet, and Area sparklines.",
+    gradientsLabTitle: "🎨 Continuous Multi-Stop Color Lab",
+    gradientsLabSubtitle: "Select a chromatic preset or live-tweak stops to see real-time gradient rendering across all compatible charts:",
+    gradientsSnippetTitle: "HTML Declarative Syntax:",
+    btnCopyCode: "📋 Copy Code",
 
     // Theming Guide
     themingTitle: "Theming & Design Tokens Guide",
@@ -175,10 +184,19 @@ export const translations = {
     catFinancial: "5. Finanziari & Coordinate 2D",
     groupTheming: "Temi & Token",
     itemTheming: "Temi & Token CSS",
+    itemGradients: "✨ Gradients Studio",
     groupPlayground: "Sandbox Interattivo",
     itemPlayground: "Playground Live",
     groupFrameworks: "Guide Framework",
     itemFrameworks: "React, Vue, Angular, Svelte",
+
+    // Gradients Studio
+    gradientsTitle: "Studio Gradienti & Colori Multi-Stop",
+    gradientsSubtitle: "Esplora i gradienti SVG continui accelerati via hardware e le transizioni cromatiche multi-stop su Gauge, Progress, Anelli Radiali, Bullet e Area sparklines.",
+    gradientsLabTitle: "🎨 Laboratorio Colori Multi-Stop Continui",
+    gradientsLabSubtitle: "Seleziona un preset cromatico o modifica i singoli stop per visualizzare il rendering in tempo reale su tutti i componenti compatibili:",
+    gradientsSnippetTitle: "Sintassi Dichiarativa HTML:",
+    btnCopyCode: "📋 Copia Codice",
 
     // Theming Guide
     themingTitle: "Guida alla Temizzazione & Design Token",
@@ -744,6 +762,10 @@ export function handleRoute() {
     document.getElementById("view-theming")?.classList.add("active");
     document.querySelector('.sidebar-link[data-route="theming"]')?.classList.add("active");
     renderThemingLab();
+  } else if (state.currentRoute === "gradients") {
+    document.getElementById("view-gradients")?.classList.add("active");
+    document.querySelector('.sidebar-link[data-route="gradients"]')?.classList.add("active");
+    renderGradientsStudio();
   } else if (state.currentRoute === "playground") {
     document.getElementById("view-playground")?.classList.add("active");
     document.querySelector('.sidebar-link[data-route="playground"]')?.classList.add("active");
@@ -1151,6 +1173,129 @@ export function setupThemingLab() {
   renderThemingLab();
 }
 
+// --- Gradients Studio Controller ---
+export const GRADIENT_PRESETS = Object.freeze({
+  thermal: {
+    name: "Thermal Gauge (6 Stops)",
+    gauge: "['#10b981', '#84cc16', '#eab308', '#f59e0b', '#f97316', '#ef4444']",
+    progress: "['#10b981', '#f59e0b', '#ef4444']",
+    radial: "[['#10b981', '#84cc16'], ['#f59e0b', '#f97316'], ['#ef4444', '#dc2626']]",
+    bullet: "['#10b981', '#f59e0b', '#ef4444']",
+    area: "['#10b981', '#f59e0b', '#ef4444']",
+  },
+  cyber: {
+    name: "Cyber Cyan & Lime",
+    gauge: "['#06b6d4', '#0ea5e9', '#3b82f6', '#10b981', '#84cc16']",
+    progress: "['#06b6d4', '#10b981']",
+    radial: "[['#06b6d4', '#3b82f6'], ['#3b82f6', '#8b5cf6'], ['#10b981', '#84cc16']]",
+    bullet: "['#06b6d4', '#10b981']",
+    area: "['#06b6d4', '#10b981']",
+  },
+  sunset: {
+    name: "Sunset Horizon",
+    gauge: "['#eab308', '#f59e0b', '#f97316', '#f43f5e', '#ec4899', '#8b5cf6']",
+    progress: "['#f59e0b', '#f43f5e', '#8b5cf6']",
+    radial: "[['#f59e0b', '#f97316'], ['#f43f5e', '#ec4899'], ['#8b5cf6', '#a855f7']]",
+    bullet: "['#f59e0b', '#f43f5e']",
+    area: "['#f97316', '#f43f5e', '#8b5cf6']",
+  },
+  aurora: {
+    name: "Aurora Borealis",
+    gauge: "['#10b981', '#06b6d4', '#6366f1', '#8b5cf6', '#a855f7']",
+    progress: "['#10b981', '#06b6d4', '#8b5cf6']",
+    radial: "[['#10b981', '#06b6d4'], ['#06b6d4', '#6366f1'], ['#8b5cf6', '#a855f7']]",
+    bullet: "['#06b6d4', '#8b5cf6']",
+    area: "['#10b981', '#06b6d4', '#8b5cf6']",
+  },
+  neon: {
+    name: "Neon Violet & Fuchsia",
+    gauge: "['#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#ec4899', '#f43f5e']",
+    progress: "['#6366f1', '#ec4899']",
+    radial: "[['#3b82f6', '#6366f1'], ['#8b5cf6', '#a855f7'], ['#ec4899', '#f43f5e']]",
+    bullet: "['#8b5cf6', '#ec4899']",
+    area: "['#3b82f6', '#8b5cf6', '#ec4899']",
+  },
+});
+
+export function renderGradientsStudio(presetKey = "thermal") {
+  const preset = GRADIENT_PRESETS[presetKey] || GRADIENT_PRESETS.thermal;
+
+  const gauge = document.getElementById("demo-grad-gauge");
+  const progress = document.getElementById("demo-grad-progress");
+  const radial = document.getElementById("demo-grad-radial");
+  const bullet = document.getElementById("demo-grad-bullet");
+  const area = document.getElementById("demo-grad-area");
+  const codeEl = document.getElementById("gradients-code-output");
+
+  if (gauge) gauge.setAttribute("gradient", preset.gauge);
+  if (progress) progress.setAttribute("gradient", preset.progress);
+  if (radial) radial.setAttribute("gradient", preset.radial);
+  if (bullet) bullet.setAttribute("gradient", preset.bullet);
+  if (area) area.setAttribute("gradient", preset.area);
+
+  if (codeEl) {
+    codeEl.textContent = `<!-- 1. Speedometer Gauge with continuous multi-color arc -->
+<mini-gauge-chart
+  data="[72, 0, 100]"
+  gradient="${preset.gauge}"
+  interactive
+></mini-gauge-chart>
+
+<!-- 2. Semi-circular progress score with stroke gradient -->
+<mini-progress-chart
+  data="[84]"
+  gradient="${preset.progress}"
+  interactive
+  show-value
+  unit="%"
+></mini-progress-chart>
+
+<!-- 3. Concentric activity rings with individual track gradients -->
+<mini-radial-bar-chart
+  data="[90, 75, 55]"
+  gradient="${preset.radial}"
+  interactive
+></mini-radial-bar-chart>
+
+<!-- 4. Performance KPI bullet bar with intensity gradient -->
+<mini-bullet-chart
+  data="[82, 90, 40, 70, 100]"
+  gradient="${preset.bullet}"
+  interactive
+></mini-bullet-chart>
+
+<!-- 5. Multi-hue smooth area sparkline with vertical opacity fade -->
+<mini-area-chart
+  data="[14, 22, 19, 32, 28, 45, 40, 58, 62]"
+  curve="smooth"
+  points="last"
+  gradient="${preset.area}"
+  interactive
+></mini-area-chart>`;
+  }
+}
+
+export function setupGradientsStudio() {
+  document.querySelectorAll("#gradient-presets-bar [data-grad-preset]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const presetKey = btn.getAttribute("data-grad-preset") || "thermal";
+      document.querySelectorAll("#gradient-presets-bar [data-grad-preset]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderGradientsStudio(presetKey);
+    });
+  });
+
+  document.getElementById("copy-grad-code-btn")?.addEventListener("click", async () => {
+    const code = document.getElementById("gradients-code-output")?.textContent;
+    if (code) {
+      await navigator.clipboard.writeText(code);
+      showToast("Copied gradient declarative markup!");
+    }
+  });
+
+  renderGradientsStudio("thermal");
+}
+
 // --- Playground Controller ---
 export function renderPlayground() {
   const typeSelect = document.getElementById("pg-chart-type");
@@ -1282,6 +1427,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // 8. Setup Interactive Theming Lab
   setupThemingLab();
 
-  // 9. Start live streaming auto-loop
+  // 9. Setup Interactive Gradients Studio
+  setupGradientsStudio();
+
+  // 10. Start live streaming auto-loop
   startStreaming();
 });
+
+// Auto-boot application on DOM ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}

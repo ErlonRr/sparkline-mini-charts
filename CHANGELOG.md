@@ -5,6 +5,31 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-08-17
+
+### Added
+
+- **Modern Angular 22+ Signals Architecture**: 17 dedicated standalone signal directives (`MiniLineChartDirective`, `MiniGaugeChartDirective`, `MiniBulletChartDirective`, etc.) with native `input()`, `output()`, and `effect()` integration. Exported `SPARKLINE_DIRECTIVES` array for single-line imports.
+- **Dedicated React 19+ Interfaces**: Specific TypeScript interfaces (`MiniLineChartProps`, `MiniGaugeChartProps`, etc.) with automatic camelCase prop conversion and event listener bindings (`onSparklineHover`, `onZoneChange`, etc.).
+- **Gradients Studio & Multi-Stop Colors Lab**: Dedicated interactive workspace (`#/gradients`) in demo showcase with real-time continuous chromatic presets.
+
+### Fixed
+
+- Single-quote JSON parsing in `gradient` attributes across Gauge, Progress, Radial Bar, Bullet, and Area charts.
+- CSS Shadow DOM fill and stroke precedence on bullet and progress chart gradients.
+- Synchronized version badge in navbar header and framework documentation tabs.
+
+## [1.3.1] - 2026-08-17
+
+### Added
+
+- **Multi-Stop & Continuous Gradients**: Added native multi-color `<linearGradient>` support to `<mini-gauge-chart>`, `<mini-progress-chart>`, `<mini-radial-bar-chart>`, `<mini-bullet-chart>`, and `<mini-area-chart>` via the `gradient` attribute (boolean, color array, or comma-separated string).
+- **Universal Interactive Hover Support**: Implemented `interactive` attribute and `sparkline-hover` / `sparkline-leave` custom events across 100% of the 17 library components, bringing first-class interaction to Gauge and Progress meters.
+
+### Fixed
+
+- Corrected documentation and package homepage links to `https://sparkline-mini-charts.erlonrru.com`.
+
 ## [1.3.0] - 2026-08-15
 
 ### Added

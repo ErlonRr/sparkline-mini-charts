@@ -376,6 +376,55 @@ export class MiniAreaChart extends MiniChartElement {
     this.#linePath.style.display = "";
     this.#areaPath.style.display = "";
 
+    // Dynamic gradient configuration (support boolean, array of colors, or comma-separated stops)
+    const gradAttr = this.getAttribute("gradient");
+    if (gradAttr === "false") {
+      this.#areaPath.setAttribute("fill", "var(--mini-chart-fill, currentColor)");
+      this.#areaPath.style.opacity = "0.2";
+    } else {
+      let customColors = null;
+      if (gradAttr && gradAttr !== "true") {
+        try {
+          const normalized = gradAttr.replace(/'/g, '"');
+          const parsed = JSON.parse(normalized);
+          if (Array.isArray(parsed) && parsed.length > 0) customColors = parsed;
+        } catch {}
+        if (!customColors && gradAttr.includes(",")) {
+          customColors = gradAttr.replace(/[\[\]'"]/g, "").split(",").map((s) => s.trim()).filter(Boolean);
+        }
+      }
+
+      if (this.#gradient) {
+        this.#gradient.innerHTML = "";
+        if (customColors && customColors.length > 0) {
+          const count = customColors.length;
+          customColors.forEach((col, idx) => {
+            const offset = count > 1 ? `${(idx / (count - 1)) * 100}%` : "0%";
+            const stop = createSvgElement("stop", {
+              offset,
+              "stop-color": col,
+              "stop-opacity": idx === count - 1 ? "0.05" : "0.55",
+            });
+            this.#gradient?.append(stop);
+          });
+        } else {
+          const stop1 = createSvgElement("stop", {
+            offset: "0%",
+            "stop-color": "currentColor",
+            "stop-opacity": "0.45",
+          });
+          const stop2 = createSvgElement("stop", {
+            offset: "100%",
+            "stop-color": "currentColor",
+            "stop-opacity": "0.02",
+          });
+          this.#gradient.append(stop1, stop2);
+        }
+      }
+      this.#areaPath.setAttribute("fill", `url(#${this.#gradient?.id})`);
+      this.#areaPath.style.opacity = "";
+    }
+
     const curve = this.getAttribute("curve") || "linear";
     const newLineD = this.#buildPath(points, curve);
     const newAreaD = this.#buildArea(points, baseline, curve);
