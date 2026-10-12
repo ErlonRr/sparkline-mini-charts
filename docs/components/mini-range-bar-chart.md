@@ -23,19 +23,24 @@ The `data` property accepts the array directly and writes it to the attribute as
 | --- | --- | --- | --- |
 | `data` | JSON array | `[]` | The ranges to plot (see Data). |
 | `label` | string | `"Range-bar chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `preset` | string | none | Space-separated names of presets registered with `defineChartPreset()` or `defineMiniCharts({ presets })`; the rightmost name wins. Explicit attributes and `options` beat presets. |
 | `gap` | number | `0.25` | Share of each slot left empty between bars, clamped to `0`–`0.8`. |
 | `radius` | number | `3` | Corner radius of each bar, in viewBox units (the chart is 100 × 30). `"3px"` is read as `3`. A negative or invalid value falls back to `--mini-chart-bar-radius`. An explicit attribute wins over the inherited token. |
 | `min` | number | lowest bound or current value | Bottom of the value axis. Ignored when it is not below `max`. Values outside the range are not clamped. |
 | `max` | number | highest bound or current value | Top of the value axis. Ignored when it is not above `min`. |
 | `interactive` | boolean (presence) | off | Highlights the bar under the pointer, dims the others and dispatches the events below. `interactive="false"` still enables it. |
+| `tooltip` | boolean | off | Shows the hovered value in a small built-in tooltip (`part="tooltip"`), formatted with `Intl.NumberFormat`. Implies `interactive`. |
+| `locale` | string | the page's | BCP 47 locale of the tooltip numbers, e.g. `de-DE`. |
+| `motion` | `auto` \| `reduce` | `auto` | `reduce` draws data updates at once, without the transition. `prefers-reduced-motion: reduce` does the same for every chart. |
 
 ## Events
 
-Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+Dispatched only when `interactive` is set. All bubble and cross the shadow boundary (`composed`). Since 1.5, every `sparkline-hover` and `sparkline-select` `detail` also carries the uniform keys `chart`, `index`, `seriesIndex`, `value`, `datum`, `color` (the mark's computed color) and `clientX`/`clientY`, and a hover fires only when the hovered point changes.
 
 | Event | `detail` | When |
 | --- | --- | --- |
 | `sparkline-hover` | `{ index, data, element }` | The pointer enters a bar. `data` is the item exactly as given in `data` (array or object), `element` is its `range-group`. |
+| `sparkline-select` | same as `sparkline-hover` | The pointer clicks a mark (or the chart, for the single-value meters). |
 | `sparkline-leave` | none | The pointer leaves the chart. |
 
 ## CSS custom properties

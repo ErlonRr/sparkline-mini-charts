@@ -1,0 +1,12 @@
+{
+  "name": "sparkline-mini-charts-scripts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Repository tools: release changelog, root README/LICENSE sync, packed-contents comparison, README screenshots. Not published.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test:unit": "node --test \"test/**/*.test.js\"",
+    "lint:docs": "node sync-root-files.mjs --check"
+  }
+}

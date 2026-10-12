@@ -1,6 +1,6 @@
 # Getting Started
 
-Sparkline Mini Charts is a zero-dependency, ultra-lightweight library of 17 SVG sparklines and mini-charts built as **Vanilla Web Components (Custom Elements v1)** with Shadow DOM and adaptive CSS design tokens.
+Sparkline Mini Charts is a zero-dependency, ultra-lightweight library of 24 SVG sparklines and mini-charts built as **Vanilla Web Components (Custom Elements v1)** with Shadow DOM and adaptive CSS design tokens.
 
 Because they are standard Custom Elements, they work in *any* frontend framework (Angular, React, Vue, Svelte) or without any framework at all.
 
@@ -21,7 +21,7 @@ yarn add sparkline-mini-charts
 ## 🚀 Registration & Import Options
 
 ### 1. Automatic Side-Effect Registration (Easiest)
-Import the `/register` entry point once in your application setup to register all 17 elements automatically:
+Import the `/register` entry point once in your application setup to register all 24 elements automatically:
 
 ```js
 import "sparkline-mini-charts/register";
@@ -142,7 +142,7 @@ export class DashboardComponent {
 **Known limitation in 1.4.x.** The `sparkline-mini-charts/angular` entry is built without the Angular compiler, so it ships no compiled Angular metadata:
 
 - The 17 per-chart signal directives (`MiniLineChartDirective`, …) and `SPARKLINE_DIRECTIVES` do not work when imported from `node_modules`, in AOT or JIT builds. They stay exported so that 1.4.0 code still compiles, and will work from the dedicated `@sparkline-mini-charts/angular` package, planned for 1.5.
-- `MiniChartDirective` (the 1.3.0 catch-all directive, restored in 1.4.1) works in JIT apps only. It registers all 17 tags itself and needs no `CUSTOM_ELEMENTS_SCHEMA`. Inputs: `data`, `label`, `curve`, `points`, `min`, `max`, `gradient`, `interactive`. Outputs: `sparklineHover`, `sparklineLeave`, `sparklineSelect`, `zoneChange`, `progressComplete` (`sliceSelect` is declared but never emits). Do not import it together with `SPARKLINE_DIRECTIVES`, or every output fires twice. AOT builds reject it with error NG2012.
+- `MiniChartDirective` (the 1.3.0 catch-all directive, restored in 1.4.1) works in JIT apps only. It registers all 24 tags itself and needs no `CUSTOM_ELEMENTS_SCHEMA`. Inputs: `data`, `label`, `curve`, `points`, `min`, `max`, `gradient`, `interactive`. Outputs: `sparklineHover`, `sparklineLeave`, `sparklineSelect`, `zoneChange`, `progressComplete` (`sliceSelect` is declared but never emits). Do not import it together with `SPARKLINE_DIRECTIVES`, or every output fires twice. AOT builds reject it with error NG2012.
 
 ### Svelte
 Works in Svelte via custom elements, with no wrapper. Svelte assigns `data={…}` to the element's `data` property, so pass arrays and objects as they are:
@@ -183,6 +183,8 @@ Set tokens on `:root`, on a container or on the chart itself. They follow the no
 
 The chart's color comes from `--mini-chart-color`, not from the inherited CSS `color`: each chart sets its host's `color` to `var(--mini-chart-color, #2563eb)`.
 
+Dark mode is built in: when the page (or a container) uses `color-scheme: dark`, the defaults switch to colors made for dark backgrounds (accent `#60a5fa`, lighter greys and semantic colors, a dark `--mini-chart-surface`) through `light-dark()`. Browsers without `light-dark()` keep the light defaults. Tokens you set always win.
+
 ### Theming tokens
 
 These tokens are read by the stylesheet every chart shares. Chart-specific tokens (track, needle, bands, wicks, markers, …) are listed in each chart's page under [`docs/components/`](components/).
@@ -196,12 +198,17 @@ These tokens are read by the stylesheet every chart shares. Chart-specific token
 | `--mini-chart-fill` | the segment color, then `currentColor` | Fill of `bar` and `segment` parts. Pie and half-pie segments ignore it (use `--mini-chart-color-N`), and charts with their own bar colors (bar, combo, win-loss, OHLC) override it. |
 | `--mini-chart-segment-color` | `currentColor` | Per-segment color. Pie and half-pie set it inline on every segment from `--mini-chart-color-N`, so setting it yourself has no effect there. |
 | `--mini-chart-point-fill` | `currentColor` | Fill of `point` parts (line, area, combo markers) and of the hover `active-point`. Scatter uses `--mini-chart-point-color` instead. |
-| `--mini-chart-ref-color` | `rgba(128, 128, 128, 0.45)` | `reference-line` stroke (line, area). |
+| `--mini-chart-ref-color` | slate grey, lighter in dark mode | `reference-line` stroke (line, area). |
 | `--mini-chart-ref-width` | `1` | `reference-line` thickness. |
-| `--mini-chart-crosshair-color` | `rgba(128, 128, 128, 0.5)` | Hover `crosshair` stroke (line, area, combo). |
+| `--mini-chart-crosshair-color` | slate grey, lighter in dark mode | Hover `crosshair` stroke (line, area, combo). |
 | `--mini-chart-crosshair-width` | `1` | Hover `crosshair` thickness. |
 | `--mini-chart-bullish-color` | `#10b981` | Rising color for `trend-color="auto"` (line, area), and the rising/win color of the financial and win-loss charts. |
 | `--mini-chart-bearish-color` | `#ef4444` | Falling color for `trend-color="auto"`, and the falling/loss color of the financial and win-loss charts. |
+| `--mini-chart-surface` | `#ffffff` (`#0f172a` in dark mode) | Background the marks sit on: the halo of the hover point, scatter point outlines, range-bar markers. |
+| `--mini-chart-dim-opacity` | `0.45` | Opacity of the other marks while one is hovered or keyboard-active. |
+| `--mini-chart-focus-ring` | `--mini-chart-color` | Outline of a focused interactive chart. |
+| `--mini-chart-tooltip-bg` | `#0f172a` (`#f8fafc` in dark mode) | Background of the built-in `tooltip` part. |
+| `--mini-chart-tooltip-color` | `#f8fafc` (`#0f172a` in dark mode) | Text color of the `tooltip` part. |
 | `--mini-chart-color-N` | built-in 16-color palette | Color of the Nth slice, layer or ring (N starts at 1) in pie, half-pie, stacked area, stream and radial bar. A missing N falls back to the palette. |
 
 ### Gradients
@@ -220,4 +227,4 @@ A value with no usable color turns the gradient off.
 
 ### Reduced motion
 
-Entrance and update transitions become instant when the user asks for reduced motion (`prefers-reduced-motion: reduce`). Only timing changes: the plotted geometry is the same. There are no tokens for animation timing.
+Entrance and update transitions become instant when the user asks for reduced motion (`prefers-reduced-motion: reduce`), and data updates are drawn at once on a chart with `motion="reduce"` (or `defineMiniCharts({ defaults: { "*": { motion: "reduce" } } })`). Only timing changes: the plotted geometry is the same. There are no tokens for animation timing.

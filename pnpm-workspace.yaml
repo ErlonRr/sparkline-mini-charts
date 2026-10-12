@@ -1,0 +1,5 @@
+# pnpm-workspace.yaml — Workspace packages: the published library, the demo and the repository tools.
+packages:
+  - packages/*
+  - apps/*
+  - tools/*

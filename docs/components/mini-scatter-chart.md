@@ -31,6 +31,7 @@ The `data` property accepts the array directly (`chart.data = [[5, 12], [10, 18]
 | --- | --- | --- | --- |
 | `data` | JSON array of points | `[]` | The points to plot. |
 | `label` | string | `"Scatter chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `preset` | string | none | Space-separated names of presets registered with `defineChartPreset()` or `defineMiniCharts({ presets })`; the rightmost name wins. Explicit attributes and `options` beat presets. |
 | `point-radius` | number | `3` | Radius of points without their own `r`, in viewBox units. A non-numeric value keeps the default. |
 | `trend-line` | boolean | off | Draws a dashed least-squares regression line across the x range. On when the attribute is present with any value except `"false"`. Needs at least two points with different `x`. |
 | `min-x` | number | lowest `x` | Left end of the x axis. |
@@ -38,16 +39,20 @@ The `data` property accepts the array directly (`chart.data = [[5, 12], [10, 18]
 | `min-y` | number | lowest `y` | Bottom of the y axis. |
 | `max-y` | number | highest `y` | Top of the y axis. |
 | `interactive` | boolean (presence) | off | Highlights the point under the pointer (the others fade to 0.45 opacity) and dispatches the events below. `interactive="false"` still enables it. |
+| `tooltip` | boolean | off | Shows the hovered value in a small built-in tooltip (`part="tooltip"`), formatted with `Intl.NumberFormat`. Implies `interactive`. |
+| `locale` | string | the page's | BCP 47 locale of the tooltip numbers, e.g. `de-DE`. |
+| `motion` | `auto` \| `reduce` | `auto` | `reduce` draws data updates at once, without the transition. `prefers-reduced-motion: reduce` does the same for every chart. |
 
 For each axis, a minimum that is not below its maximum is ignored and the data extent is used instead. Points outside an explicit range are not clamped.
 
 ## Events
 
-Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+Dispatched only when `interactive` is set. All bubble and cross the shadow boundary (`composed`). Since 1.5, every `sparkline-hover` and `sparkline-select` `detail` also carries the uniform keys `chart`, `index`, `seriesIndex`, `value`, `datum`, `color` (the mark's computed color) and `clientX`/`clientY`, and a hover fires only when the hovered point changes.
 
 | Event | `detail` | When |
 | --- | --- | --- |
 | `sparkline-hover` | `{ index, data, element }` | The pointer enters a point. `data` is the entry as written in `data` (an array, an object or a number), `element` is its `<circle>`. |
+| `sparkline-select` | same as `sparkline-hover` | The pointer clicks a mark (or the chart, for the single-value meters). |
 | `sparkline-leave` | none | The pointer leaves the chart. |
 
 ## CSS custom properties

@@ -1,0 +1,22 @@
+// tsconfig.base.json — Compiler options shared by every TypeScript project of the workspace.
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    // Syntax and runtime APIs up to ES2022: the floor of the published build
+    // (build.target "es2022" in packages/core/vite.config.js).
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+
+    "skipLibCheck": true,
+    "types": []
+  }
+}

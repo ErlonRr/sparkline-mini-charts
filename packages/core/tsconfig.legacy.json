@@ -1,0 +1,20 @@
+// tsconfig.legacy.json — The JavaScript sources, type-checked from their JSDoc (allowJs + checkJs).
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    // Project references need declarations; they go to a cache folder, never to dist/.
+    "composite": true,
+    "emitDeclarationOnly": true,
+    "outDir": "node_modules/.cache/tsc/legacy",
+    "rootDir": "src",
+    // Narrow exception for the legacy JavaScript only: these two flags report ~390
+    // indexed-access and optional-property sites whose fixes would mean JSDoc casts
+    // throughout code that P2-6 (src/core to TypeScript) and P6-P8 (math v2, new chart
+    // runtime) rewrite. The TypeScript projects keep both flags on.
+    "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": false
+  },
+  "include": ["src/**/*.js"]
+}

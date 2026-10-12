@@ -28,12 +28,16 @@ The `target`, `min`, `max` and `ranges` attributes win over the same fields in `
 | --- | --- | --- | --- |
 | `data` | JSON array, object or number | `[]` | The KPI (see Data). |
 | `label` | string | `"Bullet chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `preset` | string | none | Space-separated names of presets registered with `defineChartPreset()` or `defineMiniCharts({ presets })`; the rightmost name wins. Explicit attributes and `options` beat presets. |
 | `target` | number | `data` target, else the value | Position of the target marker. |
 | `min` | number | `min(0, …)` of the data | Start of the scale. Ignored when it is not below `max`. |
 | `max` | number | `max(100, …)` of the data | End of the scale. Ignored when it is not above `min`. |
 | `ranges` | JSON `number[]` | `data` ranges, else 60 % / 85 % / 100 % of the scale | Upper bounds of the bands. Invalid JSON is ignored. |
 | `gradient` | see Gradient | off | Fills the measure bar with a horizontal gradient. |
 | `interactive` | boolean (presence) | off | Brightens the measure bar under the pointer and dispatches the events below. `interactive="false"` still enables it. |
+| `tooltip` | boolean | off | Shows the hovered value in a small built-in tooltip (`part="tooltip"`), formatted with `Intl.NumberFormat`. Implies `interactive`. |
+| `locale` | string | the page's | BCP 47 locale of the tooltip numbers, e.g. `de-DE`. |
+| `motion` | `auto` \| `reduce` | `auto` | `reduce` draws data updates at once, without the transition. `prefers-reduced-motion: reduce` does the same for every chart. |
 
 ## Gradient
 
@@ -50,11 +54,12 @@ A single color is accepted. Entries that are not CSS colors (checked with `CSS.s
 
 ## Events
 
-Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+Dispatched only when `interactive` is set. All bubble and cross the shadow boundary (`composed`). Since 1.5, every `sparkline-hover` and `sparkline-select` `detail` also carries the uniform keys `chart`, `index`, `seriesIndex`, `value`, `datum`, `color` (the mark's computed color) and `clientX`/`clientY`, and a hover fires only when the hovered point changes.
 
 | Event | `detail` | When |
 | --- | --- | --- |
 | `sparkline-hover` | `{ data, element }` | The pointer enters the measure bar. `data` is the parsed `data` value as given (the attribute overrides are not merged in), `element` is the `measure` rect. |
+| `sparkline-select` | same as `sparkline-hover` | The pointer clicks a mark (or the chart, for the single-value meters). |
 | `sparkline-leave` | none | The pointer leaves the chart. |
 
 ## CSS custom properties

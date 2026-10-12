@@ -1,0 +1,161 @@
+{
+ "problems": [
+  {
+   "where": "D15 / §3.13 Isole / P5-5 / P5-6 / P8-9 ('montati come isole Astro client:visible')",
+   "problem": "Technical error. Astro `client:*` directives work only on UI-framework components (React, Preact, Svelte, Vue, Solid). They do nothing on a plain custom element or an .astro component, and @astrojs/lit is deprecated, so a vanilla `<smc-configurator>` cannot be a `client:visible` island. The 25 KB budget and the 'mounted only when visible' claim therefore rest on a mechanism that does not exist.",
+   "fix": "Restate D15: each island is an .astro component that renders the tag and a bundled `<script>`. That script lazy-imports the element's module behind an IntersectionObserver (on /playground/ and shared URLs it imports right away). Alternatively accept one framework integration, which contradicts the no-Preact decision. Correct the wording in D15, §3.13, P5-5 and P5-6."
+  },
+  {
+   "where": "§3.13 Design system L1/L2, P4-5 ('site-bridge.css ricava --sl-color-* dai token della libreria; nomi legacy fino a P8-7; il sito non dichiara alcun --mini-chart-*')",
+   "problem": "Order error: the site gets themed before presets exist. Before P8-7 (1.11) the library has no dark values (no themes/*.css, no light-dark()), so a bridge that derives Starlight colours from single-value legacy tokens leaves Starlight dark mode broken for 1.7-1.11, or else the site must declare `--mini-chart-*`, which the item forbids. The DoD 'cambiare --mini-chart-color nel bridge ricolora chrome e chart' also contradicts 'il sito non dichiara alcun --mini-chart-*'. The legacy accent #3b82f6 on white is about 3.7:1, below the 4.5:1 needed if it becomes link or accent text.",
+   "fix": "Until P8-7, reverse the bridge: keep Starlight's own `--sl-*` palette with light and dark values (Starlight already ships them), and theme only the chart stages, through a scoped class that sets the legacy tokens per scheme. That one site-local file is explicitly allowed until P8-7. Move the 'one token recolours chrome + charts' DoD from P4-5 to P8-7 (extended)."
+  },
+  {
+   "where": "§3.13 Modalità ('Auto, Light, Dark applicate da uno script inline nell'head') + L1 'themes/auto.css di default'",
+   "problem": "Duplicate and conflict. Starlight already ships an Auto/Light/Dark ThemeSelect with a no-flash inline script. It sets `data-theme` and `color-scheme` on :root. themes/auto.css also sets `color-scheme` (§3.8), and library `light-dark()` follows the computed color-scheme. If auto.css is imported after Starlight's CSS, choosing Light/Dark manually stops affecting the charts.",
+   "fix": "Use Starlight's ThemeSelect and do not write a custom script. On the site, import the preset tokens without auto.css's `color-scheme` declaration (or put auto.css in a lower cascade layer), and add a Playwright check that toggling ThemeSelect flips chart colours."
+  },
+  {
+   "where": "§3.13 ChartPreview / P4-6 ExampleTabs / MDX stubs (custom element upgrade in MDX/Astro)",
+   "problem": "Astro serialises non-string attribute values on plain HTML or custom-element tags with String(). `data={[1,2,3]}` becomes \"1,2,3\" (it works only by accident after the P6-1 CSV support) and `data={{value:72,max:100}}` becomes \"[object Object]\". MDX authors and generated stubs will break silently on meter, OHLC, combo and scatter charts.",
+   "fix": "ChartPreview/ChartStage must always pass `data={JSON.stringify(x)}`, or set the value as a property in the island script. Add a build test that no rendered page contains `[object Object]`, and document the rule in the CONTRIBUTING style guide."
+  },
+  {
+   "where": "P3-8 / D16 level 3 ('valori dentro i dati') + §3.4 Normalizer ctx.options",
+   "problem": "The resolution is circular. The `Normalizer(input, { options })` of §3.4 needs resolved options, but D16 makes data-derived values (min/max/target/ranges, Datum.color) a layer inside that same resolution. In 1.6 normalizers do not exist yet (P6-1, 1.9), so level 3 has to be written ad hoc in 17 legacy parseData bodies and redone in 1.9.",
+   "fix": "Define two phases: (a) resolve layers 1, 2, 4, 5 and 6 without data, (b) normalize with those options, (c) overlay the data-derived keys only where layers 1 and 2 are unset. In 1.6, limit level 3 to the existing gauge and bullet positional values and formalise it in P6-1. Document this in §3.12 and add it to the P3-6 matrix."
+  },
+  {
+   "where": "P3-8 / P3-2 (reflection) / D16 rule 'false esplicito si salva come proprietà, senza riflessione'",
+   "problem": "Reflection conflict. P3-2 reflects primitives, so for presence booleans `el.interactive = false` removes the attribute, and attributeChangedCallback(null) then clears the explicit layer, letting a registry default `true` win again. The 'explicit false' and 'unset' cases collapse into each other through the reflection loop. The plan has no reflection guard and does not separate the attribute layer from the property layer.",
+   "fix": "Specify two internal sub-layers (attribute value and property value) plus a `#reflecting` guard. Removing an attribute clears only the attribute sub-layer, and a property assignment of `false` survives its own reflection. Add a 'set false → reflect → still false with defaults:{x:true}' case to P3-6."
+  },
+  {
+   "where": "P5-1 (esteso) wrappers 'uniscono {...options, ...propEsplicite} e assegnano ogni chiave come proprietà'",
+   "problem": "(1) Alias keys in `options` (P3-4/P3-10 accept them with a warning) would be assigned as properties. `normalize` is an attribute-only alias precisely because `el.normalize = …` overwrites Node.prototype.normalize (§3.2), and the wrapper would do exactly that. (2) Flattening puts every wrapper `options` value in layer 1 ('property'), so `optionSource()` and the P5-5 inspector report the wrong layer, and a later `el.options` from user code is silently shadowed.",
+   "fix": "Wrappers forward `options` as `el.options` (layer 2) and only explicit props as properties. In SSR they canonicalise keys through the alias table and flatten to attributes. Never assign alias names as properties, and have the P3-1 guard also cover alias names."
+  },
+  {
+   "where": "P3-10 dependencies ('dip. P3-1'; proposed order 'P3-1 → P3-11 e P3-10')",
+   "problem": "Dependency error. P3-10 suggests did-you-mean over 'prop, alias e nomi d'attributo' (the alias table comes from P3-4) and validates keys of `options`, `defaults`, `presets` and preset names (P3-8, P3-9). It also duplicates P3-4's existing 'un enum sconosciuto torna al default con warning'.",
+   "fix": "Make P3-10 depend on P3-4 and P3-9 and put it at the end of the P3 order. Remove the enum-fallback clause from P3-10/§3.12 and reference P3-4 instead."
+  },
+  {
+   "where": "P3-11 vs P3-1",
+   "problem": "Duplicate and undersized. P3-1 already creates `<tag>.docs.ts` (prosa) for all 17 charts. P3-11 re-creates the same files with a richer schema (descriptions for about 93 options plus events and tokens, group, order, control, step, range, autoLabel, name, summary, category, related, generators, edge cases, migration of the i18n dictionary and docs/components prose). That is not S.",
+   "fix": "Turn it into 'P3-1 (esteso)' for the `defineChartDocs` type and keep P3-11 for content authoring, sized M (realistically 3-4 days for 17 charts). Update the phase table."
+  },
+  {
+   "where": "P3-8 size/scope ('M'; 'fuori dagli schemi non resta alcun default letterale nei 17 componenti')",
+   "problem": "Unrealistic size and rework. The item holds a resolver, a 6-layer store, `options`/`preset`/`resolvedOptions`/`optionSource`, and rewiring every default read in all 17 legacy components, including the CSS-fallback cases P1-8 just reworked. P7-P8 then rewrite the same components. The `this.option` seam is already introduced by P3-4, so the two items overlap.",
+   "fix": "Size it L, or split it into P3-8a (resolver + instance API, using the P3-4 seam) and P3-8b (component default extraction). In 1.6, limit component edits to routing reads through `this.option()`; literal-default removal is enforced per family as P7/P8 migrate. Keep the grep check advisory until P9-1."
+  },
+  {
+   "where": "P3-8 / P3-9 vs P3-3 (win-color/loss-color/tie-color)",
+   "problem": "Missing dependency. D17 gives `css:` flags to win-color, loss-color and tie-color, but those attributes become functional only in P3-3 (precedence attr > token > default). P3-8 lists only P3-2 and P3-4.",
+   "fix": "Add P3-3 to P3-8's dependencies and state in P3-3 that it writes `--_mc-*` private vars in the D17 shape, so no second rewrite is needed."
+  },
+  {
+   "where": "P3-9 '*' key and DoD ('interactive e locale'; 'cambiare il default di locale produce esattamente un render')",
+   "problem": "`locale` does not exist in src (grep finds 0 occurrences) and is consumed only from P7-4 (1.10). P3-2 adds it as a property but nothing reads it in 1.6, so the DoD tests an inert prop. `interactive` is a presence boolean (mini-line-chart.js:170 `hasAttribute`), which makes `'*': { interactive: true }` impossible to undo from HTML.",
+   "fix": "Rewrite the DoD with an option that is actually consumed (e.g. `gap` on mini-bar-chart). Allow `locale` under '*' only once P7-4 consumes it. Either turn `interactive` into an enum in P3-4 (e.g. `interaction=\"none|hover|select\"`) or forbid boolean presence flags in '*' defaults."
+  },
+  {
+   "where": "P3-9 DoD 'due registry (pagina e iframe) mantengono default diversi'",
+   "problem": "Technical error. A class built from the parent realm's HTMLElement cannot be defined and upgraded in an iframe's registry: the HTMLElement constructor resolves the registry from NewTarget's realm and throws 'Illegal constructor'. An iframe therefore loads its own copy of the module with its own WeakMap, so the test proves nothing about `WeakMap<CustomElementRegistry, Store>`, which only matters for same-realm scoped registries.",
+   "fix": "Test with scoped registries (`new CustomElementRegistry()` plus a shadowRoot `customElementRegistry`) where supported, with a skip guard. Keep the iframe test only as 'separate module instances do not interfere'."
+  },
+  {
+   "where": "P4-5 dependencies and ChartStage ('box ricavato da aspectRatio più preupgrade.css (P4-2)')",
+   "problem": "Missing dependency: P4-2 (preupgrade.css and the DOM-free import test). Without it, ChartStage cannot meet CLS ≤ 0.05, and Astro's build-time import of the library (frontmatter, loaders) may crash.",
+   "fix": "Add P4-2 to P4-5's dependencies."
+  },
+  {
+   "where": "P4-6 /guides/configuration/ ('options, preset e defaults in 6 framework, generati dai template') in 1.7",
+   "problem": "Order error. Wrapper `options`/`preset` support arrives with P5-1 (extended) in 1.8, and P4-3's own format list says 'wrapper React (da P5-1)'. A 1.7 page would document wrapper APIs that do not exist yet.",
+   "fix": "In P4-6, generate only HTML/JS/raw-element examples. Add the React/Vue/Angular wrapper tabs in P5-1 (extended), and list /guides/configuration/ as 'P4-6 → P5-1' in the site map."
+  },
+  {
+   "where": "P4-6 '/theming/ provvisoria: ... guida ai livelli corretta' (1.7)",
+   "problem": "The token tiers (global/semantic/component, `series-N`, `positive`…) exist only from P7-2 (1.10). A 1.7 'guida ai livelli' would teach tokens the shipped library does not read, which is exactly the false-documentation problem in demo-arch-3 and demo-ux-5.",
+   "fix": "Until P7-2, the provisional /theming/ documents only the tokens the 1.x code consumes (schema.tokens) and the real precedence. The tier guide ships with P7-2."
+  },
+  {
+   "where": "P5-5 size ('L') and runtime code view",
+   "problem": "Unrealistic size. The item covers 7 control types plus colorList and JSON editors, a data panel with CSV and 10 generators, tokens, an event log, an inspector, 12 export formats, URL state, a resizable stage with 3 contexts, a playground picker with search, a11y and a 25 KB budget. That is more than 1-2 weeks. Also, Expressive Code works at build time only, so runtime-generated code has no highlighting unless Shiki ships (which would bust 25 KB).",
+   "fix": "Split into P5-5a (controls, stage, URL, code export as plain `<pre>`) and P5-5b (data panel and generators, events log, inspector, playground picker). State explicitly that there is no syntax highlighting in the live code view (or use a tiny token-class highlighter within budget)."
+  },
+  {
+   "where": "P5-5 URL state ('?o=…&t=…'; 'Oltre 2 KB i dati ricadono su un id di esempio')",
+   "problem": "(1) No URL version: the `t=` token names change in 1.10-1.11 (`color-N` → `series-N`) and aliases disappear under compat:false in 2.0, so shared links silently lose state. (2) Falling back to an example id over 2 KB breaks the DoD 'un URL condiviso riproduce lo stato'. (3) Token values from the URL are applied with setProperty; values like `url(...)` would break the 'zero third-party requests' budget and allow tracking.",
+   "fix": "Add `v=<schema version>` and map old keys through the P3-4 and §3.8 alias tables on decode. Compress with CompressionStream('deflate-raw') before base64url and warn visibly (not silently) when the state is truncated. Reject token values containing `url(`/`image(`/`@import`."
+  },
+  {
+   "where": "P5-6 dependencies and parity checklist ('le guide dei framework sono pubblicate')",
+   "problem": "Parity requires the framework recipes from P5-4, which is not a dependency, and P1-19's out-of-scope theming lab disappears at cutover. P5-6 also states no SEO and indexing steps.",
+   "fix": "Add P5-4 to P5-6's dependencies. Add sitemap (Starlight with `site` set), canonical URLs, meta description from `docs.ts` summary, OG image, and `noindex` (X-Robots-Tag) on `next.` and Vercel preview deployments to the parity checklist."
+  },
+  {
+   "where": "P8-9 'Anteprima dei 17 chart in light, dark e forced-colors affiancati'",
+   "problem": "Technical error. forced-colors is a UA or OS mode and cannot be scoped to one region of a live page, so side-by-side live forced-colors previews are impossible (only Playwright emulation, page-wide, in Chromium).",
+   "fix": "Show forced-colors as Playwright-generated baseline images committed at build time, or as a simulated preview that applies system colours (Canvas, CanvasText, Highlight) to the tokens, clearly labelled as a simulation."
+  },
+  {
+   "where": "P9-3 (esteso) 'Docs versionate: v1.x dal branch release/1.x'",
+   "problem": "Order error and duplication. Per D12 and P10-5, `release/1.x` is created at the first `2.0.0-next`, after 1.12, and P10-5 already owns 'docs versionate'.",
+   "fix": "Move versioned docs to P10-5, or create the branch earlier by changing D12. Remove the 'gate D19 verdi anche nella versione v1.x' DoD from P9-3."
+  },
+  {
+   "where": "P4-3 (esteso) legacy example vs P10-4 'il sito apps/docs e le fixture passano a compat:false'",
+   "problem": "Conflict: every chart page has a 'legacy' example (legacy data shapes) and deprecation alias columns, and these stop rendering once the site runs with compat:false in 2.0.",
+   "fix": "In 2.0, legacy examples render inside an explicit compat-enabled stage (or become static code with no live preview). Add this to P10-4."
+  },
+  {
+   "where": "P2-1 (modificato) 'dip. P1-16, P1-17, P1-19'",
+   "problem": "Unneeded coupling. The whole 1.5 workspace (and so all library work from P2 onward) would be blocked by a legacy-demo a11y hotfix that is going to be thrown away. Moving files does not need P1-19. 'Senza modifiche al contenuto' also contradicts the required switch to exports (app.js:3 imports ../src/register.js).",
+   "fix": "Remove P1-19 from P2-1's dependencies (the smokes just follow the path). Reword to 'sposta, cambiando solo import e config di build'."
+  },
+  {
+   "where": "P1-19 size ('M') and throwaway cost",
+   "problem": "Undersized and mostly discarded within about 3 minors. It covers the mobile drawer and navbar, the full WAI-ARIA tabs pattern on 3 groups, routing focus/title, forms, motion, contrast and an axe-zero gate on 8 views × 2 themes. That is realistically L.",
+   "fix": "Size it L, or trim it to what blocks users: reflow, 2.2.2 autoplay, Esc on the drawer and no focus inside it when closed, labels. For the tabs, delete the fake install tabs and scope the handler (P1-18) rather than build roving tabindex for a page due for deletion."
+  },
+  {
+   "where": "P4-5 size ('M')",
+   "problem": "Undersized. Starlight scaffolding, guide migration, the bridge/design system, Fontsource, Vercel second project, plus a full CI gate set (axe in 4 modes, 3 viewports, link checker, Lighthouse CI, request log) is more than 2-4 days.",
+   "fix": "Size it L, or move the Lighthouse CI and forced-colors gates to P4-6, when the representative templates exist."
+  },
+  {
+   "where": "D19 / P4-5 gates 'axe 0 serious/critical su ogni pagina' from 1.7",
+   "problem": "Pages embed library charts whose a11y is fixed only in P7-4 (1.10), so site gates can fail for reasons the site cannot fix and would block docs PRs.",
+   "fix": "Add a documented, expiring allowlist of known library-owned axe rules, each mapped to P7-4 and checked by P10-6-style expiry."
+  },
+  {
+   "where": "D14 / P4-5 Starlight i18n config",
+   "problem": "Adding `/it/` later will move the English URLs unless the root locale is configured from day one, which breaks the redirect table and external links.",
+   "fix": "Configure `locales: { root: { label: 'English', lang: 'en' } }` in P4-5 so `/it/` can be added later without URL churn."
+  },
+  {
+   "where": "§3.13 L3 vs P8-7 (esteso): location of showcase presets",
+   "problem": "Inconsistent: §3.13 says `themes/showcase/*.css` (reads as library-published, therefore public API under semver), while P8-7 puts them in `apps/docs/src/themes/showcase/`.",
+   "fix": "Decide: site-private (recommended, no semver burden) or shipped. Align §3.13, P8-7 and the export list in §3.1."
+  },
+  {
+   "where": "P5-6 'README le usa con <picture>'",
+   "problem": "npmjs.com's README renderer does not honour `<picture>`/`<source media=prefers-color-scheme>` the way GitHub does, and relative image paths break on npm.",
+   "fix": "Use absolute URLs (raw GitHub or the docs domain) and make the `<img>` fallback the light variant. Check the rendered npm page in the release checklist."
+  },
+  {
+   "where": "Evidence citations (D16, §3.12, P3-9, P5-1)",
+   "problem": "Some citations are stale or wrong. In the working tree, React registration happens inside createReactChart at src/react/index.ts:260 (not :217), and the dropping of `false` now lives in src/core/framework-attributes.js:5-7,85, not in src/react/index.ts:258-260. D16's 'l'attributo vince sui dati' is correct, but the lines are mini-gauge-chart.js:310-316 (minAttr parse, then `!isNaN(minAttr) ? minAttr : data[1]`), not 302-303.",
+   "fix": "Re-cite once P0 lands (files are being modified concurrently), or cite by symbol (createReactChart, syncAttr, #updateChart) instead of line."
+  }
+ ],
+ "uncovered_high_findings": [
+  "chart-config (high) 'Defaults hard-coded and differ between similar charts': P3-8/P3-9 make schema defaults the single source, but no item decides whether to harmonise points last/none (line vs area), gap 0.2/0.25 (bar vs range-bar), radius 0/2/3, curve linear/smooth. The recommendation to list them as 2.0 'Changed' defaults is not in P10-2's flip list.",
+  "chart-config (high) '68% of per-chart options undocumented': P1-14 (esteso) only checks the reverse direction (attributes used in demo/docs that are not observed). Nothing forces every observedAttribute to appear in docs/components/<tag>.md before codegen in 1.7, so the docs stay 30/93 through 1.4.2-1.6. Add the forward check (observed ⊆ documented) to check-docs.",
+  "demo-visual-a11y (high) 'The 5 theme presets fail 3:1 and reuse dark hex values': the fix arrives only in P8-7 (1.11), while P1-19 puts the lab presets out of scope. The failing presets (Cyberpunk 1.41:1, bullish ≤2.54:1, candlestick board without hollow-bullish, index.html:2499-2502) stay in production until the 1.8 cutover. Minimal hotfix: drop Cyberpunk and Sunset from the legacy lab or apply presets only in dark mode, and add `hollow-bullish` to the board candlestick.",
+  "demo-visual-a11y (high) theming lab: the stroke slider writes `--mini-chart-stroke-width`, which also resizes the gauge and progress arcs (§3.8 collision). No hotfix item removes or scopes it before cutover; P1-14 removes only nonexistent tokens and P1-19 excludes the lab presets.",
+  "demo-architecture (high) 'demo masks the library defaults': the recommendation to keep one page or section showing charts with zero customisation is not an item before the 1.8 cutover. The 28 `--mini-chart-*` overrides on :root are kept on purpose, and the README screenshots (assets/img/*.png) keep showing the customised state until P5-6."
+ ]
+}

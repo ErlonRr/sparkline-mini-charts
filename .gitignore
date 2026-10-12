@@ -1,8 +1,8 @@
 # .gitignore — Local dependencies, generated distributions, and package archives.
 
 node_modules/
+# packages/core/dist/ (the library build) and apps/demo/dist/ (the demo build).
 dist/
-dist-demo/
 test-results/
 playwright-report/
 *.tgz

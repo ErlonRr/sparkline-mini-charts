@@ -1,0 +1,17 @@
+// tsconfig.angular.json — The Angular directives: the only sources that use decorators.
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // See tsconfig.adapters.json for allowJs and the deferred isolatedDeclarations.
+    "allowJs": true,
+    "composite": true,
+    "emitDeclarationOnly": true,
+    "outDir": "node_modules/.cache/tsc/angular",
+    "rootDir": "src",
+    // MiniChartDirective uses @Directive/@Input/@Output. Vite also reads this flag
+    // (through the solution tsconfig.json) and emits legacy decorators for these files.
+    "experimentalDecorators": true
+  },
+  "include": ["src/angular.ts", "src/angular/**/*.ts"],
+  "references": [{ "path": "./tsconfig.legacy.json" }]
+}
