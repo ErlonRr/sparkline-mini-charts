@@ -22,19 +22,64 @@ export function createLinearScale(domain, range) {
 }
 
 /**
+ * Measures the smallest and largest finite value in a single pass. Unlike
+ * `Math.min(...values)`, nothing is spread into call arguments, so a large
+ * series cannot overflow the call stack.
+ *
+ * @param {ArrayLike<unknown>} values Values to measure; entries that are not finite numbers are skipped.
+ * @returns {[number, number] | null} `[minimum, maximum]`, or `null` when no entry is a finite number.
+ */
+function finiteExtent(values) {
+  let minimum = Infinity;
+  let maximum = -Infinity;
+  for (let index = 0; index < values.length; index++) {
+    const value = values[index];
+    if (typeof value !== "number" || !Number.isFinite(value)) continue;
+    if (value < minimum) minimum = value;
+    if (value > maximum) maximum = value;
+  }
+  return minimum <= maximum ? [minimum, maximum] : null;
+}
+
+/**
+ * Resolves explicit bounds against a measured extent. A bound that is not a
+ * finite number is ignored; when the resolved bounds cross (`min >= max`),
+ * they would flip the chart, so the measured extent is used instead.
+ *
+ * @param {[number, number]} extent Measured `[minimum, maximum]`.
+ * @param {number | undefined} min Explicit lower bound.
+ * @param {number | undefined} max Explicit upper bound.
+ * @returns {[number, number]} The resolved `[minimum, maximum]`.
+ */
+function resolveBounds(extent, min, max) {
+  const minimum = Number.isFinite(min) ? /** @type {number} */ (min) : extent[0];
+  const maximum = Number.isFinite(max) ? /** @type {number} */ (max) : extent[1];
+  return minimum < maximum ? [minimum, maximum] : extent;
+}
+
+/**
  * Calculates the numeric domain, optionally preserving a zero baseline and explicit bounds.
+ * Explicit bounds that cross (`min >= max`) are ignored in favour of the data extent.
  *
  * @param {number[]} values Finite values to measure.
  * @param {{ includeZero?: boolean, min?: number, max?: number }} [options] Domain behavior.
  * @returns {[number, number]} A non-zero-span domain [minimum, maximum].
  */
 export function createDomain(values, { includeZero = false, min, max } = {}) {
-  let minimum = min !== undefined ? min : (values.length > 0 ? Math.min(...values) : 0);
-  let maximum = max !== undefined ? max : (values.length > 0 ? Math.max(...values) : 1);
+  const extent = finiteExtent(values);
+  const hasMin = Number.isFinite(min);
+  const hasMax = Number.isFinite(max);
+  let minimum = hasMin ? /** @type {number} */ (min) : (extent ? extent[0] : 0);
+  let maximum = hasMax ? /** @type {number} */ (max) : (extent ? extent[1] : 1);
 
   if (includeZero) {
-    if (min === undefined) minimum = Math.min(minimum, 0);
-    if (max === undefined) maximum = Math.max(maximum, 0);
+    if (!hasMin) minimum = Math.min(minimum, 0);
+    if (!hasMax) maximum = Math.max(maximum, 0);
+  }
+
+  // Crossed explicit bounds would draw the chart upside down: measure the data instead.
+  if ((hasMin || hasMax) && minimum >= maximum) {
+    return createDomain(values, { includeZero });
   }
 
   if (minimum === maximum) {
@@ -173,6 +218,9 @@ export function createBarLayout(
 /**
  * Builds rectangles and wicks for OHLC candlestick charts.
  *
+ * Only the first four entries of a tuple are prices: extra columns (volume, a
+ * timestamp) never reach the scale.
+ *
  * @param {number[][]} values Array of [Open, High, Low, Close] tuples.
  * @param {{ width?: number, height?: number, padding?: number, gapRatio?: number, min?: number, max?: number }} [options] Layout dimensions.
  * @returns {{ candles: { x: number, open: number, high: number, low: number, close: number, isBullish: boolean, bodyY: number, bodyHeight: number, bodyWidth: number }[] }} Candlestick geometry.
@@ -181,8 +229,12 @@ export function createCandlestickLayout(
   values,
   { width = 100, height = 30, padding = 2, gapRatio = 0.2, min, max } = {},
 ) {
-  const allValues = values.flatMap(v => v);
-  const domain = createDomain(allValues, { min, max });
+  /** @type {number[]} */
+  const prices = [];
+  for (const candle of values) {
+    for (let field = 0; field < 4; field++) prices.push(candle[field]);
+  }
+  const domain = createDomain(prices, { min, max });
   const yScale = createLinearScale(domain, [height - padding, padding]);
   
   const innerWidth = width - padding * 2;
@@ -368,9 +420,16 @@ export function createStackedLayout(
   { width = 100, height = 30, padding = 2, offset = "none" } = {},
 ) {
   if (series.length === 0) return { layers: [] };
-  
-  const numPoints = Math.max(...series.map(s => s.length));
+
+  let numPoints = 0;
+  for (const values of series) numPoints = Math.max(numPoints, values.length);
   if (numPoints === 0) return { layers: [] };
+
+  // A missing or invalid entry counts as 0 at its own index, so every column stays aligned.
+  const valueAt = (/** @type {number} */ j, /** @type {number} */ i) => {
+    const value = series[j][i];
+    return Number.isFinite(value) ? value : 0;
+  };
 
   const stackedData = series.map(() => new Array(numPoints).fill({ y0: 0, y1: 0 }));
   let minVal = 0;
@@ -379,7 +438,7 @@ export function createStackedLayout(
   for (let i = 0; i < numPoints; i++) {
     let sum = 0;
     for (let j = 0; j < series.length; j++) {
-      sum += (series[j][i] || 0);
+      sum += valueAt(j, i);
     }
 
     let currentY = 0;
@@ -390,7 +449,7 @@ export function createStackedLayout(
     }
     
     for (let j = 0; j < series.length; j++) {
-      const rawVal = (series[j][i] || 0);
+      const rawVal = valueAt(j, i);
       const val = offset === "expand" && sum > 0 ? (rawVal / sum) * 100 : rawVal;
       const y0 = currentY;
       const y1 = currentY + val;
@@ -431,7 +490,10 @@ export function createRadialBarLayout(
   values,
   { width = 100, height = 100, maxRadius = 40, innerRadius = 10, maxDomain, startAngle = 0, endAngle = Math.PI * 1.5 } = {}
 ) {
-  const domainMax = maxDomain !== undefined ? maxDomain : Math.max(...values, 1);
+  // A maximum that is not a positive number cannot scale the rings: use the data maximum (at least 1).
+  const domainMax = maxDomain !== undefined && Number.isFinite(maxDomain) && maxDomain > 0
+    ? maxDomain
+    : Math.max(finiteExtent(values)?.[1] ?? 1, 1);
   const sweep = endAngle - startAngle;
   
   const trackCount = values.length;
@@ -440,7 +502,7 @@ export function createRadialBarLayout(
   return {
     tracks: values.map((value, index) => {
       const radius = trackCount === 1 ? maxRadius : innerRadius + index * radiusStep;
-      const progress = Math.max(0, Math.min(1, value / domainMax));
+      const progress = Number.isFinite(value) ? Math.max(0, Math.min(1, value / domainMax)) : 0;
       const angle = startAngle + progress * sweep;
       
       return {
@@ -497,14 +559,15 @@ export function createBulletLayout(
     maxInput = Number.isFinite(data.max) ? Number(data.max) : undefined;
   }
 
-  const allPoints = [value, target, ...rangesInput];
-  if (minInput !== undefined) allPoints.push(minInput);
-  if (maxInput !== undefined) allPoints.push(maxInput);
-
-  const calculatedMin = minInput !== undefined ? minInput : Math.min(0, ...allPoints);
-  const calculatedMax = maxInput !== undefined ? maxInput : Math.max(100, ...allPoints);
-  const min = calculatedMin;
-  const max = calculatedMax > min ? calculatedMax : min + 1;
+  // The automatic scale covers 0..100 plus every value, target and range; explicit bounds that cross fall back to it.
+  /** @type {[number, number]} */
+  const dataExtent = [Math.min(0, value, target), Math.max(100, value, target)];
+  const rangesExtent = finiteExtent(rangesInput);
+  if (rangesExtent) {
+    dataExtent[0] = Math.min(dataExtent[0], rangesExtent[0]);
+    dataExtent[1] = Math.max(dataExtent[1], rangesExtent[1]);
+  }
+  const [min, max] = resolveBounds(dataExtent, minInput, maxInput);
   const rangeSpan = max - min || 1;
 
   const innerWidth = Math.max(width - padding * 2, 1);
@@ -634,9 +697,24 @@ export function createWinLossLayout(
 }
 
 /**
+ * Returns the first finite number among the candidates, in order.
+ *
+ * @param {...unknown} candidates Values to check.
+ * @returns {number | undefined} The first finite number, or `undefined` when there is none.
+ */
+function firstFinite(...candidates) {
+  for (const candidate of candidates) {
+    if (typeof candidate === "number" && Number.isFinite(candidate)) return candidate;
+  }
+  return undefined;
+}
+
+/**
  * Calculates layout for floating interval range bars with optional current value markers.
+ * Objects may name their bounds `low`/`high` and their marker `value`: these
+ * are aliases, and `min`/`max`/`current` win when both are present.
  * 
- * @param {Array<number[] | { min: number, max: number, current?: number }>} items Input range items.
+ * @param {Array<number[] | { min?: number, max?: number, low?: number, high?: number, current?: number, value?: number }>} items Input range items.
  * @param {{ width?: number, height?: number, padding?: number, gapRatio?: number, min?: number, max?: number }} [options] Layout options.
  * @returns {{
  *   bars: Array<{
@@ -669,9 +747,11 @@ export function createRangeBarLayout(
         current: cur,
       };
     } else if (typeof item === "object" && item !== null) {
-      const v0 = Number.isFinite(item.min) ? Number(item.min) : 0;
-      const v1 = Number.isFinite(item.max) ? Number(item.max) : v0;
-      const cur = Number.isFinite(item.current) ? Number(item.current) : undefined;
+      const lower = firstFinite(item.min, item.low);
+      const upper = firstFinite(item.max, item.high);
+      const v0 = lower ?? 0;
+      const v1 = upper ?? v0;
+      const cur = firstFinite(item.current, item.value);
       return {
         min: Math.min(v0, v1),
         max: Math.max(v0, v1),
@@ -681,9 +761,13 @@ export function createRangeBarLayout(
     return { min: 0, max: 0, current: undefined };
   });
 
-  const allVals = parsedItems.flatMap((p) => [p.min, p.max, ...(p.current !== undefined ? [p.current] : [])]);
-  const domainMin = min !== undefined ? min : Math.min(...allVals);
-  const domainMax = max !== undefined ? max : Math.max(...allVals);
+  /** @type {[number, number]} */
+  const dataExtent = [Infinity, -Infinity];
+  for (const item of parsedItems) {
+    dataExtent[0] = Math.min(dataExtent[0], item.min, item.current ?? item.min);
+    dataExtent[1] = Math.max(dataExtent[1], item.max, item.current ?? item.max);
+  }
+  const [domainMin, domainMax] = resolveBounds(dataExtent, min, max);
 
   const innerWidth = Math.max(width - padding * 2, 1);
   const innerHeight = Math.max(height - padding * 2, 1);
@@ -772,13 +856,19 @@ export function createScatterLayout(
     return { x: index, y: 0, r: pointRadius };
   });
 
-  const xVals = normalized.map((p) => p.x);
-  const yVals = normalized.map((p) => p.y);
+  /** @type {[number, number]} */
+  const extentX = [Infinity, -Infinity];
+  /** @type {[number, number]} */
+  const extentY = [Infinity, -Infinity];
+  for (const p of normalized) {
+    extentX[0] = Math.min(extentX[0], p.x);
+    extentX[1] = Math.max(extentX[1], p.x);
+    extentY[0] = Math.min(extentY[0], p.y);
+    extentY[1] = Math.max(extentY[1], p.y);
+  }
 
-  const calcMinX = minX !== undefined ? minX : Math.min(...xVals);
-  const calcMaxX = maxX !== undefined ? maxX : Math.max(...xVals);
-  const calcMinY = minY !== undefined ? minY : Math.min(...yVals);
-  const calcMaxY = maxY !== undefined ? maxY : Math.max(...yVals);
+  const [calcMinX, calcMaxX] = resolveBounds(extentX, minX, maxX);
+  const [calcMinY, calcMaxY] = resolveBounds(extentY, minY, maxY);
 
   /** @type {[number, number]} */
   const domainX = [calcMinX, calcMaxX > calcMinX ? calcMaxX : calcMinX + 1];

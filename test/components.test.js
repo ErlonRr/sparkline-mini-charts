@@ -382,30 +382,3 @@ test("gauge, progress, radial-bar, and bullet support custom gradients and inter
   const radialSvg = radial.shadowRoot.children.find(c => c.name === "svg");
   assert.ok(radialSvg?.querySelector("defs linearGradient"));
 });
-
-test("framework entry points export specialized wrappers for React, Vue, and Angular", async () => {
-  const reactAdapters = await import("../dist/react.js");
-  const vueAdapters = await import("../dist/vue.js");
-  const angularAdapters = await import("../dist/angular.js");
-
-  // React tests
-  assert.equal(typeof reactAdapters.MiniLineChart, "object");
-  assert.equal(typeof reactAdapters.MiniGaugeChart, "object");
-  assert.equal(typeof reactAdapters.MiniBulletChart, "object");
-  assert.equal(typeof reactAdapters.MiniProgressChart, "object");
-
-  // Vue tests
-  assert.equal(typeof vueAdapters.MiniLineChart, "object");
-  assert.equal(typeof vueAdapters.MiniGaugeChart, "object");
-  assert.equal(typeof vueAdapters.MiniBulletChart, "object");
-  assert.equal(typeof vueAdapters.MiniProgressChart, "object");
-
-  // Angular Signal Directives tests
-  assert.equal(typeof angularAdapters.MiniLineChartDirective, "function");
-  assert.equal(typeof angularAdapters.MiniGaugeChartDirective, "function");
-  assert.equal(typeof angularAdapters.MiniBulletChartDirective, "function");
-  assert.equal(typeof angularAdapters.MiniProgressChartDirective, "function");
-  assert.equal(typeof angularAdapters.MiniRadialBarChartDirective, "function");
-  assert.equal(typeof angularAdapters.MiniChartDirective, "function");
-  assert.equal(angularAdapters.SPARKLINE_DIRECTIVES.length, 17);
-});

@@ -1,5 +1,6 @@
 // mini-half-pie-chart.js — Responsive SVG semi-circular pie/donut sparkline Custom Element.
 
+import { parsePositionalData } from "../core/data.js";
 import { createRadialLayout, describePieSector } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
 import { getSegmentColor } from "../core/palette.js";
@@ -18,6 +19,16 @@ export class MiniHalfPieChart extends MiniChartElement {
     "donut",
     "interactive",
   ];
+
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
+
+  /**
+   * Whether the slices have played their entrance reveal. An empty first
+   * render (a framework setting `data` after connecting) does not count, so
+   * the reveal plays when the first values arrive.
+   */
+  #entered = false;
 
   /** @type {ReturnType<typeof setTimeout> | null} */
   #timerId = null;
@@ -41,7 +52,8 @@ export class MiniHalfPieChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers and interaction listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -49,7 +61,17 @@ export class MiniHalfPieChart extends MiniChartElement {
       clearTimeout(this.#timerId);
       this.#timerId = null;
     }
-    this.#detachInteractionListeners();
+  }
+
+  /**
+   * Overrides the default data parser: an invalid entry such as `null` becomes
+   * a zero-sized slice in its slot, so slice `n` keeps color `n`.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
+   * @returns {number[]}
+   */
+  parseData(raw) {
+    return parsePositionalData(raw).map((value) => value ?? 0);
   }
 
   /** Renders the element's complete Shadow DOM tree, preserving SVG for animations. */
@@ -58,10 +80,31 @@ export class MiniHalfPieChart extends MiniChartElement {
     const label = this.getAttribute("label") ?? this.createDefaultLabel(data);
     let style = this.shadowRoot?.querySelector("style");
     let svg = this.shadowRoot?.querySelector("svg");
-    const isInitialRender = !svg;
 
     if (!svg || !style) {
+      // The stylesheet is static, so it is written once with the nodes instead of on every render.
       style = document.createElement("style");
+      style.textContent = `${chartStyles}
+:host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
+[part~="segment"] { 
+  fill: var(--mini-chart-segment-color, currentColor);
+  transition: opacity 0.2s ease, filter 0.2s ease; 
+  stroke: var(--mini-chart-gap-color, transparent);
+  stroke-width: var(--mini-chart-gap-width, 0.5px);
+  cursor: default;
+}
+
+mask circle { transition: stroke-dashoffset 0.8s ease-out; }
+:host([interactive]) [part~="segment"] {
+  cursor: pointer;
+}
+:host([interactive]) [part~="segment"]:hover {
+  filter: brightness(1.18);
+  opacity: 1 !important;
+}
+:host([interactive]) [part="group"]:has([part~="segment"]:hover) [part~="segment"]:not(:hover) {
+  opacity: 0.45;
+}`;
       svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
       this.#svg = svg;
 
@@ -84,6 +127,8 @@ export class MiniHalfPieChart extends MiniChartElement {
       svg.append(defs, this.#group);
 
       this.shadowRoot?.replaceChildren(style, svg);
+      // The nodes are new, so they need their own listeners.
+      this.#listenersAttached = false;
       this.#setupInteractionListeners();
     } else {
       svg.setAttribute("aria-label", label);
@@ -91,29 +136,7 @@ export class MiniHalfPieChart extends MiniChartElement {
       if (title) title.textContent = label;
     }
 
-    style.textContent = `${chartStyles}
-:host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
-[part~="segment"] { 
-  fill: var(--mini-chart-segment-color, currentColor);
-  transition: opacity 0.2s ease, filter 0.2s ease; 
-  stroke: var(--mini-chart-gap-color, transparent);
-  stroke-width: var(--mini-chart-gap-width, 0.5px);
-  cursor: default;
-}
-
-mask circle { transition: stroke-dashoffset 0.8s ease-out; }
-:host([interactive]) [part~="segment"] {
-  cursor: pointer;
-}
-:host([interactive]) [part~="segment"]:hover {
-  filter: brightness(1.18);
-  opacity: 1 !important;
-}
-:host([interactive]) [part="group"]:has([part~="segment"]:hover) [part~="segment"]:not(:hover) {
-  opacity: 0.45;
-}`;
-
-    this.renderChart(svg, data, isInitialRender);
+    this.renderChart(svg, data, !this.#entered);
   }
 
   #onPointerMove = (/** @type {PointerEvent} */ e) => {
@@ -142,14 +165,16 @@ mask circle { transition: stroke-dashoffset 0.8s ease-out; }
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#group?.addEventListener("pointerover", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#group?.removeEventListener("pointerover", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 
   /**
@@ -157,7 +182,7 @@ mask circle { transition: stroke-dashoffset 0.8s ease-out; }
    * 
    * @param {SVGSVGElement} svg Responsive SVG root.
    * @param {number[]} data Parsed chart values.
-   * @param {boolean} isInitial True if this is the first render.
+   * @param {boolean} isInitial True until the first render that draws a slice, which plays the entrance reveal.
    */
   renderChart(svg, data, isInitial = false) {
     if (this.#timerId !== null) {
@@ -187,6 +212,7 @@ mask circle { transition: stroke-dashoffset 0.8s ease-out; }
       segment?.remove();
     }
 
+    let drawn = 0;
     slices.forEach((slice, index) => {
       const path = describePieSector(50, 50, outerRadius, slice.startAngle, slice.endAngle, innerRadius);
       const segment = /** @type {SVGPathElement} */ (existingSegments[index]);
@@ -195,6 +221,7 @@ mask circle { transition: stroke-dashoffset 0.8s ease-out; }
         segment.setAttribute("d", "");
         return;
       }
+      drawn += 1;
 
       if (isInitial) {
         segment.style.transition = "none";
@@ -208,8 +235,8 @@ mask circle { transition: stroke-dashoffset 0.8s ease-out; }
       segment.style.setProperty("--mini-chart-segment-color", `var(--mini-chart-color-${index + 1}, ${getSegmentColor(index)})`);
     });
 
-
-    if (isInitial) {
+    if (isInitial && drawn > 0) {
+      this.#entered = true;
       const maskCircle = /** @type {SVGCircleElement | null} */ (svg.querySelector("mask circle"));
       if (maskCircle) {
         maskCircle.getBoundingClientRect(); // force reflow

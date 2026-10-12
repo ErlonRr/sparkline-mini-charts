@@ -1,7 +1,21 @@
 // mini-progress-chart.js — Responsive SVG semi-circular gauge/progress bar Custom Element.
 
+import { parsePositionalData } from "../core/data.js";
+import { parseGradient, resolveGradientColors, setGradientStops } from "../core/gradient.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
 import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+
+/**
+ * Easing for the arc's dash offset. It must not overshoot: past offset 0 the
+ * dash gap moves onto the start of the arc, which then flickers out near 100%.
+ */
+const VALUE_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
+
+/** Inline transition of the value arc once it has entered. */
+const VALUE_TRANSITION = `stroke-dashoffset 0.8s ${VALUE_EASING}, opacity 0.3s ease, filter 0.2s ease`;
+
+/** Value-arc stops for `gradient` and `gradient="true"`. */
+const DEFAULT_GRADIENT = Object.freeze(["#3b82f6", "#06b6d4", "#10b981"]);
 
 /**
  * Renders a single numeric value as a semi-circular progress meter with gradients, smooth animations, and interaction.
@@ -20,8 +34,29 @@ export class MiniProgressChart extends MiniChartElement {
     "interactive",
   ];
 
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
+
   /** @type {boolean} */
   #initialized = false;
+
+  /**
+   * Whether the arc has started its entrance animation from empty to the value.
+   * It is set when the animation starts, so a render that lands before then
+   * (a framework setting `data` right after connecting) restarts the entrance
+   * instead of jumping to the value.
+   */
+  #entered = false;
+
+  /** Whether the last render showed a complete value, so `progress-complete` fires on transitions only. */
+  #complete = false;
+
+  /**
+   * The value (as given, before clamping) of the last render, or `null` before
+   * the first one. Only a render whose value moved can complete the progress.
+   * @type {number | null}
+   */
+  #lastValue = null;
 
   /** @type {number | null} */
   #rafId = null;
@@ -60,7 +95,8 @@ export class MiniProgressChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending frames and interaction listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -68,7 +104,28 @@ export class MiniProgressChart extends MiniChartElement {
       cancelAnimationFrame(this.#rafId);
       this.#rafId = null;
     }
-    this.#detachInteractionListeners();
+  }
+
+  /**
+   * Overrides the default data parser: the value is positional (`data[0]`), so
+   * an invalid entry becomes `null` in its slot instead of being dropped.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
+   * @returns {(number | null)[]}
+   */
+  parseData(raw) {
+    return parsePositionalData(raw);
+  }
+
+  /**
+   * A null value is no reading, so the chart is labelled empty and renders
+   * exactly like a missing `data` attribute.
+   * @override
+   * @param {(number | null)[]} data Parsed chart values.
+   * @returns {string} Accessible chart label.
+   */
+  createDefaultLabel(data) {
+    return super.createDefaultLabel(data[0] === null ? [] : data);
   }
 
   render() {
@@ -105,10 +162,7 @@ export class MiniProgressChart extends MiniChartElement {
   stroke: var(--mini-chart-value-color, var(--mini-chart-color, #3b82f6));
   stroke-width: var(--mini-chart-stroke-width, 12);
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, filter 0.2s ease;
-}
-:host([gradient]) [part="value"] {
-  stroke: unset;
+  transition: ${VALUE_TRANSITION};
 }
 [part="text"] {
   fill: var(--mini-chart-text-color, currentColor);
@@ -188,39 +242,20 @@ export class MiniProgressChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#svg?.addEventListener("pointermove", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
   }
 
-  #detachInteractionListeners() {
-    this.#svg?.removeEventListener("pointermove", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
-  }
-
   /**
-   * Resolves gradient colors if specified.
-   * @returns {string[] | null}
-   */
-  #resolveGradientStops() {
-    const raw = this.getAttribute("gradient");
-    if (raw === null || raw === "false") return null;
-    if (raw === "" || raw === "true") {
-      return ["#3b82f6", "#06b6d4", "#10b981"];
-    }
-    try {
-      const normalized = raw.replace(/'/g, '"');
-      const parsed = JSON.parse(normalized);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    } catch {}
-    if (raw.includes(",")) {
-      return raw.replace(/[\[\]'"]/g, "").split(",").map((s) => s.trim()).filter(Boolean);
-    }
-    return null;
-  }
-
-  /**
-   * @param {number[]} data 
+   * @param {(number | null)[]} data 
    */
   #updateChart(data) {
     if (!this.#valuePath || !this.#svg || !this.#valueText || !this.#gradient) return;
@@ -234,7 +269,8 @@ export class MiniProgressChart extends MiniChartElement {
     const min = !isNaN(minAttr) ? minAttr : 0;
     const max = !isNaN(maxAttr) && maxAttr > min ? maxAttr : 100;
 
-    const rawVal = data.length > 0 ? data[0] : 0;
+    // A missing or null value falls back to the default 0.
+    const rawVal = data[0] ?? 0;
     const clampedVal = Math.max(min, Math.min(max, rawVal));
     const progress = (clampedVal - min) / (max - min);
     const targetOffset = 100 - progress * 100;
@@ -256,28 +292,19 @@ export class MiniProgressChart extends MiniChartElement {
       this.#valueText.style.display = "none";
     }
 
-    // Configure gradient if enabled
-    const gradientStops = this.#resolveGradientStops();
+    // Gradient stroke on the value arc. Without one, the inline stroke is cleared
+    // and the stylesheet's themed value color applies.
+    const gradientStops = resolveGradientColors(parseGradient(this.getAttribute("gradient")), DEFAULT_GRADIENT);
     if (gradientStops) {
-      this.#gradient.innerHTML = "";
-      const count = gradientStops.length;
-      gradientStops.forEach((color, idx) => {
-        const offset = count > 1 ? `${(idx / (count - 1)) * 100}%` : "0%";
-        const stop = createSvgElement("stop", {
-          offset,
-          "stop-color": color,
-        });
-        this.#gradient?.append(stop);
-      });
+      setGradientStops(this.#gradient, gradientStops);
       this.#valuePath.style.stroke = `url(#${this.#gradId})`;
     } else {
       this.#valuePath.style.stroke = "";
     }
 
-    const isInitial = this.#valuePath.style.strokeDashoffset === "100" && !this.#valuePath.dataset.rendered;
-
-    if (isInitial) {
-      this.#valuePath.dataset.rendered = "true";
+    // A private flag, not the inline style: the empty arc's offset is a presentation attribute.
+    if (!this.#entered) {
+      // Entrance: paint the empty arc first, then transition to the value two frames later.
       this.#valuePath.style.transition = "none";
       this.#valuePath.style.strokeDashoffset = "100";
       this.#valuePath.style.opacity = progress > 0 ? "1" : "0";
@@ -285,21 +312,32 @@ export class MiniProgressChart extends MiniChartElement {
       if (typeof requestAnimationFrame !== "undefined") {
         this.#rafId = requestAnimationFrame(() => {
           this.#rafId = requestAnimationFrame(() => {
+            this.#rafId = null;
             if (!this.#valuePath) return;
-            this.#valuePath.style.transition = "stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, filter 0.2s ease";
+            this.#entered = true;
+            this.#valuePath.style.transition = VALUE_TRANSITION;
             this.#valuePath.style.strokeDashoffset = String(targetOffset);
           });
         });
       } else {
+        this.#entered = true;
         this.#valuePath.style.strokeDashoffset = String(targetOffset);
       }
     } else {
-      this.#valuePath.style.transition = "stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, filter 0.2s ease";
+      this.#valuePath.style.transition = VALUE_TRANSITION;
       this.#valuePath.style.strokeDashoffset = String(targetOffset);
       this.#valuePath.style.opacity = progress > 0 ? "1" : "0";
     }
 
-    if (clampedVal >= max) {
+    // Fire only when the value itself reaches max: not on every render that finds it
+    // there, and not when another attribute (a lower `max`) completes a value in place.
+    const complete = clampedVal >= max;
+    const valueMoved = this.#lastValue === null || rawVal !== this.#lastValue;
+    const completed = complete && !this.#complete && valueMoved;
+    this.#complete = complete;
+    this.#lastValue = rawVal;
+
+    if (completed) {
       this.dispatchEvent(new CustomEvent("progress-complete", {
         bubbles: true,
         composed: true,

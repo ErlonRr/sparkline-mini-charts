@@ -1,54 +1,84 @@
 # Combo Chart (`<mini-combo-chart>`)
 
-A highly versatile chart that lets you overlay multiple series of different types (Line, Bar, Area) on the same shared Cartesian axis. It calculates a unified coordinate scale so that all mixed series align perfectly.
+Bars and a line over the same time slots: each datum has one bar value and one line value, for example sales (bars) against a target (line). The line's vertices sit on the bar centers, and the last line value gets a marker.
 
-## Data Structure
-Expects a JSON array of configuration objects. Each object represents one series and defines the type of visualization and the array of values.
+## Data
+
+A JSON array of objects with a numeric `bar` and a numeric `line`. A datum whose `bar` or `line` is missing or not a finite number is dropped whole, so later data move one slot left.
 
 ```json
 [
-  {
-    "type": "bar",
-    "values": [10, 15, 8, 20]
-  },
-  {
-    "type": "area",
-    "values": [5, 10, 12, 18]
-  },
-  {
-    "type": "line",
-    "values": [12, 18, 14, 25]
-  }
+  { "bar": 12, "line": 10 },
+  { "bar": 18, "line": 14 },
+  { "bar": 9, "line": 15 },
+  { "bar": 22, "line": 19 }
 ]
 ```
 
-### Supported Types
-- `"line"`
-- `"area"`
-- `"bar"`
+The `data` property accepts the array directly (`chart.data = [{ bar: 12, line: 10 }]`) and writes it to the attribute as JSON.
 
-## HTML Attributes
-- **`data`** *(string)*: The JSON configuration string described above.
-- **`label`** *(string, optional)*: ARIA label and `<title>` for accessibility.
+## Attributes
 
-## CSS Styling
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | JSON `{ bar, line }[]` | `[]` | The data, one object per slot. |
+| `label` | string | `"Combo chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `shared-domain` | boolean (on unless `"false"`) | on | On: bars and line share one value axis that includes `0`. `shared-domain="false"`: the bars keep a zero-based axis of their own, and the line is scaled to its own lowest and highest value. |
+| `curve` | `linear` \| `smooth` | `linear` | `smooth` curves the line. Any other value, including `step`, draws straight segments. |
+| `bar-gap` | number from `0` to `0.8` | `0.2` | Share of each slot left empty between bars. Values outside the range are clamped; a non-number gives `0.2`. |
+| `interactive` | boolean (presence) | off | Shows a crosshair at the nearest slot, highlights the bar under the pointer and dispatches the events below. `interactive="false"` still enables it. |
 
-### Custom Properties
-The chart uses indexed color variables. The `n`th series in your JSON array will automatically use `--mini-chart-color-n`:
-- `--mini-chart-color-1`: Color for the first series.
-- `--mini-chart-color-2`: Color for the second series.
-- `--mini-chart-color-3`: Color for the third series.
+The chart has no `min` or `max` attribute.
 
-### Shadow Parts (`::part()`)
-- `part="layer"`: A `<g>` container enclosing a specific series. You can target specific layers via `:nth-child(n)`.
-- Inside each layer, the standard parts of the respective chart type are available (e.g. `part="line"`, `part="area"`, `part="bar"`).
+## Events
 
-## Usage Example
+Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+
+| Event | `detail` | When |
+| --- | --- | --- |
+| `sparkline-hover` | `{ index, barValue, lineValue, x, y }` | The pointer moves over the chart. `index` is the nearest slot among the plotted data, `x` and `y` are the line vertex in viewBox units (100 × 30). |
+| `sparkline-leave` | none | The pointer leaves the chart. |
+
+## CSS custom properties
+
+| Property | Default | What it styles |
+| --- | --- | --- |
+| `--mini-chart-color` | `#2563eb` | Line stroke and last-point marker. |
+| `--mini-chart-stroke-width` | `2` | Line thickness, in screen pixels (non-scaling stroke). |
+| `--mini-chart-bar-color` | `rgba(128, 128, 128, 0.3)` | Bar fill. (`--mini-chart-fill` does not apply to this chart's bars.) |
+| `--mini-chart-bar-color-hover` | `rgba(128, 128, 128, 0.6)` | Fill of the bar under the pointer (`interactive`). |
+| `--mini-chart-crosshair-color` | `rgba(128, 128, 128, 0.5)` | Hover crosshair stroke. |
+| `--mini-chart-crosshair-width` | `1` | Hover crosshair thickness. |
+| `--mini-chart-aspect-ratio` | `10 / 3` | Host aspect ratio when the host has no explicit height. |
+
+## Parts
+
+| Part | Element | Description |
+| --- | --- | --- |
+| `svg` | `<svg>` | The chart root. |
+| `bars` | `<g>` | Container of the bars. |
+| `bar` | `<rect>` | Every bar. |
+| `line-group` | `<g>` | Clipped group that holds the line. |
+| `line` | `<path>` | The line. |
+| `points` | `<g>` | Container of the marker. |
+| `point` | `<circle>` | Marker on the last line value. |
+| `crosshair` | `<line>` | Vertical hover guide (`interactive`). |
+
+## Example
 
 ```html
-<mini-combo-chart 
-  data='[{"type":"bar","values":[10,20,30]}, {"type":"line","values":[15,25,35]}]' 
-  label="Revenue vs Target"
-  style="--mini-chart-color-1: #6b7280; --mini-chart-color-2: #ef4444;">
-</mini-combo-chart>
+<mini-combo-chart
+  data='[{"bar": 12, "line": 10}, {"bar": 18, "line": 14}, {"bar": 9, "line": 15}, {"bar": 22, "line": 19}]'
+  curve="smooth"
+  bar-gap="0.3"
+  interactive
+  label="Sales vs target"
+  style="--mini-chart-bar-color: rgba(14, 165, 233, 0.35)"
+></mini-combo-chart>
+```
+
+```css
+mini-combo-chart::part(line) {
+  stroke-dasharray: 3 2;
+}
 ```

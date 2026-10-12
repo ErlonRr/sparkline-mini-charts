@@ -1,6 +1,6 @@
 // app.js — Interactive showcase, SPA Router, i18n engine, theme manager, multi-framework code generator, and real-time streaming for Sparkline Mini Charts demo.
 
-import "../src/register.js";
+// The charts are registered by ./lib/register.js (the built dist/), which index.html loads before this module.
 
 // --- Authentic ThemeRiver Dataset (Last.fm / Byron & Wattenberg) ---
 export const THEMERIVER_LASTFM_DATA = Object.freeze([
@@ -64,7 +64,7 @@ export const translations = {
     gradientsLabTitle: "🎨 Continuous Multi-Stop Color Lab",
     gradientsLabSubtitle: "Select a chromatic preset or live-tweak stops to see real-time gradient rendering across all compatible charts:",
     gradientsSnippetTitle: "HTML Declarative Syntax:",
-    btnCopyCode: "📋 Copy Code",
+    btnCopyGradCode: "📋 Copy Code",
 
     // Theming Guide
     themingTitle: "Theming & Design Tokens Guide",
@@ -81,6 +81,8 @@ export const translations = {
     streamSubtitle: "Witness smooth SVG path morphing, synchronized point tracking, staggered bar physics, and authentic ThemeRiver organic flows in real time.",
     btnPlay: "▶ Resume Stream",
     btnPause: "⏸ Pause Stream",
+    streamLive: "LIVE · simulated data",
+    streamPaused: "PAUSED · simulated data",
     btnStep: "⏭ Single Step",
     btnRandom: "🎲 Randomize",
     speedFast: "Fast (0.6s)",
@@ -161,7 +163,7 @@ export const translations = {
     tabVanilla: "Vanilla / HTML",
     tabReact: "React 18 / 19+",
     tabVue: "Vue 3 (SFC)",
-    tabAngular: "Angular 18 / 19 / 20+",
+    tabAngular: "Angular 20+",
     tabSvelte: "Svelte",
   },
   it: {
@@ -196,7 +198,7 @@ export const translations = {
     gradientsLabTitle: "🎨 Laboratorio Colori Multi-Stop Continui",
     gradientsLabSubtitle: "Seleziona un preset cromatico o modifica i singoli stop per visualizzare il rendering in tempo reale su tutti i componenti compatibili:",
     gradientsSnippetTitle: "Sintassi Dichiarativa HTML:",
-    btnCopyCode: "📋 Copia Codice",
+    btnCopyGradCode: "📋 Copia Codice",
 
     // Theming Guide
     themingTitle: "Guida alla Temizzazione & Design Token",
@@ -213,6 +215,8 @@ export const translations = {
     streamSubtitle: "Ammira il morphing geometrico delle curve SVG, il tracking sincronizzato dei pallini, la fisica a cascata delle barre e il flusso organico ThemeRiver in tempo reale.",
     btnPlay: "▶ Riprendi Stream",
     btnPause: "⏸ Sospendi Stream",
+    streamLive: "LIVE · dati simulati",
+    streamPaused: "IN PAUSA · dati simulati",
     btnStep: "⏭ Singolo Passo",
     btnRandom: "🎲 Dati Casuali",
     speedFast: "Veloce (0.6s)",
@@ -293,36 +297,87 @@ export const translations = {
     tabVanilla: "Vanilla / HTML",
     tabReact: "React 18 / 19+",
     tabVue: "Vue 3 (SFC)",
-    tabAngular: "Angular 18 / 19 / 20+",
+    tabAngular: "Angular 20+",
     tabSvelte: "Svelte",
   }
 };
 
+// --- Settings storage: localStorage can throw (blocked storage, private mode), so fall back to memory ---
+const memorySettings = new Map();
+
+function readSetting(key) {
+  try {
+    const value = window.localStorage.getItem(key);
+    if (value !== null) return value;
+  } catch {
+    // Storage blocked: use the in-memory copy.
+  }
+  return memorySettings.get(key) ?? null;
+}
+
+function writeSetting(key, value) {
+  memorySettings.set(key, value);
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Storage blocked: the setting lasts for this page load only.
+  }
+}
+
+const prefersMotion = () => window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
+
 // --- Application State ---
 export const state = {
-  theme: localStorage.getItem("smc_theme") || "dark",
-  lang: localStorage.getItem("smc_lang") || "en",
+  theme: readSetting("smc_theme") === "light" ? "light" : "dark",
+  lang: readSetting("smc_lang") === "it" ? "it" : "en",
   currentRoute: "overview",
-  isStreaming: true,
+  // The user's play/pause choice. The timer runs only when this is true, the
+  // streaming view is open and the page is visible.
+  streamWanted: prefersMotion(),
   streamSpeed: 1200,
   streamTimerId: null,
   streamTick: 0,
+  installTab: "pnpm",
+  themePreset: "ocean",
+  // In the "custom" theme (a tweak made from "Default"), the controls the user changed.
+  // Only these become overrides; the others still show a previous preset's values.
+  themeCustomKeys: new Set(),
+  gradientPreset: "thermal",
 };
 
 // --- Toast Manager ---
-export function showToast(message = "Copied to clipboard!") {
+let toastTimerId = null;
+
+export function showToast(message = "Copied to clipboard!", { error = false } = {}) {
   const toast = document.getElementById("toast");
   const msgEl = document.getElementById("toast-msg");
+  const iconEl = document.getElementById("toast-icon");
   if (!toast || !msgEl) return;
   msgEl.textContent = message;
+  if (iconEl) iconEl.textContent = error ? "⚠" : "✓";
+  toast.classList.toggle("toast-error", error);
   toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2200);
+  clearTimeout(toastTimerId);
+  toastTimerId = setTimeout(() => toast.classList.remove("show"), error ? 4000 : 2200);
+}
+
+// --- Clipboard: one helper, with an error toast when copying is not allowed ---
+export async function copy(text, successMessage = "Copied to clipboard!") {
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable");
+    await navigator.clipboard.writeText(text);
+    showToast(successMessage);
+    return true;
+  } catch {
+    showToast("Could not copy: select the text and copy it by hand.", { error: true });
+    return false;
+  }
 }
 
 // --- Theme Management ---
 export function applyTheme(theme) {
   state.theme = theme;
-  localStorage.setItem("smc_theme", theme);
+  writeSetting("smc_theme", theme);
   const html = document.documentElement;
   const icon = document.getElementById("theme-icon");
   if (theme === "light") {
@@ -343,7 +398,8 @@ export function toggleTheme() {
 // --- i18n Language Manager ---
 export function applyLanguage(lang) {
   state.lang = lang;
-  localStorage.setItem("smc_lang", lang);
+  writeSetting("smc_lang", lang);
+  document.documentElement.lang = lang;
   const dict = translations[lang] || translations.en;
   const langBtn = document.getElementById("lang-toggle-btn");
   if (langBtn) {
@@ -355,10 +411,12 @@ export function applyLanguage(lang) {
       el.textContent = dict[key];
     }
   });
-  renderGallery();
-  if (state.currentRoute.startsWith("components/")) {
-    const tag = state.currentRoute.split("/")[1];
-    renderComponentDetail(tag);
+  updateStreamButtonState();
+  // Rebuild only the view on screen; the others render when they are opened.
+  if (state.currentRoute === "components") {
+    renderGallery();
+  } else if (state.currentRoute.startsWith("components/")) {
+    renderComponentDetail(state.currentRoute.split("/")[1]);
   }
 }
 
@@ -601,7 +659,7 @@ export function renderGallery() {
       const htmlSnippet = `<${item.tag}\n  data='${JSON.stringify(item.data)}'\n  ${item.attrs}\n></${item.tag}>`;
       const reactSnippet = `import { ${pascalName} } from 'sparkline-mini-charts/react';\n\n<${pascalName}\n  ${item.reactProps}\n/>`;
       const vueSnippet = `<script setup lang="ts">\nimport { ${pascalName} } from 'sparkline-mini-charts/vue';\n</script>\n\n<template>\n  <${pascalName} ${item.vueProps} />\n</template>`;
-      const angularSnippet = `import { MiniChartDirective } from 'sparkline-mini-charts/angular';\n\n<${item.tag}\n  ${item.angularProps}\n></${item.tag}>`;
+      const angularSnippet = `import 'sparkline-mini-charts/register';\n// In the component: schemas: [CUSTOM_ELEMENTS_SCHEMA]\n\n<${item.tag}\n  ${item.angularProps}\n></${item.tag}>`;
 
       card.innerHTML = `
         <div class="gallery-card-top">
@@ -620,15 +678,15 @@ export function renderGallery() {
         </div>
 
         <div class="card-tabs">
-          <div class="card-tab-nav" role="tablist">
-            <button class="card-tab-btn active" data-framework="html">HTML</button>
-            <button class="card-tab-btn" data-framework="react">React</button>
-            <button class="card-tab-btn" data-framework="vue">Vue</button>
-            <button class="card-tab-btn" data-framework="angular">Angular</button>
+          <div class="card-tab-nav" role="group" aria-label="${title} snippet language">
+            <button type="button" class="card-tab-btn active" aria-pressed="true" data-framework="html">HTML</button>
+            <button type="button" class="card-tab-btn" aria-pressed="false" data-framework="react">React</button>
+            <button type="button" class="card-tab-btn" aria-pressed="false" data-framework="vue">Vue</button>
+            <button type="button" class="card-tab-btn" aria-pressed="false" data-framework="angular">Angular</button>
           </div>
           <div class="card-code-container">
-            <pre class="card-code-block"><code>${escapeHtml(htmlSnippet)}</code></pre>
-            <button class="card-copy-btn" title="Copy code">Copy</button>
+            <pre class="card-code-block" tabindex="0"><code>${escapeHtml(htmlSnippet)}</code></pre>
+            <button type="button" class="card-copy-btn" aria-label="Copy ${title} code">Copy</button>
           </div>
         </div>
       `;
@@ -647,17 +705,17 @@ export function renderGallery() {
 
       tabBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
-          tabBtns.forEach((b) => b.classList.remove("active"));
-          btn.classList.add("active");
+          tabBtns.forEach((b) => {
+            b.classList.toggle("active", b === btn);
+            b.setAttribute("aria-pressed", String(b === btn));
+          });
           const fw = btn.getAttribute("data-framework");
           if (codeBlock) codeBlock.textContent = snippets[fw];
         });
       });
 
       copyBtn?.addEventListener("click", async () => {
-        if (codeBlock?.textContent) {
-          await navigator.clipboard.writeText(codeBlock.textContent);
-          showToast(`Copied ${pascalName} code!`);
+        if (codeBlock?.textContent && (await copy(codeBlock.textContent, `Copied ${pascalName} code!`))) {
           copyBtn.textContent = "✓";
           setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
         }
@@ -670,7 +728,8 @@ export function renderGallery() {
 
 // --- Dedicated Component Detail View Page ---
 export function renderComponentDetail(tag) {
-  const item = COMPONENTS_CATALOG.find((c) => c.tag === tag) || COMPONENTS_CATALOG[0];
+  const item = COMPONENTS_CATALOG.find((c) => c.tag === tag);
+  if (!item) return;
   const dict = translations[state.lang] || translations.en;
 
   const titleEl = document.getElementById("detail-title");
@@ -712,26 +771,30 @@ export function renderComponentDetail(tag) {
   const htmlSnippet = `<${item.tag}\n  data='${JSON.stringify(item.data, null, 2)}'\n  ${item.attrs}\n></${item.tag}>`;
   const reactSnippet = `import { ${pascalName} } from 'sparkline-mini-charts/react';\n\nexport function ChartCard() {\n  return (\n    <${pascalName}\n      ${item.reactProps}\n    />\n  );\n}`;
   const vueSnippet = `<script setup lang="ts">\nimport { ${pascalName} } from 'sparkline-mini-charts/vue';\n</script>\n\n<template>\n  <${pascalName} ${item.vueProps} />\n</template>`;
-  const angularSnippet = `import { Component } from '@angular/core';\nimport { MiniChartDirective } from 'sparkline-mini-charts/angular';\n\n@Component({\n  standalone: true,\n  imports: [MiniChartDirective],\n  template: \`\n    <${item.tag} ${item.angularProps}></${item.tag}>\n  \`\n})\nexport class ChartCardComponent {}`;
+  const angularSnippet = `import 'sparkline-mini-charts/register';\nimport { CUSTOM_ELEMENTS_SCHEMA, Component } from '@angular/core';\n\n@Component({\n  selector: 'app-chart-card',\n  schemas: [CUSTOM_ELEMENTS_SCHEMA],\n  template: \`\n    <${item.tag} ${item.angularProps}></${item.tag}>\n  \`\n})\nexport class ChartCardComponent {}`;
 
   const detailSnippets = { html: htmlSnippet, react: reactSnippet, vue: vueSnippet, angular: angularSnippet };
   codeOutput.textContent = htmlSnippet;
 
-  document.querySelectorAll("[data-detail-tab]").forEach((btn) => {
+  // A new chart always opens on the HTML snippet.
+  const detailTabs = document.querySelectorAll("#detail-snippet-tabs [data-detail-tab]");
+  const selectDetailTab = (selected) => {
+    detailTabs.forEach((b) => {
+      b.classList.toggle("active", b === selected);
+      b.setAttribute("aria-pressed", String(b === selected));
+    });
+  };
+  detailTabs.forEach((btn) => {
     btn.onclick = () => {
-      document.querySelectorAll("[data-detail-tab]").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      const fw = btn.getAttribute("data-detail-tab");
-      codeOutput.textContent = detailSnippets[fw];
+      selectDetailTab(btn);
+      codeOutput.textContent = detailSnippets[btn.getAttribute("data-detail-tab")];
     };
   });
+  selectDetailTab(detailTabs[0]);
 
   const detailCopyBtn = document.getElementById("detail-copy-btn");
   if (detailCopyBtn) {
-    detailCopyBtn.onclick = async () => {
-      await navigator.clipboard.writeText(codeOutput.textContent);
-      showToast(`Copied ${pascalName} code!`);
-    };
+    detailCopyBtn.onclick = () => copy(codeOutput.textContent ?? "", `Copied ${pascalName} code!`);
   }
 }
 
@@ -745,12 +808,19 @@ export function handleRoute() {
   document.querySelectorAll(".sidebar-link").forEach((l) => l.classList.remove("active"));
 
   if (state.currentRoute.startsWith("components/")) {
-    const tag = state.currentRoute.split("/")[1];
-    document.getElementById("view-component-detail")?.classList.add("active");
-    renderComponentDetail(tag);
-    // highlight sidebar
-    const link = document.querySelector(`.sidebar-link[data-route="components/${tag}"]`);
-    if (link) link.classList.add("active");
+    const tag = state.currentRoute.split("/")[1] ?? "";
+    if (COMPONENTS_CATALOG.some((c) => c.tag === tag)) {
+      document.getElementById("view-component-detail")?.classList.add("active");
+      renderComponentDetail(tag);
+      // highlight sidebar
+      const link = document.querySelector(`.sidebar-link[data-route="components/${tag}"]`);
+      if (link) link.classList.add("active");
+    } else {
+      // Unknown tag: say so instead of showing another chart.
+      const tagEl = document.getElementById("not-found-tag");
+      if (tagEl) tagEl.textContent = tag ? `<${tag}>` : "(empty)";
+      document.getElementById("view-not-found")?.classList.add("active");
+    }
   } else if (state.currentRoute === "components") {
     document.getElementById("view-components")?.classList.add("active");
     document.querySelector('.sidebar-link[data-route="components"]')?.classList.add("active");
@@ -778,6 +848,13 @@ export function handleRoute() {
     document.querySelector('.sidebar-link[data-route="overview"]')?.classList.add("active");
   }
 
+  document.querySelectorAll(".sidebar-link").forEach((l) => {
+    if (l.classList.contains("active")) l.setAttribute("aria-current", "page");
+    else l.removeAttribute("aria-current");
+  });
+
+  // The stream runs only while its view is open.
+  syncStreamTimer();
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 
@@ -934,39 +1011,59 @@ export function stepStreamData() {
   }
 }
 
-export function startStreaming() {
-  state.isStreaming = true;
-  updateStreamButtonState();
-  if (state.streamTimerId) clearInterval(state.streamTimerId);
-  state.streamTimerId = setInterval(stepStreamData, state.streamSpeed);
-}
-
-export function pauseStreaming() {
-  state.isStreaming = false;
-  updateStreamButtonState();
+function stopStreamTimer() {
   if (state.streamTimerId) {
     clearInterval(state.streamTimerId);
     state.streamTimerId = null;
   }
 }
 
+/**
+ * Starts or stops the timer: it runs only when the user wants the stream, the
+ * streaming view is open and the page is visible.
+ */
+export function syncStreamTimer() {
+  const shouldRun = state.streamWanted && state.currentRoute === "streaming" && !document.hidden;
+  if (shouldRun && !state.streamTimerId) {
+    state.streamTimerId = setInterval(stepStreamData, state.streamSpeed);
+  } else if (!shouldRun) {
+    stopStreamTimer();
+  }
+  updateStreamButtonState();
+}
+
+export function startStreaming() {
+  state.streamWanted = true;
+  syncStreamTimer();
+}
+
+export function pauseStreaming() {
+  state.streamWanted = false;
+  syncStreamTimer();
+}
+
 export function setStreamSpeed(ms) {
   state.streamSpeed = ms;
-  if (state.isStreaming) {
-    startStreaming();
-  }
+  stopStreamTimer();
+  syncStreamTimer();
 }
 
 function updateStreamButtonState() {
+  const dict = translations[state.lang] || translations.en;
   const toggleBtn = document.getElementById("stream-toggle-btn");
   if (toggleBtn) {
-    const dict = translations[state.lang] || translations.en;
-    toggleBtn.textContent = state.isStreaming ? dict.btnPause : dict.btnPlay;
-    toggleBtn.className = state.isStreaming ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm";
+    toggleBtn.textContent = state.streamWanted ? dict.btnPause : dict.btnPlay;
+    toggleBtn.className = state.streamWanted ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm";
   }
+  // Text badge, so the state does not depend on the pulsing dot or its color.
+  const indicator = document.getElementById("stream-status");
+  const statusText = document.getElementById("stream-status-text");
+  if (indicator) indicator.classList.toggle("is-paused", !state.streamWanted);
+  if (statusText) statusText.textContent = state.streamWanted ? dict.streamLive : dict.streamPaused;
 }
 
 // --- Theming Lab Controller & Presets ---
+// Cyberpunk and Sunset were removed: their colors fall below 3:1 on the light theme.
 export const THEME_PRESETS = Object.freeze({
   ocean: {
     primary: "#0284c7",
@@ -974,7 +1071,6 @@ export const THEME_PRESETS = Object.freeze({
     bullish: "#10b981",
     bearish: "#f43f5e",
     target: "#f43f5e",
-    stroke: 2,
     opacity: 0.45,
     colors: ["#0ea5e9", "#3b82f6", "#6366f1", "#8b5cf6", "#d946ef", "#f59e0b", "#0d9488", "#10b981"],
   },
@@ -984,29 +1080,8 @@ export const THEME_PRESETS = Object.freeze({
     bullish: "#10b981",
     bearish: "#e11d48",
     target: "#e11d48",
-    stroke: 2,
     opacity: 0.4,
     colors: ["#10b981", "#0d9488", "#0284c7", "#6366f1", "#8b5cf6", "#f59e0b", "#f97316", "#ef4444"],
-  },
-  cyberpunk: {
-    primary: "#00f0ff",
-    point: "#ffe600",
-    bullish: "#00ff88",
-    bearish: "#ff0055",
-    target: "#ffe600",
-    stroke: 2.5,
-    opacity: 0.25,
-    colors: ["#00f0ff", "#ff007f", "#7000ff", "#00ff88", "#ffe600", "#ff6600", "#b800ff", "#00bfff"],
-  },
-  sunset: {
-    primary: "#f97316",
-    point: "#facc15",
-    bullish: "#10b981",
-    bearish: "#e11d48",
-    target: "#e11d48",
-    stroke: 2,
-    opacity: 0.45,
-    colors: ["#f59e0b", "#f97316", "#ef4444", "#ec4899", "#d946ef", "#8b5cf6", "#6366f1", "#312e81"],
   },
   monochrome: {
     primary: "#8b5cf6",
@@ -1014,162 +1089,142 @@ export const THEME_PRESETS = Object.freeze({
     bullish: "#10b981",
     bearish: "#f43f5e",
     target: "#fbbf24",
-    stroke: 2,
     opacity: 0.35,
     colors: ["#a855f7", "#6366f1", "#3b82f6", "#06b6d4", "#10b981", "#fbbf24", "#f97316", "#f43f5e"],
   },
 });
 
-export function renderThemingLab(activePresetKey = "ocean") {
+/** Every token the lab writes on the preview board, so a re-render can clear them. */
+const THEME_LAB_TOKENS = Object.freeze([
+  "--mini-chart-color",
+  "--mini-chart-point-fill",
+  "--mini-chart-bullish-color",
+  "--mini-chart-bearish-color",
+  "--mini-chart-target-color",
+  "--mini-chart-bar-opacity-inactive",
+  ...Array.from({ length: 8 }, (_, i) => `--mini-chart-color-${i + 1}`),
+]);
+
+/** The lab controls: color inputs and the opacity range, each with its <output>. */
+function themeControls() {
+  const byId = (id) => document.getElementById(id);
+  return {
+    primary: [byId("theme-token-primary"), byId("theme-token-primary-text")],
+    point: [byId("theme-token-point"), byId("theme-token-point-text")],
+    bullish: [byId("theme-token-bullish"), byId("theme-token-bullish-text")],
+    bearish: [byId("theme-token-bearish"), byId("theme-token-bearish-text")],
+    opacity: [byId("theme-token-opacity"), byId("theme-token-opacity-val")],
+  };
+}
+
+function updateThemePresetPills() {
+  document.querySelectorAll("#theme-presets-bar [data-preset]").forEach((pill) => {
+    const active = pill.getAttribute("data-preset") === state.themePreset;
+    pill.classList.toggle("active", active);
+    pill.setAttribute("aria-pressed", String(active));
+  });
+}
+
+/**
+ * Renders the preview board from `state.themePreset` and the controls.
+ * "default" clears every override (the board also resets the site's own tokens),
+ * so the charts show the library defaults; "custom" applies only the controls
+ * changed since "Default" was chosen, on top of the library defaults.
+ */
+export function renderThemingLab() {
   const board = document.getElementById("theming-preview-board");
   const codeEl = document.getElementById("theming-css-output");
   if (!board || !codeEl) return;
 
-  const primary = document.getElementById("theme-token-primary")?.value || "#0284c7";
-  const point = document.getElementById("theme-token-point")?.value || "#38bdf8";
-  const bullish = document.getElementById("theme-token-bullish")?.value || "#10b981";
-  const bearish = document.getElementById("theme-token-bearish")?.value || "#f43f5e";
-  const stroke = document.getElementById("theme-token-stroke")?.value || "2";
-  const opacity = document.getElementById("theme-token-opacity")?.value || "0.45";
+  const preset = THEME_PRESETS[state.themePreset];
+  board.classList.toggle("is-library-default", !preset);
+  THEME_LAB_TOKENS.forEach((token) => board.style.removeProperty(token));
+  updateThemePresetPills();
 
-  const preset = THEME_PRESETS[activePresetKey] || THEME_PRESETS.ocean;
-  const colors = preset.colors;
+  if (state.themePreset === "default") {
+    codeEl.textContent = `/* Default (no theme): no --mini-chart-* overrides.
+   The preview shows the defaults built into the library. */`;
+    return;
+  }
 
-  // Apply directly to preview container CSS variables
-  board.style.setProperty("--mini-chart-color", primary);
-  board.style.setProperty("--mini-chart-point-fill", point);
-  board.style.setProperty("--mini-chart-bullish-color", bullish);
-  board.style.setProperty("--mini-chart-bearish-color", bearish);
-  board.style.setProperty("--mini-chart-target-color", preset.target || bearish);
-  board.style.setProperty("--mini-chart-stroke-width", `${stroke}px`);
-  board.style.setProperty("--mini-chart-inactive-opacity", opacity);
+  const controls = themeControls();
+  const value = (key, fallback) => controls[key][0]?.value || fallback;
+  /** @type {[string, string, string][]} token, value, control key */
+  const controlTokens = [
+    ["--mini-chart-color", value("primary", "#0284c7"), "primary"],
+    ["--mini-chart-point-fill", value("point", "#38bdf8"), "point"],
+    ["--mini-chart-bar-opacity-inactive", value("opacity", "0.45"), "opacity"],
+    ["--mini-chart-bullish-color", value("bullish", "#10b981"), "bullish"],
+    ["--mini-chart-bearish-color", value("bearish", "#f43f5e"), "bearish"],
+    ["--mini-chart-target-color", preset?.target || value("bearish", "#f43f5e"), "bearish"],
+  ];
+  const tokens = [
+    ...controlTokens
+      .filter(([, , key]) => preset || state.themeCustomKeys.has(key))
+      .map(([token, tokenValue]) => [token, tokenValue]),
+    ...(preset ? preset.colors.map((c, i) => [`--mini-chart-color-${i + 1}`, c]) : []),
+  ];
+  tokens.forEach(([token, tokenValue]) => board.style.setProperty(token, tokenValue));
 
-  colors.forEach((c, idx) => {
-    board.style.setProperty(`--mini-chart-color-${idx + 1}`, c);
-  });
-
-  // Generate complete CSS code block
-  const cssCode = `/* Theme Custom Properties for Sparkline Mini Charts */
+  codeEl.textContent = `/* Theme Custom Properties for Sparkline Mini Charts */
 .my-custom-theme {
-  /* 1. Base Brand & Curves */
-  --mini-chart-color: ${primary};
-  --mini-chart-point-fill: ${point};
-  --mini-chart-stroke-width: ${stroke}px;
-  --mini-chart-inactive-opacity: ${opacity};
-
-  /* 2. Financial & Binary Tones */
-  --mini-chart-bullish-color: ${bullish};
-  --mini-chart-bearish-color: ${bearish};
-  --mini-chart-target-color: ${preset.target || bearish};
-
-  /* 3. Multi-Series Categorical Palette */
-${colors.map((c, i) => `  --mini-chart-color-${i + 1}: ${c};`).join("\n")}
+${tokens.map(([token, tokenValue]) => `  ${token}: ${tokenValue};`).join("\n")}
 }`;
-  codeEl.textContent = cssCode;
+}
+
+/** Copies a preset's values into the controls and their outputs. */
+function applyPresetToControls(preset) {
+  const controls = themeControls();
+  for (const key of ["primary", "point", "bullish", "bearish", "opacity"]) {
+    const [input, output] = controls[key];
+    const presetValue = String(preset[key]);
+    if (input) input.value = presetValue;
+    if (output) output.value = presetValue;
+  }
 }
 
 export function setupThemingLab() {
-  const primaryInput = document.getElementById("theme-token-primary");
-  const primaryText = document.getElementById("theme-token-primary-text");
-  const pointInput = document.getElementById("theme-token-point");
-  const pointText = document.getElementById("theme-token-point-text");
-  const bullishInput = document.getElementById("theme-token-bullish");
-  const bullishText = document.getElementById("theme-token-bullish-text");
-  const bearishInput = document.getElementById("theme-token-bearish");
-  const bearishText = document.getElementById("theme-token-bearish-text");
-  const strokeInput = document.getElementById("theme-token-stroke");
-  const strokeVal = document.getElementById("theme-token-stroke-val");
-  const opacityInput = document.getElementById("theme-token-opacity");
-  const opacityVal = document.getElementById("theme-token-opacity-val");
-
-  function bindInput(input, text) {
+  const controls = themeControls();
+  Object.entries(controls).forEach(([key, [input, output]]) => {
     input?.addEventListener("input", () => {
-      if (text) text.value = input.value;
-      // Deselect preset pills on custom change
-      document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
+      if (output) output.value = input.value;
+      // A tweak keeps the active preset (and its palette). From "Default" it
+      // becomes a custom theme on top of the library defaults, which overrides
+      // only the controls changed since then.
+      if (state.themePreset === "default") {
+        state.themePreset = "custom";
+        state.themeCustomKeys = new Set();
+      }
+      if (state.themePreset === "custom") state.themeCustomKeys.add(key);
       renderThemingLab();
     });
-  }
-
-  bindInput(primaryInput, primaryText);
-  bindInput(pointInput, pointText);
-  bindInput(bullishInput, bullishText);
-  bindInput(bearishInput, bearishText);
-
-  strokeInput?.addEventListener("input", () => {
-    if (strokeVal) strokeVal.textContent = `${strokeInput.value}px`;
-    document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
-    renderThemingLab();
   });
 
-  opacityInput?.addEventListener("input", () => {
-    if (opacityVal) opacityVal.textContent = opacityInput.value;
-    document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
-    renderThemingLab();
-  });
-
-  // Preset buttons
-  document.querySelectorAll(".preset-pill").forEach((btn) => {
+  // Preset buttons: only the lab's own group.
+  document.querySelectorAll("#theme-presets-bar [data-preset]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const presetKey = btn.getAttribute("data-preset");
+      const presetKey = btn.getAttribute("data-preset") || "default";
       const preset = THEME_PRESETS[presetKey];
-      if (!preset) return;
-
-      document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
-      btn.classList.add("active");
-
-      if (primaryInput) primaryInput.value = preset.primary;
-      if (primaryText) primaryText.value = preset.primary;
-      if (pointInput) pointInput.value = preset.point;
-      if (pointText) pointText.value = preset.point;
-      if (bullishInput) bullishInput.value = preset.bullish;
-      if (bullishText) bullishText.value = preset.bullish;
-      if (bearishInput) bearishInput.value = preset.bearish;
-      if (bearishText) bearishText.value = preset.bearish;
-      if (strokeInput) strokeInput.value = String(preset.stroke);
-      if (strokeVal) strokeVal.textContent = `${preset.stroke}px`;
-      if (opacityInput) opacityInput.value = String(preset.opacity);
-      if (opacityVal) opacityVal.textContent = String(preset.opacity);
-
-      // Set palette colors on board
-      const board = document.getElementById("theming-preview-board");
-      if (board && preset.colors) {
-        preset.colors.forEach((c, idx) => {
-          board.style.setProperty(`--mini-chart-color-${idx + 1}`, c);
-        });
-      }
-
-      renderThemingLab(presetKey);
+      state.themePreset = preset ? presetKey : "default";
+      if (preset) applyPresetToControls(preset);
+      renderThemingLab();
     });
   });
 
   // Copy CSS button
-  document.getElementById("copy-theme-css-btn")?.addEventListener("click", async () => {
+  document.getElementById("copy-theme-css-btn")?.addEventListener("click", () => {
     const code = document.getElementById("theming-css-output")?.textContent;
-    if (code) {
-      await navigator.clipboard.writeText(code);
-      showToast("Copied theme CSS tokens!");
-    }
+    if (code) copy(code, "Copied theme CSS tokens!");
   });
 
   // Copy Master Tokens button
-  document.getElementById("copy-master-tokens-btn")?.addEventListener("click", async () => {
+  document.getElementById("copy-master-tokens-btn")?.addEventListener("click", () => {
     const code = document.getElementById("master-tokens-code")?.textContent;
-    if (code) {
-      await navigator.clipboard.writeText(code);
-      showToast("Copied Master Tokens snippet!");
-    }
+    if (code) copy(code, "Copied Master Tokens snippet!");
   });
 
-  // Apply default preset palette
-  const defaultPreset = THEME_PRESETS.ocean;
-  const board = document.getElementById("theming-preview-board");
-  if (board && defaultPreset.colors) {
-    defaultPreset.colors.forEach((c, idx) => {
-      board.style.setProperty(`--mini-chart-color-${idx + 1}`, c);
-    });
-  }
-
+  const initialPreset = THEME_PRESETS[state.themePreset];
+  if (initialPreset) applyPresetToControls(initialPreset);
   renderThemingLab();
 }
 
@@ -1217,8 +1272,13 @@ export const GRADIENT_PRESETS = Object.freeze({
   },
 });
 
-export function renderGradientsStudio(presetKey = "thermal") {
-  const preset = GRADIENT_PRESETS[presetKey] || GRADIENT_PRESETS.thermal;
+export function renderGradientsStudio() {
+  const preset = GRADIENT_PRESETS[state.gradientPreset] || GRADIENT_PRESETS.thermal;
+  document.querySelectorAll("#gradient-presets-bar [data-grad-preset]").forEach((pill) => {
+    const active = pill.getAttribute("data-grad-preset") === state.gradientPreset;
+    pill.classList.toggle("active", active);
+    pill.setAttribute("aria-pressed", String(active));
+  });
 
   const gauge = document.getElementById("demo-grad-gauge");
   const progress = document.getElementById("demo-grad-progress");
@@ -1278,66 +1338,203 @@ export function renderGradientsStudio(presetKey = "thermal") {
 export function setupGradientsStudio() {
   document.querySelectorAll("#gradient-presets-bar [data-grad-preset]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const presetKey = btn.getAttribute("data-grad-preset") || "thermal";
-      document.querySelectorAll("#gradient-presets-bar [data-grad-preset]").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      renderGradientsStudio(presetKey);
+      const presetKey = btn.getAttribute("data-grad-preset");
+      if (!presetKey || !GRADIENT_PRESETS[presetKey]) return;
+      state.gradientPreset = presetKey;
+      renderGradientsStudio();
     });
   });
 
-  document.getElementById("copy-grad-code-btn")?.addEventListener("click", async () => {
+  document.getElementById("copy-grad-code-btn")?.addEventListener("click", () => {
     const code = document.getElementById("gradients-code-output")?.textContent;
-    if (code) {
-      await navigator.clipboard.writeText(code);
-      showToast("Copied gradient declarative markup!");
-    }
+    if (code) copy(code, "Copied gradient declarative markup!");
   });
 
-  renderGradientsStudio("thermal");
+  renderGradientsStudio();
 }
 
 // --- Playground Controller ---
+/** Splits a catalog `attrs` string into [name, value] pairs ("" for a boolean attribute). */
+function parseAttrs(attrs) {
+  return [...attrs.matchAll(/([a-z][a-z-]*)(?:="([^"]*)")?/g)].map((m) => [m[1], m[2] ?? ""]);
+}
+
+function escapeAttribute(value) {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+}
+
 export function renderPlayground() {
   const typeSelect = document.getElementById("pg-chart-type");
   const dataInput = document.getElementById("pg-chart-data");
   const labelInput = document.getElementById("pg-chart-label");
   const previewContainer = document.getElementById("pg-preview-container");
   const codeOutput = document.getElementById("pg-code-output");
+  const errorEl = document.getElementById("pg-data-error");
 
   if (!typeSelect || !dataInput || !previewContainer || !codeOutput) return;
 
-  const tagName = typeSelect.value;
-  const item = COMPONENTS_CATALOG.find((c) => c.tag === tagName) || COMPONENTS_CATALOG[0];
+  const item = COMPONENTS_CATALOG.find((c) => c.tag === typeSelect.value) || COMPONENTS_CATALOG[0];
 
   let parsedData;
   try {
     parsedData = JSON.parse(dataInput.value);
-  } catch {
+  } catch (error) {
+    // Say what is wrong; the preview keeps the last valid data.
+    dataInput.setAttribute("aria-invalid", "true");
+    if (errorEl) {
+      errorEl.textContent = `Invalid JSON: ${error instanceof Error ? error.message : String(error)}. The preview shows the last valid data.`;
+      errorEl.hidden = false;
+    }
     return;
   }
-
-  const label = labelInput?.value?.trim() || "Live Sandbox Preview";
-  const chartEl = document.createElement(tagName);
-  chartEl.setAttribute("data", JSON.stringify(parsedData));
-  chartEl.setAttribute("label", label);
-
-  // Apply custom example attributes
-  if (item.attrs) {
-    const pairs = item.attrs.match(/([a-z-]+)(?:="([^"]*)")?/g) || [];
-    pairs.forEach((p) => {
-      const [k, v] = p.split("=");
-      chartEl.setAttribute(k, v ? v.replace(/"/g, "") : "");
-    });
+  dataInput.removeAttribute("aria-invalid");
+  if (errorEl) {
+    errorEl.textContent = "";
+    errorEl.hidden = true;
   }
 
-  previewContainer.replaceChildren(chartEl);
+  // The typed label wins: the catalog's own label and data are left out.
+  const label = labelInput?.value?.trim() || "Live Sandbox Preview";
+  const attrs = parseAttrs(item.attrs).filter(([name]) => name !== "label" && name !== "data");
+  const dataText = JSON.stringify(parsedData);
 
-  const code = `<${tagName}\n  data='${JSON.stringify(parsedData)}'\n  label="${label}"\n  ${item.attrs}\n></${tagName}>`;
-  codeOutput.textContent = code;
+  // Update the element in place; create a new one only when the chart type changes.
+  let chartEl = previewContainer.firstElementChild;
+  if (!chartEl || chartEl.localName !== item.tag) {
+    chartEl = document.createElement(item.tag);
+    attrs.forEach(([name, value]) => chartEl.setAttribute(name, value));
+    previewContainer.replaceChildren(chartEl);
+  }
+  if (chartEl.getAttribute("data") !== dataText) chartEl.setAttribute("data", dataText);
+  if (chartEl.getAttribute("label") !== label) chartEl.setAttribute("label", label);
+
+  const lines = [
+    `data='${dataText.replace(/'/g, "&#39;")}'`,
+    `label="${escapeAttribute(label)}"`,
+    ...attrs.map(([name, value]) => (value === "" ? name : `${name}="${value}"`)),
+  ];
+  codeOutput.textContent = `<${item.tag}\n  ${lines.join("\n  ")}\n></${item.tag}>`;
 }
 
-// --- App Initialization on DOM Ready ---
-document.addEventListener("DOMContentLoaded", () => {
+function setupPlayground() {
+  const typeSelect = document.getElementById("pg-chart-type");
+  const dataInput = document.getElementById("pg-chart-data");
+  const labelInput = document.getElementById("pg-chart-label");
+
+  function loadPlaygroundPreset(tagName) {
+    const item = COMPONENTS_CATALOG.find((c) => c.tag === tagName) || COMPONENTS_CATALOG[0];
+    if (dataInput) dataInput.value = JSON.stringify(item.data, null, 2);
+    if (labelInput) labelInput.value = parseAttrs(item.attrs).find(([name]) => name === "label")?.[1] ?? "";
+    renderPlayground();
+  }
+
+  typeSelect?.addEventListener("change", (e) => loadPlaygroundPreset(e.target.value));
+  dataInput?.addEventListener("input", renderPlayground);
+  labelInput?.addEventListener("input", renderPlayground);
+  if (typeSelect) loadPlaygroundPreset(typeSelect.value || "mini-line-chart");
+
+  document.getElementById("copy-code-btn")?.addEventListener("click", () => {
+    const code = document.getElementById("pg-code-output")?.textContent;
+    if (code) copy(code, "Copied playground markup!");
+  });
+}
+
+// --- Tab groups: each .tabs-container with [data-tab] buttons switches only its own panels ---
+function setupTabGroups() {
+  document.querySelectorAll(".tabs-container").forEach((container) => {
+    const buttons = [...container.querySelectorAll(".tab-btn[data-tab]")];
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        buttons.forEach((b) => {
+          const selected = b === btn;
+          b.classList.toggle("active", selected);
+          b.setAttribute("aria-selected", String(selected));
+          const panel = document.getElementById(b.getAttribute("data-tab") ?? "");
+          if (panel) panel.hidden = !selected;
+        });
+        container.dispatchEvent(new CustomEvent("tab-select", { detail: btn.getAttribute("data-tab") }));
+      });
+    });
+  });
+}
+
+// --- Install commands: the overview tabs and the header pill share the active one ---
+const INSTALL_COMMANDS = Object.freeze({
+  pnpm: { command: "pnpm add sparkline-mini-charts", pill: "pnpm add sparkline-mini-charts" },
+  npm: { command: "npm install sparkline-mini-charts", pill: "npm install sparkline-mini-charts" },
+  yarn: { command: "yarn add sparkline-mini-charts", pill: "yarn add sparkline-mini-charts" },
+  cdn: {
+    command: '<script type="module" src="https://cdn.jsdelivr.net/npm/sparkline-mini-charts@1/dist/register.js"></script>',
+    pill: "CDN <script> tag",
+  },
+});
+
+function updateInstallPill() {
+  const entry = INSTALL_COMMANDS[state.installTab] ?? INSTALL_COMMANDS.pnpm;
+  const pill = document.getElementById("quick-install-btn");
+  const text = document.getElementById("quick-install-text");
+  if (text) text.textContent = entry.pill;
+  pill?.setAttribute("aria-label", `Copy install command: ${entry.pill}`);
+}
+
+function setupInstallCommands() {
+  document.getElementById("install-tabs")?.addEventListener("tab-select", (event) => {
+    const key = String(/** @type {CustomEvent} */ (event).detail).replace(/^install-/, "");
+    if (key in INSTALL_COMMANDS) state.installTab = key;
+    updateInstallPill();
+  });
+  document.getElementById("quick-install-btn")?.addEventListener("click", () => {
+    const { command } = INSTALL_COMMANDS[state.installTab] ?? INSTALL_COMMANDS.pnpm;
+    copy(command, `Copied: ${command}`);
+  });
+  updateInstallPill();
+}
+
+// --- Mobile navigation drawer ---
+function setupDrawer() {
+  const toggle = document.getElementById("mobile-menu-btn");
+  const sidebar = document.getElementById("docs-sidebar");
+  const backdrop = document.getElementById("drawer-backdrop");
+  if (!toggle || !sidebar) return;
+  const mobile = window.matchMedia("(max-width: 1023px)");
+
+  const isOpen = () => sidebar.classList.contains("open");
+
+  // Closed on a small screen: off-canvas, so out of the tab order and the accessibility tree.
+  function syncDrawer() {
+    const open = isOpen();
+    toggle.setAttribute("aria-expanded", String(open));
+    sidebar.inert = mobile.matches && !open;
+    if (backdrop) backdrop.hidden = !(mobile.matches && open);
+  }
+
+  function setOpen(open, { returnFocus = false } = {}) {
+    sidebar.classList.toggle("open", open);
+    syncDrawer();
+    if (open) {
+      sidebar.querySelector("a")?.focus();
+    } else if (returnFocus || sidebar.contains(document.activeElement)) {
+      toggle.focus();
+    }
+  }
+
+  toggle.addEventListener("click", () => setOpen(!isOpen(), { returnFocus: true }));
+  backdrop?.addEventListener("click", () => setOpen(false, { returnFocus: true }));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && isOpen()) setOpen(false, { returnFocus: true });
+  });
+  window.addEventListener("hashchange", () => {
+    if (isOpen()) setOpen(false);
+  });
+  mobile.addEventListener("change", () => {
+    if (!mobile.matches) sidebar.classList.remove("open");
+    syncDrawer();
+  });
+  syncDrawer();
+}
+
+// --- App initialization (one boot only) ---
+function boot() {
   // 1. Initialize Theme & Language
   applyTheme(state.theme);
   applyLanguage(state.lang);
@@ -1345,27 +1542,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // 2. Setup Top Navbar Event Listeners
   document.getElementById("theme-toggle-btn")?.addEventListener("click", toggleTheme);
   document.getElementById("lang-toggle-btn")?.addEventListener("click", toggleLanguage);
+  setupDrawer();
 
-  // Quick Install Copy Button
-  document.getElementById("quick-install-btn")?.addEventListener("click", async () => {
-    await navigator.clipboard.writeText("pnpm add sparkline-mini-charts");
-    showToast("Copied: pnpm add sparkline-mini-charts");
-  });
-
-  // Mobile Menu Drawer Toggle
-  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
-  const sidebar = document.getElementById("docs-sidebar");
-  mobileMenuBtn?.addEventListener("click", () => {
-    sidebar?.classList.toggle("open");
-  });
-
-  // 3. Setup Hash Router & Listeners
-  window.addEventListener("hashchange", handleRoute);
-  handleRoute();
+  // 3. Tabs and install commands
+  setupTabGroups();
+  setupInstallCommands();
 
   // 4. Setup Live Stream Controls
   document.getElementById("stream-toggle-btn")?.addEventListener("click", () => {
-    if (state.isStreaming) pauseStreaming();
+    if (state.streamWanted) pauseStreaming();
     else startStreaming();
   });
   document.getElementById("stream-step-btn")?.addEventListener("click", () => {
@@ -1378,65 +1563,21 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("stream-speed-select")?.addEventListener("change", (e) => {
     setStreamSpeed(parseInt(e.target.value, 10));
   });
+  // A hidden tab writes no data; the stream resumes when the tab is shown again.
+  document.addEventListener("visibilitychange", syncStreamTimer);
 
-  // 5. Setup Interactive Playground
-  const typeSelect = document.getElementById("pg-chart-type");
-  const dataInput = document.getElementById("pg-chart-data");
-  const labelInput = document.getElementById("pg-chart-label");
-
-  function loadPlaygroundPreset(tagName) {
-    const item = COMPONENTS_CATALOG.find((c) => c.tag === tagName) || COMPONENTS_CATALOG[0];
-    if (!item) return;
-    if (dataInput) dataInput.value = JSON.stringify(item.data, null, 2);
-    if (labelInput) labelInput.value = "Custom " + item.tag;
-    renderPlayground();
-  }
-
-  typeSelect?.addEventListener("change", (e) => {
-    loadPlaygroundPreset(e.target.value);
-  });
-  dataInput?.addEventListener("input", renderPlayground);
-  labelInput?.addEventListener("input", renderPlayground);
-
-  if (typeSelect) {
-    loadPlaygroundPreset(typeSelect.value || "mini-line-chart");
-  }
-
-  // 6. Setup Playground Copy Code Button
-  document.getElementById("copy-code-btn")?.addEventListener("click", async () => {
-    const code = document.getElementById("pg-code-output")?.textContent;
-    if (code) {
-      await navigator.clipboard.writeText(code);
-      showToast("Copied playground markup!");
-    }
-  });
-
-  // 7. Setup Global Framework Integration Tabs
-  document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-      document.querySelectorAll(".tab-content").forEach((c) => (c.style.display = "none"));
-      
-      btn.classList.add("active");
-      const targetId = btn.getAttribute("data-tab");
-      const target = document.getElementById(targetId);
-      if (target) target.style.display = "block";
-    });
-  });
-
-  // 8. Setup Interactive Theming Lab
+  // 5. Interactive Playground, Theming Lab and Gradients Studio
+  setupPlayground();
   setupThemingLab();
-
-  // 9. Setup Interactive Gradients Studio
   setupGradientsStudio();
 
-  // 10. Start live streaming auto-loop
-  startStreaming();
-});
+  // 6. Hash router (it also starts the stream on #/streaming)
+  window.addEventListener("hashchange", handleRoute);
+  handleRoute();
+}
 
-// Auto-boot application on DOM ready
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initApp);
+  document.addEventListener("DOMContentLoaded", boot, { once: true });
 } else {
-  initApp();
+  boot();
 }

@@ -18,15 +18,26 @@ import { MiniScatterChart as MiniScatterChartElement } from "../components/mini-
 import { MiniStackedAreaChart as MiniStackedAreaChartElement } from "../components/mini-stacked-area-chart.js";
 import { MiniStreamChart as MiniStreamChartElement } from "../components/mini-stream-chart.js";
 import { MiniWinLossChart as MiniWinLossChartElement } from "../components/mini-win-loss-chart.js";
+import {
+  attributeOnlyNames,
+  createChartAttributes,
+  toAttributeName,
+  toDataAttribute,
+} from "../core/framework-attributes.js";
 import { defineMiniChart } from "../core/registration.js";
 
 function createVueChart(componentName: string, tagName: string, component: CustomElementConstructor) {
+  const observedAttributes: readonly string[] = (component as { observedAttributes?: string[] }).observedAttributes ?? [];
+  const chartAttributes = createChartAttributes(tagName, observedAttributes);
+
   return defineComponent({
     name: componentName,
-    inheritAttrs: true,
+    // Attributes are converted and spread below; inheriting them as well would apply them twice.
+    inheritAttrs: false,
     props: {
       data: {
-        type: [Array, Object, String] as PropType<any>,
+        // Number: `<mini-bullet-chart>` accepts a bare value.
+        type: [Array, Object, String, Number] as PropType<any>,
         default: () => [],
       },
       label: {
@@ -38,20 +49,39 @@ function createVueChart(componentName: string, tagName: string, component: Custo
         default: undefined,
       },
     },
-    emits: ["sparkline-hover", "sparkline-leave", "slice-select", "zone-change"],
+    emits: ["sparkline-hover", "sparkline-leave", "sparkline-select", "slice-select", "zone-change", "progress-complete"],
     setup(props, { attrs, emit }) {
       defineMiniChart(tagName, component);
 
       return () => {
-        const domAttrs: Record<string, any> = {
-          ...attrs,
-          data: typeof props.data === "string" ? props.data : JSON.stringify(props.data),
-          label: props.label,
-          "onSparkline-hover": (e: CustomEvent) => emit("sparkline-hover", e),
-          "onSparkline-leave": (e: CustomEvent) => emit("sparkline-leave", e),
-          "onSlice-select": (e: CustomEvent) => emit("slice-select", e),
-          "onZone-change": (e: CustomEvent) => emit("zone-change", e),
-        };
+        const domAttrs: Record<string, any> = {};
+
+        for (const [key, val] of Object.entries(attrs)) {
+          // `^` makes Vue call setAttribute() instead of assigning a property
+          // that would shadow `Node.prototype.normalize()`; SSR drops the prefix.
+          const attributeOnlyName = toAttributeName(key);
+          if (attributeOnlyNames.includes(attributeOnlyName)) {
+            domAttrs[`^${attributeOnlyName}`] = chartAttributes.valueOf(attributeOnlyName, val);
+            continue;
+          }
+
+          // Only the chart's observed attributes are converted; class, style,
+          // id, aria-*, data-* and listeners reach the element untouched.
+          const name = chartAttributes.nameOf(key);
+          if (name === null) domAttrs[key] = val;
+          else domAttrs[name] = chartAttributes.valueOf(name, val);
+        }
+
+        // `data` stays JSON text: Vue assigns it through the element's `data`
+        // setter, which stores a string unchanged, and SSR drops non-primitive values.
+        domAttrs.data = toDataAttribute(props.data);
+        domAttrs.label = props.label;
+        domAttrs["onSparkline-hover"] = (e: CustomEvent) => emit("sparkline-hover", e);
+        domAttrs["onSparkline-leave"] = (e: CustomEvent) => emit("sparkline-leave", e);
+        domAttrs["onSparkline-select"] = (e: CustomEvent) => emit("sparkline-select", e);
+        domAttrs["onSlice-select"] = (e: CustomEvent) => emit("slice-select", e);
+        domAttrs["onZone-change"] = (e: CustomEvent) => emit("zone-change", e);
+        domAttrs["onProgress-complete"] = (e: CustomEvent) => emit("progress-complete", e);
 
         if (props.interactive === true || props.interactive === "" || props.interactive === "true") {
           domAttrs.interactive = "";

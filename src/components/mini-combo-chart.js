@@ -2,7 +2,7 @@
 
 import { createBarLayout, createCartesianLayout, createDomain, createSmoothPath } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
-import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+import { createSvgElement, createChartSvg, chartStyles, entranceDelay, pointerToViewBoxX } from "../core/svg.js";
 
 /**
  * @typedef {Object} ComboDataPoint
@@ -24,6 +24,12 @@ export class MiniComboChart extends MiniChartElement {
     "bar-gap",
     "interactive",
   ];
+
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
+
+  /** Whether the line and bars have played their entrance animation. */
+  #entered = false;
 
   /** @type {boolean} */
   #initialized = false;
@@ -57,7 +63,8 @@ export class MiniComboChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers, frames, and listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -69,16 +76,17 @@ export class MiniComboChart extends MiniChartElement {
       cancelAnimationFrame(this.#rafId);
       this.#rafId = null;
     }
-    this.#detachInteractionListeners();
   }
 
   /**
-   * Overrides data getter to parse array of `{bar, line}`.
+   * Overrides the default data parser to accept an array of `{bar, line}`.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
    * @returns {ComboDataPoint[]}
    */
-  get data() {
+  parseData(raw) {
     try {
-      const parsed = JSON.parse(this.getAttribute("data") || "[]");
+      const parsed = JSON.parse(raw || "[]");
       if (!Array.isArray(parsed)) return [];
       return parsed.filter(
         (item) =>
@@ -178,10 +186,10 @@ export class MiniComboChart extends MiniChartElement {
   #onPointerMove = (/** @type {PointerEvent} */ e) => {
     if (!this.hasAttribute("interactive") || this.#currentCoordinates.length === 0 || !this.#svg) return;
 
-    const rect = this.#svg.getBoundingClientRect();
-    if (rect.width === 0) return;
+    // Through the screen CTM, so letterboxing (host aspect ratio ≠ viewBox) does not shift the index.
+    const relativeX = pointerToViewBoxX(this.#svg, e, this.chartWidth);
+    if (relativeX === null) return;
 
-    const relativeX = ((e.clientX - rect.left) / rect.width) * this.chartWidth;
     let closestIndex = 0;
     let minDistance = Infinity;
 
@@ -224,14 +232,16 @@ export class MiniComboChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#svg?.addEventListener("pointermove", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#svg?.removeEventListener("pointermove", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 
   /**
@@ -251,9 +261,9 @@ export class MiniComboChart extends MiniChartElement {
     this.#currentData = data;
 
     if (data.length === 0) {
-      this.#barsGroup.innerHTML = "";
+      this.#barsGroup.replaceChildren();
       this.#linePath.style.display = "none";
-      this.#pointsGroup.innerHTML = "";
+      this.#pointsGroup.replaceChildren();
       this.#currentCoordinates = [];
       return;
     }
@@ -278,7 +288,14 @@ export class MiniComboChart extends MiniChartElement {
       lineLayout = createCartesianLayout(lineValues, { width: this.chartWidth, height: this.chartHeight });
     }
 
-    this.#currentCoordinates = lineLayout.points.map((pt, i) => ({
+    // The bars sit in equal slots (a band scale): put each line vertex on its bar's centre, so the
+    // line, the last point and the hover crosshair all share the bars' x positions.
+    const linePoints = lineLayout.points.map((pt, i) => {
+      const bar = barLayout.bars[i];
+      return bar ? { x: bar.x + bar.width / 2, y: pt.y } : pt;
+    });
+
+    this.#currentCoordinates = linePoints.map((pt, i) => ({
       x: pt.x,
       barY: barLayout.bars[i]?.y || 0,
       lineY: pt.y,
@@ -296,10 +313,10 @@ export class MiniComboChart extends MiniChartElement {
       rect?.remove();
     }
 
-    const isInitial = !this.#linePath.dataset.rendered;
+    const isInitial = !this.#entered;
 
     if (isInitial) {
-      this.#linePath.dataset.rendered = "true";
+      this.#entered = true;
 
       // Step 1: Initial bar state
       barLayout.bars.forEach((bar, index) => {
@@ -315,10 +332,10 @@ export class MiniComboChart extends MiniChartElement {
       // Step 2: Batch single reflow
       this.#svg.getBoundingClientRect();
 
-      // Step 3: Trigger staggered bars
+      // Step 3: Trigger staggered bars; the whole stagger is capped, however many bars there are.
       barLayout.bars.forEach((bar, index) => {
         const rect = existingBars[index];
-        rect.style.transition = `all 0.4s ease-out ${index * 0.03}s`;
+        rect.style.transition = `all 0.4s ease-out ${entranceDelay(index, barLayout.bars.length, 30)}ms`;
         rect.setAttribute("y", String(bar.y));
         rect.setAttribute("height", String(bar.height));
       });
@@ -330,7 +347,7 @@ export class MiniComboChart extends MiniChartElement {
           });
         }
         this.#timerId = null;
-      }, 400 + barLayout.bars.length * 30 + 50);
+      }, 400 + entranceDelay(barLayout.bars.length - 1, barLayout.bars.length, 30) + 50);
     } else {
       barLayout.bars.forEach((bar, index) => {
         const rect = existingBars[index];
@@ -346,8 +363,8 @@ export class MiniComboChart extends MiniChartElement {
     // Update Line
     const curve = this.getAttribute("curve") || "linear";
     const lineD = curve === "smooth"
-      ? createSmoothPath(lineLayout.points)
-      : lineLayout.points.reduce((acc, pt, i) => `${acc}${i === 0 ? "M" : " L"} ${pt.x} ${pt.y}`, "");
+      ? createSmoothPath(linePoints)
+      : linePoints.reduce((acc, pt, i) => `${acc}${i === 0 ? "M" : " L"} ${pt.x} ${pt.y}`, "");
 
     this.#linePath.style.display = "";
     this.#linePath.setAttribute("d", lineD);
@@ -372,9 +389,9 @@ export class MiniComboChart extends MiniChartElement {
     }
 
     // Last point indicator
-    this.#pointsGroup.innerHTML = "";
-    if (lineLayout.points.length > 0) {
-      const last = lineLayout.points[lineLayout.points.length - 1];
+    this.#pointsGroup.replaceChildren();
+    if (linePoints.length > 0) {
+      const last = linePoints[linePoints.length - 1];
       const point = createSvgElement("circle", {
         cx: String(last.x),
         cy: String(last.y),

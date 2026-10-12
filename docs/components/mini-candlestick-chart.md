@@ -1,41 +1,86 @@
 # Candlestick Chart (`<mini-candlestick-chart>`)
 
-A financial chart that visualizes Open, High, Low, and Close (OHLC) data. It automatically colors candles green (bullish/rising) or red (bearish/falling) based on the close vs open price.
+A financial sparkline of open, high, low and close prices. Each period is a candle: a wick from the high to the low and a body from the open to the close, colored by direction.
 
-## Data Structure
-Expects a 2D JSON array of numbers, where each sub-array must contain exactly 4 values in the order `[Open, High, Low, Close]`.
+## Data
+
+A JSON array of `[open, high, low, close]` tuples, one per period, oldest first.
 
 ```json
 [
-  [100, 110, 90, 105], 
-  [105, 120, 100, 115], 
+  [100, 110, 90, 105],
+  [105, 120, 100, 115],
   [115, 115, 80, 85]
 ]
 ```
 
-## HTML Attributes
-- **`data`** *(string)*: The JSON 2D array of OHLC values.
-- **`label`** *(string, optional)*: ARIA label and `<title>` for accessibility.
+- A tuple may carry extra columns after the close (volume, a timestamp): they are ignored and do not affect the price scale. Only the four prices of every candle set the value axis.
+- A tuple with fewer than four entries, or whose first four entries are not all finite numbers, is dropped, and the candles after it move one slot to the left.
+- A candle is bullish when `close >= open`, bearish otherwise. High and low are not checked against the open and close.
+- Bodies are at least 0.5 viewBox units tall, so a candle that opens and closes at the same price stays visible.
 
-## CSS Styling
+The `data` property accepts the array directly (`chart.data = [[100, 110, 90, 105]]`) and writes it to the attribute as JSON.
 
-### Custom Properties
-- `--mini-chart-bullish-color`: Color of rising candles (Close >= Open). Default: `#10b981`.
-- `--mini-chart-bearish-color`: Color of falling candles (Close < Open). Default: `#ef4444`.
+## Attributes
 
-### Shadow Parts (`::part()`)
-- `part="candle"`: Targets the `<g>` group containing both the wick and body.
-- `part="wick"`: Targets the vertical line `<line>` representing the high-low range.
-- `part="body"`: Targets the rectangle `<rect>` representing the open-close range.
-- `part="bullish"`: Added to the `<g>` element if the candle is rising.
-- `part="bearish"`: Added to the `<g>` element if the candle is falling.
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | JSON `[open, high, low, close][]` | `[]` | The candles to plot. |
+| `label` | string | `"Candlestick chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `hollow-bullish` | boolean | on | Bullish bodies are drawn hollow (outline only). The chart is hollow whether the attribute is absent or present; only `hollow-bullish="false"` fills bullish bodies. Bearish bodies are always filled. |
+| `wick-width` | number | `0.75` | Stroke width of the wick and of the body outline, in viewBox units (the viewBox is 100 × 30, so the stroke scales with the chart). An explicit attribute wins over an inherited `--mini-chart-wick-width`; a negative or non-numeric value is ignored. |
+| `gap` | number | `0.2` | Share of each slot left empty between candles, from `0` to `0.8`. Values outside that range are clamped; a non-numeric value keeps the default. |
+| `min` | number | lowest price | Bottom of the price axis. Ignored when it is not below `max`, and the data extent is used instead. Prices outside the range are not clamped. |
+| `max` | number | highest price | Top of the price axis. Ignored when it is not above `min`. |
+| `interactive` | boolean (presence) | off | Highlights the candle under the pointer (the others fade to 0.45 opacity) and dispatches the events below. `interactive="false"` still enables it. |
 
-## Usage Example
+## Events
+
+Dispatched only when `interactive` is set. All bubble and cross the shadow boundary (`composed`).
+
+| Event | `detail` | When |
+| --- | --- | --- |
+| `sparkline-hover` | `{ index, open, high, low, close, isBullish, change, changePercent, element }` | The pointer enters a candle. `change` is `close - open`; `changePercent` is `change / open × 100` rounded to two decimals (`0` when `open` is `0`); `element` is the candle's `<g>`. `index` counts the plotted candles, after invalid tuples are dropped. |
+| `sparkline-select` | same as `sparkline-hover` | A candle is clicked. |
+| `sparkline-leave` | none | The pointer leaves the chart. |
+
+## CSS custom properties
+
+| Property | Default | What it styles |
+| --- | --- | --- |
+| `--mini-chart-bullish-color` | `#10b981` | Wick, outline and (with `hollow-bullish="false"`) body of rising candles. |
+| `--mini-chart-bearish-color` | `#ef4444` | Wick, outline and body of falling candles. |
+| `--mini-chart-wick-width` | `0.75` | Wick and body outline width, in viewBox units, when the `wick-width` attribute is absent. |
+| `--mini-chart-aspect-ratio` | `10 / 3` | Host aspect ratio when the host has no explicit height. |
+
+## Parts
+
+Direction is not a part. Bullish candles carry a `data-bullish` attribute on their `<g>`, which `::part()` cannot select, so color rising and falling candles through `--mini-chart-bullish-color` and `--mini-chart-bearish-color`.
+
+| Part | Element | Description |
+| --- | --- | --- |
+| `svg` | `<svg>` | The chart root. |
+| `candles` | `<g>` | Container of all candles. |
+| `candle` | `<g>` | One candle: its wick and body. |
+| `wick` | `<line>` | The high-low line. |
+| `body` | `<rect>` | The open-close box. |
+
+## Example
 
 ```html
-<mini-candlestick-chart 
-  data="[[100,110,90,105], [105,120,100,115], [115,115,80,85]]" 
-  label="Stock ticker trend"
-  style="--mini-chart-bullish-color: #3b82f6; --mini-chart-bearish-color: #f97316;">
-</mini-candlestick-chart>
+<mini-candlestick-chart
+  data="[[100, 110, 90, 105], [105, 120, 100, 115], [115, 115, 80, 85]]"
+  hollow-bullish="false"
+  wick-width="1"
+  gap="0.3"
+  interactive
+  label="Stock price, last three sessions"
+  style="--mini-chart-bullish-color: #3b82f6; --mini-chart-bearish-color: #f97316"
+></mini-candlestick-chart>
+```
+
+```css
+mini-candlestick-chart::part(body) {
+  stroke-linejoin: round;
+}
 ```

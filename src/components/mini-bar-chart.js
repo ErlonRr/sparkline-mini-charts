@@ -2,7 +2,7 @@
 
 import { createBarLayout } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
-import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+import { createSvgElement, createChartSvg, chartStyles, entranceDelay } from "../core/svg.js";
 
 /**
  * Renders a numeric series as a compact bar sparkline with animations, styling, and interactions.
@@ -21,6 +21,16 @@ export class MiniBarChart extends MiniChartElement {
     "interactive",
   ];
 
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
+
+  /**
+   * Whether the bars have played their entrance animation. An empty first
+   * render (a framework setting `data` after connecting) does not count, so
+   * the bars grow in when the first values arrive.
+   */
+  #entered = false;
+
   /** @type {ReturnType<typeof setTimeout> | null} */
   #timerId = null;
 
@@ -35,7 +45,8 @@ export class MiniBarChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers and interaction listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -43,7 +54,6 @@ export class MiniBarChart extends MiniChartElement {
       clearTimeout(this.#timerId);
       this.#timerId = null;
     }
-    this.#detachInteractionListeners();
   }
 
   /** Renders the element's complete Shadow DOM tree, preserving SVG for animations. */
@@ -52,25 +62,11 @@ export class MiniBarChart extends MiniChartElement {
     const label = this.getAttribute("label") ?? this.createDefaultLabel(data);
     let style = this.shadowRoot?.querySelector("style");
     let svg = this.shadowRoot?.querySelector("svg");
-    const isInitialRender = !svg;
 
     if (!svg || !style) {
+      // The stylesheet is static, so it is written once with the nodes instead of on every render.
       style = document.createElement("style");
-      svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
-      this.#svg = svg;
-
-      this.#barsGroup = /** @type {SVGGElement} */ (createSvgElement("g", { part: "bars" }));
-      svg.append(this.#barsGroup);
-
-      this.shadowRoot?.replaceChildren(style, svg);
-      this.#setupInteractionListeners();
-    } else {
-      svg.setAttribute("aria-label", label);
-      const title = svg.querySelector("title");
-      if (title) title.textContent = label;
-    }
-
-    style.textContent = `${chartStyles}
+      style.textContent = `${chartStyles}
 :host { 
   --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; 
 }
@@ -94,8 +90,23 @@ export class MiniBarChart extends MiniChartElement {
 :host([interactive]) [part="bars"]:has([part~="bar"]:hover) [part~="bar"]:not(:hover) {
   opacity: var(--mini-chart-bar-opacity-inactive, 0.45);
 }`;
+      svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
+      this.#svg = svg;
 
-    this.renderChart(svg, data, isInitialRender);
+      this.#barsGroup = /** @type {SVGGElement} */ (createSvgElement("g", { part: "bars" }));
+      svg.append(this.#barsGroup);
+
+      this.shadowRoot?.replaceChildren(style, svg);
+      // The nodes are new, so they need their own listeners.
+      this.#listenersAttached = false;
+      this.#setupInteractionListeners();
+    } else {
+      svg.setAttribute("aria-label", label);
+      const title = svg.querySelector("title");
+      if (title) title.textContent = label;
+    }
+
+    this.renderChart(svg, data, !this.#entered);
   }
 
   #onPointerMove = (/** @type {PointerEvent} */ e) => {
@@ -122,14 +133,16 @@ export class MiniBarChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#barsGroup?.addEventListener("pointerover", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#barsGroup?.removeEventListener("pointerover", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 
   /**
@@ -137,7 +150,7 @@ export class MiniBarChart extends MiniChartElement {
    * 
    * @param {SVGSVGElement} svg Responsive SVG root.
    * @param {number[]} data Parsed chart values.
-   * @param {boolean} isInitial True if this is the first render.
+   * @param {boolean} isInitial True until the first non-empty render, which plays the entrance animation.
    */
   renderChart(svg, data, isInitial = false) {
     if (this.#timerId !== null) {
@@ -177,6 +190,7 @@ export class MiniBarChart extends MiniChartElement {
     }
 
     if (bars.length === 0) return;
+    this.#entered = true;
 
     if (isInitial) {
       // Step 1: Batch initial positioning at baseline
@@ -205,16 +219,16 @@ export class MiniBarChart extends MiniChartElement {
       // Step 2: Single forced reflow on SVG root (no layout thrashing)
       svg.getBoundingClientRect();
 
-      // Step 3: Batch trigger staggered transitions
+      // Step 3: Batch trigger staggered transitions; the whole stagger is capped, however many bars there are.
       bars.forEach((bar, index) => {
         const rect = existingBars[index];
-        rect.style.transition = `all 0.4s ease-out ${index * 0.03}s`;
+        rect.style.transition = `all 0.4s ease-out ${entranceDelay(index, bars.length, 30)}ms`;
         rect.setAttribute("y", String(bar.y));
         rect.setAttribute("height", String(bar.height));
       });
 
       // Step 4: Central timer for inline transition cleanup
-      const maxDuration = 400 + bars.length * 30 + 50;
+      const maxDuration = 400 + entranceDelay(bars.length - 1, bars.length, 30) + 50;
       this.#timerId = setTimeout(() => {
         if (this.isConnected) {
           existingBars.forEach((r) => {

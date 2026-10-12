@@ -1,8 +1,12 @@
 // mini-bullet-chart.js — Responsive SVG bullet sparkline Custom Element for KPIs and OKRs.
 
 import { createBulletLayout } from "../core/geometry.js";
+import { parseGradient, resolveGradientColors, setGradientStops } from "../core/gradient.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
 import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+
+/** Measure-bar stops for `gradient` and `gradient="true"`. */
+const DEFAULT_GRADIENT = Object.freeze(["#3b82f6", "#8b5cf6", "#ec4899"]);
 
 /**
  * Renders a Stephen Few bullet graph for performance tracking with optional gradient fills.
@@ -20,6 +24,12 @@ export class MiniBulletChart extends MiniChartElement {
     "gradient",
     "interactive",
   ];
+
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
+
+  /** Whether the measure bar has played its entrance animation. */
+  #entered = false;
 
   /** @type {boolean} */
   #initialized = false;
@@ -51,7 +61,8 @@ export class MiniBulletChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending frames on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -59,22 +70,29 @@ export class MiniBulletChart extends MiniChartElement {
       cancelAnimationFrame(this.#rafId);
       this.#rafId = null;
     }
-    this.#detachInteractionListeners();
   }
 
   /**
-   * Overrides data getter to parse numeric arrays or bullet config objects.
+   * Overrides the default data parser to accept numeric arrays, bullet config
+   * objects, or a single number, which becomes `{ value }` so the target, min,
+   * max and ranges attributes still apply. `null` and any other JSON value give
+   * the empty model `[]`.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
    * @returns {any}
    */
-  get data() {
-    const raw = this.getAttribute("data");
+  parseData(raw) {
     if (!raw) return [];
+    let parsed;
     try {
-      return JSON.parse(raw);
+      parsed = JSON.parse(raw);
     } catch {
       const num = parseFloat(raw);
       return !isNaN(num) ? [num] : [];
     }
+    if (typeof parsed === "number") return Number.isFinite(parsed) ? { value: parsed } : [];
+    if (parsed !== null && typeof parsed === "object") return parsed;
+    return [];
   }
 
   render() {
@@ -105,18 +123,15 @@ export class MiniBulletChart extends MiniChartElement {
   transition: opacity 0.2s ease;
   pointer-events: none;
 }
-[part~="range-1"] { fill: var(--mini-chart-range-1, color-mix(in srgb, var(--primary, #3b82f6) 12%, rgba(128, 128, 128, 0.1))); }
-[part~="range-2"] { fill: var(--mini-chart-range-2, color-mix(in srgb, var(--primary, #3b82f6) 24%, rgba(128, 128, 128, 0.16))); }
-[part~="range-3"] { fill: var(--mini-chart-range-3, color-mix(in srgb, var(--primary, #3b82f6) 36%, rgba(128, 128, 128, 0.22))); }
+[part~="range-1"] { fill: var(--mini-chart-range-1, color-mix(in srgb, var(--mini-chart-color, #3b82f6) 12%, rgba(128, 128, 128, 0.1))); }
+[part~="range-2"] { fill: var(--mini-chart-range-2, color-mix(in srgb, var(--mini-chart-color, #3b82f6) 24%, rgba(128, 128, 128, 0.16))); }
+[part~="range-3"] { fill: var(--mini-chart-range-3, color-mix(in srgb, var(--mini-chart-color, #3b82f6) 36%, rgba(128, 128, 128, 0.22))); }
 [part="measure"] {
   fill: var(--mini-chart-measure-color, var(--mini-chart-color, #3b82f6));
   rx: 2px;
   ry: 2px;
   transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
   cursor: default;
-}
-:host([gradient]) [part="measure"] {
-  fill: unset;
 }
 [part="target"] {
   stroke: var(--mini-chart-target-color, var(--mini-chart-danger-color, #ef4444));
@@ -176,35 +191,16 @@ export class MiniBulletChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#svg?.addEventListener("pointerover", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#svg?.removeEventListener("pointerover", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  /**
-   * Resolves gradient colors for measure bar.
-   * @returns {string[] | null}
-   */
-  #resolveGradientStops() {
-    const raw = this.getAttribute("gradient");
-    if (raw === null || raw === "false") return null;
-    if (raw === "" || raw === "true") {
-      return ["#3b82f6", "#8b5cf6", "#ec4899"];
-    }
-    try {
-      const normalized = raw.replace(/'/g, '"');
-      const parsed = JSON.parse(normalized);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    } catch {}
-    if (raw.includes(",")) {
-      return raw.replace(/[\[\]'"]/g, "").split(",").map((s) => s.trim()).filter(Boolean);
-    }
-    return null;
   }
 
   /**
@@ -265,34 +261,31 @@ export class MiniBulletChart extends MiniChartElement {
     this.#svg.setAttribute("aria-valuemax", String(geo.max));
 
     // Render background qualitative ranges
-    this.#rangesGroup.innerHTML = "";
-    geo.ranges.forEach((range, idx) => {
-      const rect = createSvgElement("rect", {
-        part: `range range-${idx + 1}`,
-        x: String(range.x),
-        y: String(range.y),
-        width: String(range.width),
-        height: String(range.height),
-      });
-      this.#rangesGroup?.append(rect);
-    });
+    this.#rangesGroup.replaceChildren(
+      ...geo.ranges.map((range, idx) =>
+        createSvgElement("rect", {
+          part: `range range-${idx + 1}`,
+          x: String(range.x),
+          y: String(range.y),
+          width: String(range.width),
+          height: String(range.height),
+        }),
+      ),
+    );
 
-    // Configure gradient fill on measure bar
-    const gradStops = this.#resolveGradientStops();
+    // Gradient fill on the measure bar. Without one, the inline fill is cleared
+    // and the stylesheet's themed measure color applies.
+    const gradStops = resolveGradientColors(parseGradient(this.getAttribute("gradient")), DEFAULT_GRADIENT);
     if (gradStops) {
-      this.#gradient.innerHTML = "";
-      gradStops.forEach((col, idx) => {
-        const offset = gradStops.length > 1 ? `${(idx / (gradStops.length - 1)) * 100}%` : "0%";
-        this.#gradient?.append(createSvgElement("stop", { offset, "stop-color": col }));
-      });
+      setGradientStops(this.#gradient, gradStops);
       this.#measureRect.style.fill = `url(#${this.#gradId})`;
     } else {
       this.#measureRect.style.fill = "";
     }
 
-    const isInitial = !this.#measureRect.dataset.rendered;
+    const isInitial = !this.#entered;
     if (isInitial) {
-      this.#measureRect.dataset.rendered = "true";
+      this.#entered = true;
       this.#measureRect.style.transition = "none";
       this.#measureRect.setAttribute("x", String(geo.measure.x));
       this.#measureRect.setAttribute("y", String(geo.measure.y));

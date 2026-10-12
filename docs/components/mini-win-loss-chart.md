@@ -1,49 +1,82 @@
-# Win / Loss & Uptime Chart (`<mini-win-loss-chart>`)
+# Win / Loss Chart (`<mini-win-loss-chart>`)
 
-The Win/Loss Chart implements Edward Tufte's binary sparkline design for discrete categorical outcomes: Win (`1`), Loss (`-1`), and Tie (`0`). It also features a continuous uptime strip mode (`mode="status"`) for system reliability tracking.
+Edward Tufte's win/loss sparkline: one block per outcome, above the baseline for a win, below it for a loss, and a thin mark on it for a tie. `mode="status"` turns it into a full-height status strip (for example, uptime per day).
 
-## Data Structure
+## Data
 
-Expects an array of numbers representing binary outcomes (`1` for Win/Up, `-1` for Loss/Down, `0` for Tie).
+A JSON array of numbers. Only the sign counts: a positive value is a win, a negative value a loss and `0` a tie, so `[3, -1, 0]` draws the same as `[1, -1, 0]`. Entries that are not finite numbers are skipped.
 
 ```json
 [1, 1, -1, 1, 0, -1, 1, 1, 1, -1]
 ```
 
-## HTML Attributes
-- **`data`** *(string)*: JSON array of ternary numbers (`1`, `0`, `-1`).
-- **`label`** *(string, optional)*: Accessible name applied to the rendered SVG.
-- **`gap`** *(number, optional)*: Fractional gap between bars (default: `0.2`).
-- **`radius`** *(number, optional)*: Corner rounding for each bar (default: `1`).
-- **`mode`** *(string, optional)*: `"binary"` (default) or `"status"` (continuous full-height strip).
-- **`win-color`** *(string, optional)*: Explicit win/up color override.
-- **`loss-color`** *(string, optional)*: Explicit loss/down color override.
-- **`tie-color`** *(string, optional)*: Explicit tie color override.
+The `data` property accepts the array directly (`chart.data = [1, -1, 0]`) and writes it to the attribute as JSON.
 
-## CSS Styling
+## Attributes
 
-### Custom Properties
-- `--mini-chart-bullish-color` or `--mini-chart-win-color`: Positive/Win bar color (default: `#10b981`).
-- `--mini-chart-bearish-color` or `--mini-chart-loss-color`: Negative/Loss bar color (default: `#ef4444`).
-- `--mini-chart-tie-color`: Neutral/Tie bar color (default: `#94a3b8`).
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | JSON `number[]` | `[]` | The outcomes to plot. |
+| `label` | string | `"Win-loss chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `gap` | number | `0.2` | Share of each slot left empty between blocks, clamped to `0`–`0.8`. |
+| `radius` | number | `2` | Corner radius of each block, in viewBox units (the chart is 100 × 30). `"3px"` is read as `3`. A negative or invalid value falls back to `--mini-chart-bar-radius`. An explicit attribute wins over the inherited token. |
+| `mode` | `win-loss` \| `binary` \| `status` \| `uptime` | `win-loss` | `win-loss` (alias `binary`) draws wins above and losses below a dashed baseline. `status` (alias `uptime`) draws every outcome as a full-height block and hides the baseline. Any other value is `win-loss`. |
+| `win-color` | — | — | Observed but has no effect. Use `--mini-chart-win-color`. |
+| `loss-color` | — | — | Observed but has no effect. Use `--mini-chart-loss-color`. |
+| `tie-color` | — | — | Observed but has no effect. Use `--mini-chart-tie-color`. |
+| `interactive` | boolean (presence) | off | Highlights the block under the pointer, dims the others and dispatches the events below. `interactive="false"` still enables it. |
 
-### Shadow Parts (`::part()`)
-- `part="bar"`: Base selector for all outcome bars.
-- `part="bar win"` / `part="bar loss"` / `part="bar tie"`: Status-specific part tokens.
+## Events
 
-## Usage Example
+Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+
+| Event | `detail` | When |
+| --- | --- | --- |
+| `sparkline-hover` | `{ index, value, outcome, element }` | The pointer enters a block. `outcome` is `"win"`, `"loss"` or `"tie"`, `element` is the block's `<rect>`. |
+| `sparkline-leave` | none | The pointer leaves the chart. |
+
+## CSS custom properties
+
+| Property | Default | What it styles |
+| --- | --- | --- |
+| `--mini-chart-win-color` | `--mini-chart-bullish-color` | Win block fill. |
+| `--mini-chart-bullish-color` | `#10b981` | Win block fill when `--mini-chart-win-color` is not set. |
+| `--mini-chart-loss-color` | `--mini-chart-bearish-color` | Loss block fill. |
+| `--mini-chart-bearish-color` | `#ef4444` | Loss block fill when `--mini-chart-loss-color` is not set. |
+| `--mini-chart-tie-color` | `--mini-chart-muted-color` | Tie block fill. |
+| `--mini-chart-muted-color` | `#94a3b8` | Tie block fill when `--mini-chart-tie-color` is not set. |
+| `--mini-chart-bar-radius` | `2px` | Block corner radius when the `radius` attribute is not set. |
+| `--mini-chart-baseline-color` | `rgba(128, 128, 128, 0.25)` | Dashed baseline stroke (`win-loss` mode). |
+| `--mini-chart-aspect-ratio` | `10 / 3` | Host aspect ratio when the host has no explicit height. |
+
+## Parts
+
+| Part | Element | Description |
+| --- | --- | --- |
+| `svg` | `<svg>` | The chart root. |
+| `baseline` | `<line>` | Dashed zero line, hidden in `status` mode. |
+| `bars` | `<g>` | Container of the blocks. |
+| `bar` | `<rect>` | Every block. |
+| `win` | `<rect>` | Blocks with a positive value (part list `bar win`). |
+| `loss` | `<rect>` | Blocks with a negative value (part list `bar loss`). |
+| `tie` | `<rect>` | Blocks with a value of `0` (part list `bar tie`). |
+
+## Example
 
 ```html
-<!-- Sports or Trading Win/Loss -->
-<mini-win-loss-chart 
-  data="[1, 1, -1, 1, 1, -1, 0, 1]" 
-  label="Recent Match Outcomes">
-</mini-win-loss-chart>
+<!-- Match results -->
+<mini-win-loss-chart
+  data="[1, 1, -1, 1, 1, -1, 0, 1]"
+  interactive
+  label="Recent match outcomes"
+></mini-win-loss-chart>
 
-<!-- Server Uptime Status Strip -->
-<mini-win-loss-chart 
-  data="[1, 1, 1, 1, -1, 1, 1, 1, 1, 1]" 
+<!-- Uptime strip -->
+<mini-win-loss-chart
+  data="[1, 1, 1, 1, -1, 1, 1, 1, 1, 1]"
   mode="status"
-  label="API Uptime History">
-</mini-win-loss-chart>
+  radius="0"
+  label="API uptime, last 10 days"
+  style="--mini-chart-win-color: #16a34a"
+></mini-win-loss-chart>
 ```

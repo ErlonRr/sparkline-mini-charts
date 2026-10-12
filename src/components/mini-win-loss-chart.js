@@ -2,12 +2,35 @@
 
 import { createWinLossLayout } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
-import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+import { createSvgElement, createChartSvg, chartStyles, entranceDelay, setLengthProperty } from "../core/svg.js";
 
 /**
  * @typedef {Object} WinLossCache
  * @property {SVGRectElement} bar
  */
+
+/**
+ * Values of the `mode` attribute and the layout each one selects. `uptime` is
+ * an alias of `status`, and `binary` of the default `win-loss`.
+ *
+ * @type {Readonly<Record<string, "win-loss" | "status">>}
+ */
+const MODES = Object.freeze({
+  "win-loss": "win-loss",
+  binary: "win-loss",
+  status: "status",
+  uptime: "status",
+});
+
+/**
+ * Resolves the `mode` attribute; an absent or unknown value is `win-loss`.
+ *
+ * @param {string | null} value Value of the `mode` attribute.
+ * @returns {"win-loss" | "status"} The layout mode.
+ */
+function resolveMode(value) {
+  return (value !== null && Object.hasOwn(MODES, value) && MODES[value]) || "win-loss";
+}
 
 /**
  * Renders discrete binary and ternary outcomes (Win/Loss/Tie or Up/Down) as a compact sparkline.
@@ -26,6 +49,9 @@ export class MiniWinLossChart extends MiniChartElement {
     "tie-color",
     "interactive",
   ];
+
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
 
   /** @type {boolean} */
   #initialized = false;
@@ -52,7 +78,8 @@ export class MiniWinLossChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers and interaction listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -60,7 +87,6 @@ export class MiniWinLossChart extends MiniChartElement {
       clearTimeout(this.#timerId);
       this.#timerId = null;
     }
-    this.#detachInteractionListeners();
   }
 
   render() {
@@ -76,26 +102,36 @@ export class MiniWinLossChart extends MiniChartElement {
       if (title) title.textContent = label;
     }
 
+    this.#applyOptions();
     this.#updateChart(data);
+  }
+
+  /**
+   * Applies the styling attributes on every render, so changing them after the
+   * first render takes effect. An explicit `radius` wins over the inherited
+   * `--mini-chart-bar-radius` token.
+   */
+  #applyOptions() {
+    if (!this.#svg) return;
+    setLengthProperty(this.#svg, "--_mc-radius", this.getAttribute("radius"), "px");
   }
 
   /**
    * @param {string} label 
    */
   #createDOM(label) {
-    const radius = this.getAttribute("radius") || "2";
-
+    // Static text: per-instance options live on the svg (see #applyOptions), never in the stylesheet.
     const style = document.createElement("style");
     style.textContent = `${chartStyles}
-:host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
+:host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; --_mc-radius: initial; }
 [part="baseline"] {
   stroke: var(--mini-chart-baseline-color, rgba(128, 128, 128, 0.25));
   stroke-width: 1px;
   stroke-dasharray: 2 2;
 }
 [part~="bar"] {
-  rx: var(--mini-chart-bar-radius, ${radius}px);
-  ry: var(--mini-chart-bar-radius, ${radius}px);
+  rx: var(--_mc-radius, var(--mini-chart-bar-radius, 2px));
+  ry: var(--_mc-radius, var(--mini-chart-bar-radius, 2px));
   transition: opacity 0.2s ease, filter 0.2s ease;
   cursor: default;
 }
@@ -148,14 +184,16 @@ export class MiniWinLossChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#container?.addEventListener("pointerover", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#container?.removeEventListener("pointerover", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 
   /**
@@ -180,9 +218,7 @@ export class MiniWinLossChart extends MiniChartElement {
 
     const gapAttr = parseFloat(this.getAttribute("gap") || "0.2");
     const gapRatio = !isNaN(gapAttr) ? gapAttr : 0.2;
-    const modeAttr = this.getAttribute("mode");
-    /** @type {"win-loss" | "status"} */
-    const mode = modeAttr === "status" ? "status" : "win-loss";
+    const mode = resolveMode(this.getAttribute("mode"));
 
     if (mode === "status") {
       this.#baseline.style.display = "none";
@@ -229,15 +265,16 @@ export class MiniWinLossChart extends MiniChartElement {
       // Step 2: Single reflow
       this.#svg.getBoundingClientRect();
 
-      // Step 3: Staggered reveal
+      // Step 3: Staggered reveal; the whole stagger is capped, however many bars there are.
       items.forEach((item, index) => {
         const cache = this.#bars[index];
-        cache.bar.style.transition = `y 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.025}s, height 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.025}s, opacity 0.3s ease ${index * 0.025}s`;
+        const delay = entranceDelay(index, items.length, 25);
+        cache.bar.style.transition = `y 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, height 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, opacity 0.3s ease ${delay}ms`;
         cache.bar.setAttribute("y", String(item.y));
         cache.bar.setAttribute("height", String(item.height));
       });
 
-      const maxDuration = 350 + items.length * 25 + 50;
+      const maxDuration = 350 + entranceDelay(items.length - 1, items.length, 25) + 50;
       this.#timerId = setTimeout(() => {
         if (this.isConnected) {
           this.#bars.forEach((b) => {

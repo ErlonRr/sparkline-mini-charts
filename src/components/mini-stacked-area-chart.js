@@ -25,6 +25,9 @@ export class MiniStackedAreaChart extends MiniChartElement {
     "interactive",
   ];
 
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
+
   /** @type {boolean} */
   #initialized = false;
 
@@ -52,7 +55,8 @@ export class MiniStackedAreaChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers and interaction listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -64,19 +68,21 @@ export class MiniStackedAreaChart extends MiniChartElement {
       clearTimeout(this.#timerId);
       this.#timerId = null;
     }
-    this.#detachInteractionListeners();
   }
 
   /**
-   * Overrides data getter to parse 2D arrays.
+   * Overrides the default data parser to support 2D arrays.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
    * @returns {number[][]}
    */
-  get data() {
+  parseData(raw) {
     try {
-      const parsed = JSON.parse(this.getAttribute("data") || "[]");
+      const parsed = JSON.parse(raw || "[]");
       if (!Array.isArray(parsed)) return [];
+      // An invalid entry becomes 0 in place (never dropped), so every series keeps its column indices.
       return parsed.map((series) =>
-        Array.isArray(series) ? series.filter(Number.isFinite) : []
+        Array.isArray(series) ? series.map((value) => (Number.isFinite(value) ? value : 0)) : []
       );
     } catch {
       return [];
@@ -170,14 +176,16 @@ export class MiniStackedAreaChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#container?.addEventListener("pointerover", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#container?.removeEventListener("pointerover", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 
   /**

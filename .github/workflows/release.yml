@@ -1,0 +1,176 @@
+name: Release
+
+# On every push to main, Changesets decides what to do:
+# - pending changesets: open or update the "Version Packages" pull request;
+# - that pull request merged (versions bumped, no changesets left): publish to npm
+#   with trusted publishing (OIDC), which also attaches a provenance attestation.
+on:
+  push:
+    branches: [main]
+
+# Each job declares exactly what it needs.
+permissions: {}
+
+# Releases never run in parallel and are never cancelled half-way.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  select-mode:
+    name: Select mode
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      mode: ${{ steps.select-mode.outputs.mode }}
+
+    steps:
+      # Third-party actions are pinned by full commit SHA; the comment names the release.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The pnpm version comes from "packageManager" in package.json.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      # No dependency cache in release jobs: a poisoned cache must not reach a publish.
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # "version" when changesets are pending, "publish" when the package version is
+      # not on npm yet, "none" otherwise.
+      - name: Select mode
+        id: select-mode
+        uses: changesets/action/select-mode@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+
+  version:
+    name: Version Packages pull request
+    needs: select-mode
+    if: needs.select-mode.outputs.mode == 'version'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # push the changeset-release/main branch
+      pull-requests: write # open or update the "Version Packages" pull request
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # GitHub does not start workflows for events caused by the job's GITHUB_TOKEN, so a
+      # Version Packages pull request pushed with it never gets the required CI checks.
+      # With a GitHub App configured (CONTRIBUTING.md, "Release setup"), the pull request
+      # is pushed with an installation token of that app, and CI runs on it as usual.
+      - name: Create a GitHub App token
+        id: app-token
+        if: vars.RELEASE_APP_CLIENT_ID != ''
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      # `changeset version`, then scripts/release-changelog.mjs merges the notes into a
+      # Keep a Changelog section of CHANGELOG.md.
+      - name: Create or update the Version Packages pull request
+        id: version
+        uses: changesets/action/version@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          script: pnpm run version-packages
+          github-token: ${{ steps.app-token.outputs.token || github.token }}
+
+      # Changesets builds the pull request body from a heading that is exactly the version
+      # ("## 1.4.2"); CHANGELOG.md uses "## [1.4.2] - date", so the action would paste the
+      # whole file. Replace the body with the notes of the new version only.
+      - name: Set the pull request body to the release notes
+        if: steps.version.outputs.pr-number != ''
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          PR_NUMBER: ${{ steps.version.outputs.pr-number }}
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          {
+            echo "Merging this pull request publishes \`sparkline-mini-charts@${version}\` to npm. Until then, new changesets on \`main\` update it."
+            echo
+            echo "## sparkline-mini-charts@${version}"
+            echo
+            node scripts/release-changelog.mjs --notes "${version}"
+          } > "${RUNNER_TEMP}/pr-body.md"
+          gh pr edit "${PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --body-file "${RUNNER_TEMP}/pr-body.md"
+
+  publish:
+    name: Publish to npm
+    needs: select-mode
+    if: needs.select-mode.outputs.mode == 'publish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Protected environment: the npm trusted publisher is bound to this workflow and
+    # this environment, so no other workflow or job can publish.
+    environment: npm
+    permissions:
+      contents: write # push the vX.Y.Z tag and create the GitHub release
+      id-token: write # npm trusted publishing (OIDC) and the provenance attestation
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # `changeset publish` runs `pnpm publish`, whose prepublishOnly (unit tests, build,
+      # package tests, API report check) and prepack (build) scripts gate the tarball.
+      # No NPM_TOKEN: pnpm exchanges the GitHub OIDC token for a short-lived npm token.
+      # The action pushes the vX.Y.Z tag; the GitHub release is created by the next step,
+      # because the action looks for a "## x.y.z" heading that CHANGELOG.md does not have
+      # and would use the whole file as the release body (and fail once it passes 64 KiB).
+      - name: Publish
+        id: publish
+        uses: changesets/action/publish@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          script: pnpm run release
+          create-github-releases: false
+          push-git-tags: true
+
+      - name: Create the GitHub release
+        if: steps.publish.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          node scripts/release-changelog.mjs --notes "${version}" > "${RUNNER_TEMP}/release-notes.md"
+          gh release create "v${version}" --repo "${GITHUB_REPOSITORY}" --verify-tag \
+            --title "v${version}" --notes-file "${RUNNER_TEMP}/release-notes.md"

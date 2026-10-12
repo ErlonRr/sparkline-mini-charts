@@ -1,144 +1,336 @@
 {
   "name": "sparkline-mini-charts",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Zero-dependency SVG sparkline Web Components with Shadow DOM, responsive scaling, and framework bindings.",
   "author": "Erlon Rru",
   "license": "MIT",
   "homepage": "https://sparkline-mini-charts.erlonrru.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ErlonRru/sparkline-mini-charts.git"
+    "url": "git+https://github.com/ErlonRr/sparkline-mini-charts.git"
   },
   "bugs": {
-    "url": "https://github.com/ErlonRru/sparkline-mini-charts/issues"
+    "url": "https://github.com/ErlonRr/sparkline-mini-charts/issues"
   },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "define": [
+        "./dist/define.d.ts"
+      ],
+      "register": [
+        "./dist/register.d.ts"
+      ],
+      "mini-area-chart": [
+        "./dist/mini-area-chart.d.ts"
+      ],
+      "mini-bar-chart": [
+        "./dist/mini-bar-chart.d.ts"
+      ],
+      "mini-candlestick-chart": [
+        "./dist/mini-candlestick-chart.d.ts"
+      ],
+      "mini-combo-chart": [
+        "./dist/mini-combo-chart.d.ts"
+      ],
+      "mini-gauge-chart": [
+        "./dist/mini-gauge-chart.d.ts"
+      ],
+      "mini-half-pie-chart": [
+        "./dist/mini-half-pie-chart.d.ts"
+      ],
+      "mini-line-chart": [
+        "./dist/mini-line-chart.d.ts"
+      ],
+      "mini-ohlc-chart": [
+        "./dist/mini-ohlc-chart.d.ts"
+      ],
+      "mini-pie-chart": [
+        "./dist/mini-pie-chart.d.ts"
+      ],
+      "mini-progress-chart": [
+        "./dist/mini-progress-chart.d.ts"
+      ],
+      "mini-radial-bar-chart": [
+        "./dist/mini-radial-bar-chart.d.ts"
+      ],
+      "mini-stacked-area-chart": [
+        "./dist/mini-stacked-area-chart.d.ts"
+      ],
+      "mini-stream-chart": [
+        "./dist/mini-stream-chart.d.ts"
+      ],
+      "mini-bullet-chart": [
+        "./dist/mini-bullet-chart.d.ts"
+      ],
+      "mini-win-loss-chart": [
+        "./dist/mini-win-loss-chart.d.ts"
+      ],
+      "mini-range-bar-chart": [
+        "./dist/mini-range-bar-chart.d.ts"
+      ],
+      "mini-scatter-chart": [
+        "./dist/mini-scatter-chart.d.ts"
+      ],
+      "math": [
+        "./dist/math.d.ts"
+      ],
+      "angular": [
+        "./dist/angular.d.ts"
+      ],
+      "react": [
+        "./dist/react.d.ts"
+      ],
+      "vue": [
+        "./dist/vue.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./define": {
-      "types": "./dist/define.d.ts",
-      "import": "./dist/define.js",
-      "require": "./dist/define.cjs"
+      "import": {
+        "types": "./dist/define.d.ts",
+        "default": "./dist/define.js"
+      },
+      "require": {
+        "types": "./dist/define.d.cts",
+        "default": "./dist/define.cjs"
+      }
     },
     "./register": {
-      "types": "./dist/register.d.ts",
-      "import": "./dist/register.js",
-      "require": "./dist/register.cjs"
+      "import": {
+        "types": "./dist/register.d.ts",
+        "default": "./dist/register.js"
+      },
+      "require": {
+        "types": "./dist/register.d.cts",
+        "default": "./dist/register.cjs"
+      }
     },
     "./mini-area-chart": {
-      "types": "./dist/mini-area-chart.d.ts",
-      "import": "./dist/mini-area-chart.js",
-      "require": "./dist/mini-area-chart.cjs"
+      "import": {
+        "types": "./dist/mini-area-chart.d.ts",
+        "default": "./dist/mini-area-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-area-chart.d.cts",
+        "default": "./dist/mini-area-chart.cjs"
+      }
     },
     "./mini-bar-chart": {
-      "types": "./dist/mini-bar-chart.d.ts",
-      "import": "./dist/mini-bar-chart.js",
-      "require": "./dist/mini-bar-chart.cjs"
+      "import": {
+        "types": "./dist/mini-bar-chart.d.ts",
+        "default": "./dist/mini-bar-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-bar-chart.d.cts",
+        "default": "./dist/mini-bar-chart.cjs"
+      }
     },
     "./mini-candlestick-chart": {
-      "types": "./dist/mini-candlestick-chart.d.ts",
-      "import": "./dist/mini-candlestick-chart.js",
-      "require": "./dist/mini-candlestick-chart.cjs"
+      "import": {
+        "types": "./dist/mini-candlestick-chart.d.ts",
+        "default": "./dist/mini-candlestick-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-candlestick-chart.d.cts",
+        "default": "./dist/mini-candlestick-chart.cjs"
+      }
     },
     "./mini-combo-chart": {
-      "types": "./dist/mini-combo-chart.d.ts",
-      "import": "./dist/mini-combo-chart.js",
-      "require": "./dist/mini-combo-chart.cjs"
+      "import": {
+        "types": "./dist/mini-combo-chart.d.ts",
+        "default": "./dist/mini-combo-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-combo-chart.d.cts",
+        "default": "./dist/mini-combo-chart.cjs"
+      }
     },
     "./mini-gauge-chart": {
-      "types": "./dist/mini-gauge-chart.d.ts",
-      "import": "./dist/mini-gauge-chart.js",
-      "require": "./dist/mini-gauge-chart.cjs"
+      "import": {
+        "types": "./dist/mini-gauge-chart.d.ts",
+        "default": "./dist/mini-gauge-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-gauge-chart.d.cts",
+        "default": "./dist/mini-gauge-chart.cjs"
+      }
     },
     "./mini-half-pie-chart": {
-      "types": "./dist/mini-half-pie-chart.d.ts",
-      "import": "./dist/mini-half-pie-chart.js",
-      "require": "./dist/mini-half-pie-chart.cjs"
+      "import": {
+        "types": "./dist/mini-half-pie-chart.d.ts",
+        "default": "./dist/mini-half-pie-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-half-pie-chart.d.cts",
+        "default": "./dist/mini-half-pie-chart.cjs"
+      }
     },
     "./mini-line-chart": {
-      "types": "./dist/mini-line-chart.d.ts",
-      "import": "./dist/mini-line-chart.js",
-      "require": "./dist/mini-line-chart.cjs"
+      "import": {
+        "types": "./dist/mini-line-chart.d.ts",
+        "default": "./dist/mini-line-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-line-chart.d.cts",
+        "default": "./dist/mini-line-chart.cjs"
+      }
     },
     "./mini-ohlc-chart": {
-      "types": "./dist/mini-ohlc-chart.d.ts",
-      "import": "./dist/mini-ohlc-chart.js",
-      "require": "./dist/mini-ohlc-chart.cjs"
+      "import": {
+        "types": "./dist/mini-ohlc-chart.d.ts",
+        "default": "./dist/mini-ohlc-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-ohlc-chart.d.cts",
+        "default": "./dist/mini-ohlc-chart.cjs"
+      }
     },
     "./mini-pie-chart": {
-      "types": "./dist/mini-pie-chart.d.ts",
-      "import": "./dist/mini-pie-chart.js",
-      "require": "./dist/mini-pie-chart.cjs"
+      "import": {
+        "types": "./dist/mini-pie-chart.d.ts",
+        "default": "./dist/mini-pie-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-pie-chart.d.cts",
+        "default": "./dist/mini-pie-chart.cjs"
+      }
     },
     "./mini-progress-chart": {
-      "types": "./dist/mini-progress-chart.d.ts",
-      "import": "./dist/mini-progress-chart.js",
-      "require": "./dist/mini-progress-chart.cjs"
+      "import": {
+        "types": "./dist/mini-progress-chart.d.ts",
+        "default": "./dist/mini-progress-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-progress-chart.d.cts",
+        "default": "./dist/mini-progress-chart.cjs"
+      }
     },
     "./mini-radial-bar-chart": {
-      "types": "./dist/mini-radial-bar-chart.d.ts",
-      "import": "./dist/mini-radial-bar-chart.js",
-      "require": "./dist/mini-radial-bar-chart.cjs"
+      "import": {
+        "types": "./dist/mini-radial-bar-chart.d.ts",
+        "default": "./dist/mini-radial-bar-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-radial-bar-chart.d.cts",
+        "default": "./dist/mini-radial-bar-chart.cjs"
+      }
     },
     "./mini-stacked-area-chart": {
-      "types": "./dist/mini-stacked-area-chart.d.ts",
-      "import": "./dist/mini-stacked-area-chart.js",
-      "require": "./dist/mini-stacked-area-chart.cjs"
+      "import": {
+        "types": "./dist/mini-stacked-area-chart.d.ts",
+        "default": "./dist/mini-stacked-area-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-stacked-area-chart.d.cts",
+        "default": "./dist/mini-stacked-area-chart.cjs"
+      }
     },
     "./mini-stream-chart": {
-      "types": "./dist/mini-stream-chart.d.ts",
-      "import": "./dist/mini-stream-chart.js",
-      "require": "./dist/mini-stream-chart.cjs"
+      "import": {
+        "types": "./dist/mini-stream-chart.d.ts",
+        "default": "./dist/mini-stream-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-stream-chart.d.cts",
+        "default": "./dist/mini-stream-chart.cjs"
+      }
     },
     "./mini-bullet-chart": {
-      "types": "./dist/mini-bullet-chart.d.ts",
-      "import": "./dist/mini-bullet-chart.js",
-      "require": "./dist/mini-bullet-chart.cjs"
+      "import": {
+        "types": "./dist/mini-bullet-chart.d.ts",
+        "default": "./dist/mini-bullet-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-bullet-chart.d.cts",
+        "default": "./dist/mini-bullet-chart.cjs"
+      }
     },
     "./mini-win-loss-chart": {
-      "types": "./dist/mini-win-loss-chart.d.ts",
-      "import": "./dist/mini-win-loss-chart.js",
-      "require": "./dist/mini-win-loss-chart.cjs"
+      "import": {
+        "types": "./dist/mini-win-loss-chart.d.ts",
+        "default": "./dist/mini-win-loss-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-win-loss-chart.d.cts",
+        "default": "./dist/mini-win-loss-chart.cjs"
+      }
     },
     "./mini-range-bar-chart": {
-      "types": "./dist/mini-range-bar-chart.d.ts",
-      "import": "./dist/mini-range-bar-chart.js",
-      "require": "./dist/mini-range-bar-chart.cjs"
+      "import": {
+        "types": "./dist/mini-range-bar-chart.d.ts",
+        "default": "./dist/mini-range-bar-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-range-bar-chart.d.cts",
+        "default": "./dist/mini-range-bar-chart.cjs"
+      }
     },
     "./mini-scatter-chart": {
-      "types": "./dist/mini-scatter-chart.d.ts",
-      "import": "./dist/mini-scatter-chart.js",
-      "require": "./dist/mini-scatter-chart.cjs"
+      "import": {
+        "types": "./dist/mini-scatter-chart.d.ts",
+        "default": "./dist/mini-scatter-chart.js"
+      },
+      "require": {
+        "types": "./dist/mini-scatter-chart.d.cts",
+        "default": "./dist/mini-scatter-chart.cjs"
+      }
     },
     "./math": {
-
-
-      "types": "./dist/math.d.ts",
-      "import": "./dist/math.js",
-      "require": "./dist/math.cjs"
+      "import": {
+        "types": "./dist/math.d.ts",
+        "default": "./dist/math.js"
+      },
+      "require": {
+        "types": "./dist/math.d.cts",
+        "default": "./dist/math.cjs"
+      }
     },
     "./angular": {
-      "types": "./dist/angular.d.ts",
-      "import": "./dist/angular.js",
-      "require": "./dist/angular.cjs"
+      "import": {
+        "types": "./dist/angular.d.ts",
+        "default": "./dist/angular.js"
+      },
+      "require": {
+        "types": "./dist/angular.d.cts",
+        "default": "./dist/angular.cjs"
+      }
     },
     "./react": {
-      "types": "./dist/react.d.ts",
-      "import": "./dist/react.js",
-      "require": "./dist/react.cjs"
+      "import": {
+        "types": "./dist/react.d.ts",
+        "default": "./dist/react.js"
+      },
+      "require": {
+        "types": "./dist/react.d.cts",
+        "default": "./dist/react.cjs"
+      }
     },
     "./vue": {
-      "types": "./dist/vue.d.ts",
-      "import": "./dist/vue.js",
-      "require": "./dist/vue.cjs"
-    }
+      "import": {
+        "types": "./dist/vue.d.ts",
+        "default": "./dist/vue.js"
+      },
+      "require": {
+        "types": "./dist/vue.d.cts",
+        "default": "./dist/vue.cjs"
+      }
+    },
+    "./package.json": "./package.json"
   },
   "sideEffects": [
     "./dist/register.js",
@@ -152,13 +344,30 @@
     "CHANGELOG.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "dev": "vite --config vite.config.demo.js",
-    "build": "vite build",
+    "build": "vite build && node scripts/emit-entry-dts.mjs",
     "build:demo": "vite build --config vite.config.demo.js",
     "preview": "vite preview --config vite.config.demo.js",
-    "test": "node --test",
-    "typecheck": "tsc --noEmit"
+    "test": "pnpm run test:unit",
+    "test:unit": "node --test \"test/**/!(package-*).test.js\"",
+    "test:package": "node --test \"test/package-*.test.js\"",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "lint:source": "node scripts/check-source.mjs",
+    "lint:docs": "node scripts/check-docs.mjs",
+    "lint:package": "publint --strict && attw --pack .",
+    "api:check": "node scripts/api-report.mjs",
+    "api:update": "node scripts/api-report.mjs --update",
+    "prepack": "pnpm build 1>&2",
+    "prepublishOnly": "pnpm test:unit && pnpm build && pnpm test:package && pnpm api:check",
+    "changeset": "changeset",
+    "version-packages": "changeset version && node scripts/release-changelog.mjs",
+    "release": "changeset publish"
   },
   "engines": {
     "node": ">=22"
@@ -175,19 +384,34 @@
     "zero-dependency"
   ],
   "devDependencies": {
-    "@typescript/typescript6": "^6.0.2",
+    "@angular/common": "22.1.1",
+    "@angular/compiler": "22.1.1",
     "@angular/core": "^22.1.1",
+    "@angular/platform-browser": "22.1.1",
+    "@arethetypeswrong/cli": "0.18.5",
+    "@axe-core/playwright": "4.13.0",
+    "@changesets/cli": "3.0.3",
+    "@microsoft/api-extractor": "7.59.4",
+    "@playwright/test": "1.64.0",
     "@types/react": "^19.2.7",
-    "react": "^19.2.8",
+    "@typescript/typescript6": "^6.0.2",
+    "@vue/server-renderer": "^3.5.43",
+    "@vue/test-utils": "^2.5.1",
+    "happy-dom": "20.14.6",
+    "publint": "0.3.25",
+    "react": "^19.3.0",
+    "react-18": "npm:react@18.3.1",
+    "react-dom": "^19.3.0",
+    "react-dom-18": "npm:react-dom@18.3.1",
     "typescript": "^7.0.2",
     "vite": "^8.2.1",
     "vite-plugin-dts": "^5.0.3",
-    "vue": "^3.5.41"
+    "vue": "^3.5.43"
   },
   "peerDependencies": {
-    "@angular/core": ">=20.0.0",
-    "react": ">=18.0.0",
-    "vue": ">=3.5.0"
+    "@angular/core": "^20.0.0 || ^21.0.0 || ^22.0.0",
+    "react": "^18.3.0 || ^19.0.0",
+    "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
     "@angular/core": {
