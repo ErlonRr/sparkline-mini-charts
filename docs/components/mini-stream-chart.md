@@ -24,16 +24,21 @@ The `data` property accepts the array directly (`chart.data = [[10, 15], [5, 12]
 | --- | --- | --- | --- |
 | `data` | JSON `number[][]` | `[]` | The series to stack, bottom layer first. |
 | `label` | string | `"Stream chart with N values"` (N = number of series) | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `preset` | string | none | Space-separated names of presets registered with `defineChartPreset()` or `defineMiniCharts({ presets })`; the rightmost name wins. Explicit attributes and `options` beat presets. |
 | `curve` | `smooth` \| `linear` | `smooth` | `linear` draws straight segments. Any other value, including `step`, draws curved layer edges (when a series has more than two values). |
 | `interactive` | boolean (presence) | off | Highlights the layer under the pointer, dims the others and dispatches the events below. `interactive="false"` still enables it. |
+| `tooltip` | boolean | off | Shows the hovered value in a small built-in tooltip (`part="tooltip"`), formatted with `Intl.NumberFormat`. Implies `interactive`. |
+| `locale` | string | the page's | BCP 47 locale of the tooltip numbers, e.g. `de-DE`. |
+| `motion` | `auto` \| `reduce` | `auto` | `reduce` draws data updates at once, without the transition. `prefers-reduced-motion: reduce` does the same for every chart. |
 
 ## Events
 
-Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+Dispatched only when `interactive` is set. All bubble and cross the shadow boundary (`composed`). Since 1.5, every `sparkline-hover` and `sparkline-select` `detail` also carries the uniform keys `chart`, `index`, `seriesIndex`, `value`, `datum`, `color` (the mark's computed color) and `clientX`/`clientY`, and a hover fires only when the hovered point changes.
 
 | Event | `detail` | When |
 | --- | --- | --- |
 | `sparkline-hover` | `{ layerIndex, seriesData, color, element }` | The pointer enters a layer. `layerIndex` is zero-based, `seriesData` is that series as parsed (invalid entries already `0`), `color` is the layer's built-in palette color (it does not reflect a `--mini-chart-color-N` override), and `element` is the layer's `<path>`. |
+| `sparkline-select` | same as `sparkline-hover` | The pointer clicks a mark (or the chart, for the single-value meters). |
 | `sparkline-leave` | none | The pointer leaves the chart. |
 
 ## CSS custom properties

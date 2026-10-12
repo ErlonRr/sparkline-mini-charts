@@ -1,0 +1,31 @@
+// tsconfig.test.json — Tests, repository scripts and the Vite config, which run on Node.
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "composite": true,
+    "emitDeclarationOnly": true,
+    "outDir": "node_modules/.cache/tsc/test",
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    // Package tests import the built files (../dist/*.js). When dist/ exists they are
+    // checked against its declarations; before a build, against the sources.
+    "rootDirs": ["src", "dist"],
+    // Same narrow exception as tsconfig.legacy.json, for JavaScript test code.
+    "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": false
+  },
+  "include": ["test/**/*.js", "scripts/**/*.mjs", "vite.config.js"],
+  // Narrow exception: components.test.js drives the charts through a hand-written mock
+  // DOM (TestNode, TestElement) that does not match lib.dom (78 errors). The file moves
+  // to Vitest's dom/browser projects in P2-3 and is type-checked from there.
+  "exclude": ["test/components.test.js"],
+  "references": [
+    { "path": "./tsconfig.legacy.json" },
+    { "path": "./tsconfig.adapters.json" },
+    { "path": "./tsconfig.angular.json" }
+  ]
+}

@@ -1,0 +1,234 @@
+[critical] adapters-1 (bug) Adapters pre-serialize `data` to a JSON string that React 19, Vue 3 and Svelte 5 assign through the `data` property → double-encoded, empty charts
+[critical] adapters-2 (bug) 9 of 17 components shadow the base `data` setter with a getter-only accessor → any property assignment throws TypeError
+[critical] adapters-3 (packaging) Angular adapter is compiled by Vite, not the Angular compiler → unusable in AOT apps; signal inputs/outputs invisible even under JIT
+[critical] adapters-4 (bug) React wrapper mangles standard React props: `style` is JSON-stringified (React throws), `className`→`class-name`, `tabIndex`→`tab-index`
+[critical] components-bars-financial-1 (bug) Getter-only `data` override removes the setter: `el.data = …` throws in bullet, range-bar, candlestick and OHLC (Angular wrappers broken)
+[critical] components-bars-financial-2 (bug) `null` data crashes render (range-bar null item, bullet `data="null"`)
+[critical] components-cartesian-1 (bug) `data` property setter lost on stacked, stream, combo and scatter (getter-only override), so `el.data = ...` throws
+[critical] components-cartesian-2 (bug) React 19 wrapper sends `data` as a JSON string; React 19 assigns it to the `data` property, double-encoding it (empty chart) or throwing
+[critical] components-cartesian-3 (bug) Scatter render throws on a null datum (common with JSON-serialized NaN or gaps)
+[critical] core-1 (bug) Getter-only `data` override removes the setter in 9 components; `el.data = x` throws (breaks Angular wrappers)
+[critical] core-2 (bug) Reduced-motion rule forces stroke-dashoffset:0 !important, so progress and radial-bar always look 100% full
+[critical] data-api-1 (api) 9 of 17 charts have a getter-only `data` property: `el.data = ...` throws, and the Angular directives do exactly that
+[critical] data-api-2 (bug) A null datum crashes range-bar, scatter and bullet during render
+[critical] packaging-1 (bug) `el.data = …` throws TypeError on 9 of 17 components because subclasses override only the getter
+[critical] packaging-2 (bug) React 19 and Vue wrappers pass JSON strings into the `data` property: double-encoded (empty chart) or TypeError
+[critical] packaging-3 (packaging) The Angular adapter ships as Vite-transpiled decorated classes with no Ivy partial compilation, so AOT Angular apps can't use it
+[critical] theming-1 (bug) prefers-reduced-motion rule draws every progress and radial-bar value as 100%
+[critical] theming-2 (bug) React wrapper breaks `style` and `className`, so per-instance theming is impossible in React
+[high] adapters-5 (bug) React event callbacks are silently dropped; the raw kebab passthrough cannot work in React 18 or 19
+[high] adapters-6 (bug) Documented Angular `MiniChartDirective` never registers the elements, claims only 8 inputs, and duplicates outputs when combined with per-chart directives
+[high] adapters-7 (api) Default-true boolean attributes cannot be turned off through the adapters; boolean semantics differ by chart and by framework
+[high] adapters-8 (api) Elements expose no JS properties except `data` → property-first frameworks silently ignore every option
+[high] adapters-9 (api) Vue wrapper declares only data/label/interactive: chart options fall through untyped and objects are coerced with String()
+[high] adapters-10 (api) Event names have drifted: `slice-select` is declared but never dispatched, while `sparkline-select` and `progress-complete` are unreachable through any adapter
+[high] adapters-11 (typing) No typings for the raw custom elements and no Custom Elements Manifest
+[high] adapters-12 (docs) Svelte support is claimed, but the only dynamic-data snippet is broken and there are no Svelte typings
+[high] adapters-13 (testing) Adapter tests import an unbuilt dist/, assert only `typeof`, and CI runs tests before the build
+[high] components-bars-financial-3 (bug) Interaction listeners are lost permanently after disconnect followed by reconnect (all six)
+[high] components-bars-financial-4 (bug) Observed attributes are read only on the first render: radius, hollow-bullish, wick-width and tick-width never update
+[high] components-bars-financial-5 (api) `hollow-bullish` has inverted boolean semantics and cannot be turned off from React or Angular
+[high] components-bars-financial-6 (api) win-loss `win-color`, `loss-color` and `tie-color` are documented, typed and observed but never implemented
+[high] components-bars-financial-7 (api) win-loss `mode` has three vocabularies: the code accepts 'status', the docs say 'binary', the React type says 'uptime'
+[high] components-bars-financial-8 (theming) Bullet measure bar renders black with `gradient="false"` or a single color, which is what the Angular and Vue wrappers emit
+[high] components-bars-financial-9 (data-model) Bullet data parsing: a valid JSON scalar renders 0, while `data=[]` draws a full chart labeled 'Empty'
+[high] components-bars-financial-10 (data-model) Candlestick/OHLC: extra row columns (volume, timestamp) pollute the scale domain; no object rows; no OHLC validation
+[high] components-bars-financial-11 (docs) Range-bar data model and docs drift: `{value}` is ignored (the code reads `current`), wrong part name, wrong default, nonexistent features
+[high] components-bars-financial-12 (theming) Theming tokens are inconsistent across the group: four names for positive/negative, colliding meanings, different defaults, advertised tokens with no consumer
+[high] components-bars-financial-13 (theming) Bullet bands depend on the global, non-namespaced `--primary`
+[high] components-bars-financial-14 (api) Inconsistent event contracts; `sparkline-select` not reachable from wrappers; internal shadow nodes leaked in detail
+[high] components-bars-financial-19 (bug) Base `data` setter double-encodes strings, so React 19 property assignment empties bar and win-loss charts
+[high] components-cartesian-4 (bug) Interaction listeners removed on disconnect and never re-attached; `interactive` stops working after any DOM move
+[high] components-cartesian-5 (theming) `trend-color` logic deletes the user's inline `--mini-chart-color` on the host and leaves a stale value when data becomes empty
+[high] components-cartesian-6 (data-model) Invalid values are silently dropped, compressing the x-axis; in stacked/stream each series is filtered separately, so columns no longer line up
+[high] components-cartesian-7 (bug) Combo chart: bars sit at slot centers but line points span edge to edge, so bars and line don't align
+[high] components-cartesian-8 (bug) Pointer to index mapping ignores preserveAspectRatio="xMidYMid meet" letterboxing
+[high] components-cartesian-9 (docs) Docs describe APIs that don't exist (combo data model, line/area color var, scatter parts and vars)
+[high] components-cartesian-10 (api) `sparkline-hover` has five different detail shapes, exposes internal shadow elements, and reports untheamed colors
+[high] components-cartesian-11 (api) Boolean attribute conventions are inconsistent and the wrappers can't express `false` for default-true flags
+[high] components-cartesian-12 (theming) Scatter reads app-level `--primary` / `--surface` variables
+[high] components-cartesian-13 (architecture) About 70% duplicated code; all six bypass the base render contract
+[high] components-radial-1 (bug) Interactive events stop working after a disconnect and reconnect (all 5 components)
+[high] components-radial-2 (bug) Radial-bar leaves stale 'ghost' rings when the data array shrinks
+[high] components-radial-3 (theming) Progress: gradient="false" or any unparsable gradient value makes the value arc invisible
+[high] components-radial-4 (bug) Progress entrance animation is unreachable code
+[high] components-radial-5 (api) Boolean attributes can't be reliably turned off from frameworks (round-caps, show-value, interactive)
+[high] components-radial-6 (api) progress-complete fires on every render, not when the value crosses max, and no wrapper exposes it
+[high] components-radial-7 (data-model) Gauge data is positional and the parser filters entries, so a bad value silently corrupts value, min and max; the docs contradict each other
+[high] components-radial-8 (theming) The global token --mini-chart-stroke-width means different things in different components
+[high] core-3 (bug) Interactivity is permanently lost after any disconnect/reconnect (17/17 components)
+[high] core-4 (bug) Upgrade path renders twice; the second render cancels entrance animations and re-fires events
+[high] core-5 (theming) trend-color writes to the host's inline style and wipes the user's --mini-chart-color
+[high] core-6 (data-model) Data normalisation drops invalid entries, shifting indices and misaligning stacked series
+[high] core-7 (architecture) No property-upgrade handling, and the property path round-trips through a JSON attribute
+[high] core-8 (architecture) The base-class abstraction is bypassed: 17/17 override render(), and ~44% of component code is duplicated
+[high] core-9 (bug) Invalid data crashes render (null entries / null JSON) with no error boundary
+[high] core-10 (bug) Radial-bar leaves stale rings visible when the data gets shorter
+[high] core-11 (api) No central event contract: 17 detail shapes, shadow internals leaked, wrapper event names that don't match
+[high] core-12 (theming) Theme tokens collide or leak between components, and event colours ignore CSS overrides
+[high] core-13 (a11y) Interactive charts can't be used from the keyboard and have no focus or announcements
+[high] data-api-3 (bug) Bullet: a scalar `data` renders 0 and ignores the target/min/max/ranges attributes
+[high] data-api-4 (data-model) Invalid values are dropped silently, which shifts indices and misaligns series; some charts invent values instead
+[high] data-api-5 (bug) Candlestick/OHLC: extra tuple fields corrupt the price scale, and OHLC invariants are not checked
+[high] data-api-6 (data-model) No unified typed data contract: 17 bespoke shapes, two conflicting 2D orientations, positional tuples, and no labels, x values or dates
+[high] data-api-7 (docs) Public docs and wrapper types contradict the code on data shapes and enum values
+[high] data-api-8 (api) Six observed attributes are never read and seven are read only on first render
+[high] data-api-9 (api) Boolean and gradient attributes follow three conventions, so `false` cannot be expressed through the React wrapper
+[high] data-api-10 (api) Events are inconsistent: five names, one never dispatched, different detail keys, leaked shadow nodes, wrong colors, repeated firing
+[high] data-api-11 (bug) Interaction stops working after an element is detached and re-attached
+[high] data-api-12 (theming) `trend-color` writes to and deletes the author's inline `--mini-chart-color`
+[high] data-api-13 (bug) Radial-bar keeps stale rings visible when the data shrinks
+[high] data-api-17 (perf) There is no property-first API, and every update round-trips JSON through the attribute
+[high] geometry-1 (bug) Combo chart line is not aligned with bar centres (band scale vs point scale)
+[high] geometry-2 (bug) Candlestick domain includes every tuple element (volume or timestamp breaks the chart)
+[high] geometry-3 (bug) Smooth curve (uniform Catmull-Rom) overshoots the domain and crosses the zero baseline
+[high] geometry-4 (bug) Explicit min/max are not validated and values outside the domain are not clamped
+[high] geometry-5 (bug) Stacked layout mishandles negative values and expand mode; component parsing misaligns series
+[high] geometry-6 (data-model) Data model gap: x is always the index and there is no support for missing values
+[high] geometry-7 (api) Every geometry export, including chart-specific layouts, is frozen as public API twice
+[high] packaging-4 (testing) Tests import built `dist/` but CI runs tests before build: the suite fails on a clean checkout
+[high] packaging-5 (packaging) Types for 18 of 24 subpath exports point at .d.ts files the build doesn't emit (verify with build + attw)
+[high] packaging-6 (packaging) No release pipeline: publishing can ship an empty package, tags are manual and incomplete
+[high] packaging-7 (api) v1.4.0 shipped breaking changes as a minor release
+[high] packaging-8 (ci) CI deploys production from every branch push, non-atomically; CI lives on Forgejo while origin is GitHub
+[high] packaging-9 (testing) Test suite misses the library's contract: events, re-render, a11y, theming, adapters and dist are untested; contract drift already exists
+[high] packaging-10 (typing) Public types aren't generated from one source: attribute/event types drift, framework typings are missing
+[high] theming-3 (theming) `trend-color` writes the host's inline style and erases user-supplied `--mini-chart-color`
+[high] theming-4 (bug) gradient="false" (what Angular and Vue emit) turns the bullet measure black and makes the progress arc invisible
+[high] theming-5 (theming) Host `color` is always overridden, and only some parts follow it: the 'currentColor' theming story is false and inconsistent
+[high] theming-6 (theming) Fallbacks read the host app's un-namespaced `--primary` / `--surface` variables
+[high] theming-7 (theming) Token semantic collisions break theming at :root
+[high] theming-8 (docs) Docs and README describe tokens that don't apply and omit about 37 that do
+[high] theming-9 (theming) Series colors only partly themable: only 5 consumers, independent cycling, raw palette hex in events and gradients
+[high] theming-10 (api) Win-loss `win-color` / `loss-color` / `tie-color` attributes do nothing
+[high] theming-11 (api) ::part names inconsistent, missing state parts, and 12+ documented parts that don't exist
+[high] theming-12 (theming) No dark mode, presets, or token layer; the demo redefines 28 tokens twice
+[high] theming-13 (duplication) Gradients are attribute-only, parsed 5 times with an ad hoc grammar, and disconnected from tokens
+[medium] adapters-14 (ssr) React entry has no 'use client' and registers on import → charts never upgrade when imported from a Server Component
+[medium] adapters-15 (perf) React entry is not tree-shakeable (marked side-effectful, registers all 17 charts); Vue and Angular bundle all 17 classes
+[medium] adapters-16 (architecture) Angular directives sync through 135 effects with DOM writes, kebab-only aliases, NaN coercion and always-on listeners
+[medium] adapters-17 (typing) React typings: per-chart Props are not exported, data is `any`, kebab/camel props are duplicated, refs are untyped
+[medium] adapters-18 (packaging) Peer ranges are unbounded and inconsistent with the documented Angular version; CJS builds ship for ESM-only frameworks
+[medium] adapters-19 (bug) Missing upgrade-property handling: properties set before definition permanently shadow the accessors
+[medium] adapters-20 (duplication) Per-chart metadata is duplicated by hand across adapters, docs and demo
+[medium] components-bars-financial-15 (bug) Out-of-domain values are not clamped and the svg has `overflow: visible`; min > max inverts the chart
+[medium] components-bars-financial-16 (perf) Entrance stagger grows linearly with data length (365 points means about 11 s); reduced-motion does not cancel the inline delays
+[medium] components-bars-financial-17 (bug) Bar's entrance animation trigger differs from the rest of the group; bar rebuilds its stylesheet on every render
+[medium] components-bars-financial-18 (api) Bar `baseline` attribute is observed and typed in React and Angular but never read
+[medium] components-bars-financial-20 (bug) No lazy-property upgrade: setting `data` before the element is defined shadows the accessor
+[medium] components-bars-financial-21 (data-model) Custom parsers bypass `parseNumericData`; index-shifting filters; no null-gap support
+[medium] components-bars-financial-22 (architecture) Six copies of the same lifecycle; the base-class contract (renderChart) is dead in this group
+[medium] components-bars-financial-23 (docs) Docs drift for candlestick, OHLC, bullet, bar and win-loss
+[medium] components-bars-financial-24 (theming) Financial stroke widths scale with element size (no non-scaling-stroke)
+[medium] components-bars-financial-25 (data-model) Bullet default domain always includes 0..100
+[medium] components-bars-financial-26 (perf) Forced synchronous layout per instance on mount
+[medium] components-bars-financial-27 (a11y) Pointer-only interactions, no keyboard or a11y for individual marks
+[medium] components-bars-financial-32 (testing) Tests cover only first-render part counts; framework test fails on a clean checkout
+[medium] components-cartesian-14 (bug) Domain edge cases: min>max or a one-sided bound beyond the data inverts or overflows the chart; points and reference line aren't clipped
+[medium] components-cartesian-15 (perf) Large arrays: Math.min/max spread overflows the stack; linear stagger delays and per-point forced reflows
+[medium] components-cartesian-16 (bug) Stacked/stream: negative values overlap layers; a single time point renders nothing; flat arrays silently empty
+[medium] components-cartesian-17 (data-model) Scatter: invalid items become phantom points; flat Y data sits on the bottom edge; bubble radius unscaled
+[medium] components-cartesian-18 (theming) Hard-coded visual constants and inconsistent token names prevent a real theming system
+[medium] components-cartesian-19 (bug) Morph animations only work when path structure matches; `d` transitions are unsupported in Safari
+[medium] components-cartesian-20 (api) Curve vocabulary and wrapper prop types disagree with the implementation
+[medium] components-cartesian-21 (a11y) Interaction robustness and accessibility gaps
+[medium] components-cartesian-26 (testing) Component tests are smoke-only and the fake DOM hides the bugs above
+[medium] components-radial-9 (theming) Hover events report hard-coded palette colours, ignoring --mini-chart-color-N theme overrides
+[medium] components-radial-10 (theming) README theming example `--mini-chart-fill` has no effect on pie; per-segment theming depends on an override
+[medium] components-radial-11 (api) Some observed attributes do nothing or only apply on the first render (pad-angle, radial min, needle-type, round-caps)
+[medium] components-radial-12 (bug) Gauge with empty data keeps the old value text and aria-valuenow; a gauge that starts empty draws no dial
+[medium] components-radial-13 (bug) Gauge zones aren't clamped to [min, max], and invalid zones leave an empty gauge with no fallback
+[medium] components-radial-14 (bug) Radial-bar sweep and max aren't validated: negative or >360 sweeps draw wrong arcs, and max=0 gives NaN
+[medium] components-radial-15 (data-model) Radial-bar's default max (the largest value) always fills the largest ring, unlike progress and gauge (default 100)
+[medium] components-radial-16 (bug) Pie and half-pie: a dominant slice above about 99.9998% disappears because of coordinate rounding
+[medium] components-radial-17 (data-model) Zero-sum, all-negative or all-zero data renders a blank chart with no empty state; negatives are clamped silently
+[medium] components-radial-18 (api) The `donut` attribute does nothing when used as a boolean, and donut and inner-radius are redundant synonyms
+[medium] components-radial-19 (duplication) Pie and half-pie are about 85% duplicate code, and helpers are copy-pasted across the radial group
+[medium] components-radial-20 (theming) Inline styles and presentation attributes stop ::part and token overrides from working
+[medium] components-radial-21 (theming) Default gradient colours are hard-coded hex values that can't be themed (and don't adapt to dark mode)
+[medium] components-radial-22 (api) Value text: no locale, precision or format control; shows the clamped value; gauge text overlaps the pivot and needle
+[medium] components-radial-23 (api) Event contract differs across components and wrappers: phantom slice-select, missing events, dropped React handlers
+[medium] core-14 (a11y) Weak accessible naming: count-only default label, host aria-label ignored, meter semantics incomplete, gauge clears the wrong element
+[medium] core-15 (bug) Observed attributes read only once at DOM creation, and raw values interpolated into CSS
+[medium] core-16 (api) Declared or documented attributes that are never implemented
+[medium] core-17 (perf) Per-instance <style> strings rewritten on every render; no constructable/adopted stylesheets
+[medium] core-18 (bug) `:host { display: inline-block }` without `:host([hidden])`: the hidden attribute doesn't hide charts
+[medium] core-19 (perf) Animations use forced synchronous layouts and hand-rolled timers; reduced motion still applies stagger delays
+[medium] core-20 (ssr) SSR/declarative shadow DOM: unconditional attachShadow and no pre-upgrade sizing
+[medium] core-21 (api) Attribute parsing is inconsistent and lenient (booleans, numbers, gradients, min/max)
+[medium] core-25 (testing) Tests can't catch lifecycle bugs (mock DOM, wrong ordering, no-op cleanup test)
+[medium] data-api-14 (api) Options are parsed ad hoc with no validation, normalization or diagnostics
+[medium] data-api-15 (api) Attributes are interpolated unsanitized into shadow `<style>` text and inline styles
+[medium] data-api-16 (a11y) No number formatter or locale for value text, aria values or event payloads
+[medium] data-api-18 (theming) Theming variables used as options collide across charts and depend on undeclared globals
+[medium] data-api-19 (architecture) Reference and threshold values are not part of the scale and are projected by duplicated math
+[medium] data-api-20 (data-model) Scatter bubble size uses raw data values as SVG radii
+[medium] geometry-8 (perf) formatNumber is private, so components emit unrounded floats and duplicate the linear path builder
+[medium] geometry-9 (bug) Math.min/Math.max with spread arguments crash on large arrays
+[medium] geometry-10 (perf) No downsampling for large series
+[medium] geometry-11 (bug) Arc generators ignore direction and start angle for full circles
+[medium] geometry-12 (bug) A slice of nearly 100% disappears because of the rounding/EPSILON mismatch
+[medium] geometry-13 (bug) Linear regression is numerically unstable and its line is unbounded
+[medium] geometry-14 (bug) Bullet layout hard-codes a 0–100 domain and ignores the zero baseline for negative values
+[medium] geometry-15 (architecture) Each layout handles degenerate domains and single points differently
+[medium] geometry-16 (architecture) Layout constants are copied between geometry and the components
+[medium] geometry-17 (bug) Reference line is recomputed by hand and can render outside the chart
+[medium] geometry-18 (bug) Public functions do not guard inputs (NaN, gapRatio, zero denominators)
+[medium] geometry-19 (api) Function signatures, option names and output shapes are inconsistent
+[medium] geometry-20 (data-model) Geometry parses polymorphic input; scatter tuple bug and unscaled bubble radius
+[medium] geometry-21 (testing) Test coverage gaps and documentation that overstates it
+[medium] geometry-22 (packaging) The "./math" type declaration path may not be generated (needs a build to confirm)
+[medium] packaging-11 (perf) React entry is side-effectful (eager registration), defeating tree-shaking; Vue/Angular factories lack PURE annotations
+[medium] packaging-12 (api) `./math` and the root index expose all 19 internal geometry symbols as public API; the base class isn't exported
+[medium] packaging-13 (dx) Fragile TypeScript toolchain: TS 7 native + unused @typescript/typescript6 + vite-plugin-dts 5 bound to typescript@7
+[medium] packaging-14 (packaging) tsconfig mixes dts-emit and typecheck roles; JS output target is implicit; real browser floor is undocumented
+[medium] packaging-15 (docs) Docs drift: README, architecture.md, getting-started.md and demo-guide.md contradict the code
+[medium] packaging-16 (docs) CHANGELOG/semver hygiene: no Unreleased section or compare links, phantom 1.3.1, release notes duplicated in README
+[medium] packaging-17 (testing) Non-deterministic SVG output (Math.random IDs) blocks snapshot/visual tests and SSR determinism
+[medium] packaging-18 (packaging) Single `types` condition shared by import and require, plus a CJS build that is probably unnecessary
+[medium] theming-14 (theming) var() inside SVG presentation attributes (gauge zones, area flat fill)
+[medium] theming-15 (bug) Styling attributes baked into the stylesheet once; changes ignored and precedence inverted
+[medium] theming-16 (theming) Interaction state values hard-coded and inconsistent; no state tokens
+[medium] theming-17 (a11y) No forced-colors / Windows High Contrast support
+[medium] theming-18 (a11y) Reduced motion leaves staggered transition-delay; blanket !important blocks opt-in
+[medium] theming-19 (a11y) Default palette fails non-text contrast and has near-duplicate hues
+[medium] theming-20 (perf) Per-instance <style> duplication and stylesheet rewrite on every render
+[medium] theming-21 (api) Naming families inconsistent for the same concepts
+[low] adapters-21 (dx) Vue wrapper polish: inheritAttrs plus a manual attrs spread, unconditional listeners, no element exposure
+[low] adapters-22 (docs) Demo and docs snippets are invalid or teach the wrong API
+[low] adapters-23 (architecture) Adapters hardcode tag names and the global registry
+[low] components-bars-financial-28 (bug) Raw attribute values are interpolated into the stylesheet
+[low] components-bars-financial-29 (theming) Bullet gradient id uses Math.random, and the inline `style.fill` blocks `::part(measure)` overrides
+[low] components-bars-financial-30 (perf) Spread-based min/max overflows the call stack on very large arrays
+[low] components-bars-financial-31 (dx) Hidden surplus nodes are never released; dead code; OHLC reuses part name 'bar'
+[low] components-cartesian-22 (bug) Area `gradient` parsing is fragile and rebuilds stops on every render
+[low] components-cartesian-23 (dx) Stale or dead internal state and unbounded pools
+[low] components-cartesian-24 (ssr) Non-deterministic `Math.random()` SVG ids and a missing aspect-ratio var in stacked/stream
+[low] components-cartesian-25 (perf) Linear path strings use unrounded floats while smooth/step paths are rounded
+[low] components-radial-24 (bug) Overshoot easing on stroke-dashoffset blanks the start of the progress arc near 100%
+[low] components-radial-25 (bug) Pie initial render disables hover transitions inline, and the reveal mask ignores start-angle
+[low] components-radial-26 (perf) Using innerHTML to clear nodes breaks under a Trusted Types CSP; gradient stops are rebuilt on every render
+[low] components-radial-27 (architecture) Math.random SVG ids are nondeterministic and unnecessary inside shadow roots
+[low] components-radial-28 (a11y) Pointer-only interaction, and slices and rings have no accessible names
+[low] components-radial-29 (bug) Radial-bar ring layout ignores ring width: rings overlap above about 18 items and have large gaps for 2
+[low] components-radial-30 (theming) Primary and track colour defaults disagree across code and docs
+[low] components-radial-31 (testing) Component tests can't detect any of the bugs above, and one test needs a build
+[low] core-22 (duplication) Reference line repeats the geometry's padding math and ignores the domain
+[low] core-23 (dx) Math.random() ids are unnecessary inside shadow roots and make output non-deterministic
+[low] core-24 (packaging) Registration helper can't alias tags, warns on nothing, and the base class isn't exported
+[low] data-api-21 (api) Pie/donut naming is misleading and negative values are reported inconsistently
+[low] data-api-22 (perf) Domain calculation spreads whole arrays into Math.min/Math.max
+[low] data-api-23 (a11y) Gauge removes `aria-valuenow` from the host while it was set on the svg
+[low] geometry-23 (api) Step path: 'step-middle' can't be reached and unknown step types fall through silently
+[low] geometry-24 (architecture) Stacked and stream charts edit generated path strings with a regex
+[low] geometry-25 (bug) Morph padding assumes linear commands, so smooth and step transitions snap
+[low] geometry-26 (dx) Smaller structural issues in the module
+[low] packaging-19 (dx) Demo loads the library twice (bundled src + injected dist) and uses deprecated Vite option names
+[low] packaging-20 (packaging) package.json metadata gaps (engines misuse, missing exports conveniences, corepack dependency)
+[low] packaging-21 (ssr) React entry lacks a 'use client' boundary; registration runs on the server in RSC
+[low] packaging-22 (dx) Repo hygiene: no lint/format/editorconfig/contrib docs; stray agent lockfile; inconsistent comment language
+[low] packaging-23 (ci) Two deploy targets; Vercel config has dead cache rules and masks 404s
+[low] theming-22 (ssr) Non-deterministic ids for gradients, clips and masks
+[low] theming-23 (theming) No @property registration; invalid token values paint black instead of falling back
+[low] theming-24 (testing) Theming cannot be tested: mock DOM ignores CSS, no visual tests
+[low] theming-25 (theming) Hard-coded font sizes and text styling in gauge and progress

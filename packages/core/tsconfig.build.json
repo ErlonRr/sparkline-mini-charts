@@ -1,0 +1,18 @@
+// tsconfig.build.json — Declaration emit for dist/, read by vite-plugin-dts (see vite.config.js).
+// Type checking is `pnpm typecheck` (tsconfig.json); this config only emits.
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    // One program emits every entry, Angular directives included, so the decorator
+    // flag cannot be scoped here; tsconfig.angular.json keeps it out of type checking
+    // for the other sources.
+    "experimentalDecorators": true,
+    // Same exception as tsconfig.legacy.json: the JavaScript sources are not ready.
+    "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": false
+  },
+  "include": ["src"]
+}

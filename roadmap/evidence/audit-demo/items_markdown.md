@@ -1,0 +1,479 @@
+**Legenda dei finding.** I codici rimandano agli audit della demo e della configurazione, numerati secondo l'ordine dei finding in ciascun audit:
+- `demo-arch-N`: audit demo-architecture;
+- `demo-ux-N`: audit demo-ux;
+- `demo-a11y-N`: audit demo-visual-a11y;
+- `chart-config-N`: audit chart-config.
+
+I finding della libreria (`theming-8` e simili) mantengono i codici del piano.
+
+**Regola valida da subito: `demo/` è in feature freeze.**
+- Non si aggiungono controlli, viste o snippet scritti a mano. Si correggono solo bug, blocchi di accessibilità e flussi rotti.
+- Si evitano doppioni con item già esistenti:
+  - il testo degli snippet spetta a P0-10;
+  - i token inesistenti a P1-14;
+  - l'host unico e il caricamento del solo dist a P1-17;
+  - la lettura di `--primary`/`--surface` lato libreria a P1-7, che elimina già il leak nei chart. Per questo i token del sito non si rinominano.
+- I 28 token `--mini-chart-*` dichiarati su `:root` della demo restano fino al cutover: li sostituisce il bridge di P4-5.
+
+### P1 · 1.4.2 · Aggiunte: demo legacy, solo hotfix
+
+- [ ] **P1-18 · Demo legacy: bug funzionali, flussi rotti e smoke Playwright** · M · dip. P1-17, P0-10
+  - Cosa:
+    - Boot:
+      - eliminare il secondo boot che chiama `initApp`, mai definito: oggi lancia un ReferenceError a ogni caricamento (demo/app.js:1437-1442);
+      - leggere e scrivere `localStorage` dentro try/catch, con fallback in memoria (app.js:303-304, 325, 346);
+      - `applyLanguage` ricostruisce la gallery solo se la vista è attiva (app.js:358).
+    - Tab:
+      - legare l'handler al proprio `.tabs-container` invece che a tutti i `.tab-btn` del documento (app.js:1415-1425);
+      - dare ai tab d'installazione 4 pannelli reali, pnpm, npm, yarn e CDN (index.html:1541-1549);
+      - far copiare al pill d'installazione il comando del tab attivo (app.js:1351).
+    - Playground:
+      - la label scritta dall'utente vince: `label` viene escluso quando si applicano gli `attrs` del catalogo (app.js:1322-1331);
+      - nessun attributo duplicato nel markup generato (app.js:1335);
+      - un JSON non valido mostra un errore inline invece di un `return` muto (app.js:1313-1317);
+      - l'elemento si aggiorna con `setAttribute` invece di essere ricreato a ogni tasto (app.js:1333).
+    - Theming lab e gradients studio:
+      - il preset attivo sta in `state`, e `renderThemingLab()`/`renderGradientsStudio()` lo rileggono invece di ripartire da `"ocean"`/`"thermal"` (app.js:1023, 764, 768, 1090, 1102, 1108);
+      - il selettore `.preset-pill` agisce solo sul proprio gruppo (app.js:1089-1118).
+    - Copia e toast:
+      - un helper `copy()` con try/catch e toast d'errore sostituisce i 7 `navigator.clipboard.writeText` (app.js:659, 732, 1150, 1159, 1291, 1351, 1409);
+      - il timer del toast si azzera a ogni chiamata (app.js:319).
+    - Route: `#/components/<tag-sconosciuto>` mostra "chart non trovato" con un link alla gallery, invece della line chart (app.js:673).
+    - CSS:
+      - definire oppure rimuovere `--surface-subtle` (index.html:1072, 1098, 1153, 1218) e le classi `.card`, `.grid`/`.grid-2`, `.badge-accent`;
+      - sostituire `margin-block-top` con `margin-block-start` (9 occorrenze).
+    - Costanti:
+      - versione letta da `package.json` tramite il `define` di Vite (index.html:1244, 2889);
+      - URL di GitHub da una sola costante, verso `ErlonRr` (index.html:1302, 3377; D2).
+    - Smoke `@playwright/test` (lo riusano poi P2-3 e P4-5):
+      - gira sul `vite preview` del build;
+      - per ognuna delle 8 route controlla console pulita, 17 tag definiti e almeno un chart nella vista (overview esclusa);
+      - è un job in `.github/workflows/ci.yml` dopo "Build demo", che oggi si limita a buildare.
+    - Fuori scope: testo degli snippet (P0-10), restyling, completamento dell'i18n.
+  - File: demo/app.js, demo/index.html, vite.config.demo.js, package.json, playwright.config.ts, test/e2e/demo-smoke.spec.ts, .github/workflows/ci.yml
+  - Fatto quando:
+    - lo smoke è verde in CI e diventa rosso se si reintroduce la chiamata a `initApp`;
+    - cliccare "npm" non cambia lo stato dei tab di `#/frameworks`;
+    - dopo "Cyberpunk" e uno slider la palette resta Cyberpunk;
+    - la label digitata compare nella preview e una sola volta nel markup;
+    - con lo storage bloccato la demo si avvia.
+  - Finding: demo-arch-5, demo-arch-6, demo-arch-8, demo-arch-9, demo-arch-10, demo-arch-14 (parz.), demo-ux-2 (parz.), demo-ux-4 (parz.), demo-ux-6, demo-ux-7 (parz.), demo-ux-12 (parz.), demo-ux-13, demo-ux-17, demo-a11y-11, demo-a11y-14 (parz.), demo-a11y-20, chart-config-9, chart-config-12 (parz.)
+
+- [ ] **P1-19 · Demo legacy: blocchi di accessibilità, mobile e movimento** · M · dip. P1-18
+  - Cosa:
+    - Mobile:
+      - sotto i 1024px install, autore, npm e GitHub passano nel drawer (index.html:1248-1330);
+      - togliere `body{overflow-x:hidden}` (168) e correggere l'overflow alla fonte: `minmax(min(100%,Npx),1fr)` per stream (605), dettaglio (875), playground (902), controlli del lab (1096) e board (1149);
+      - `span 2` solo da 640px in su (3027);
+      - tabelle 2796 e 3084 dentro un wrapper `overflow-x:auto`;
+      - `.gallery-card` senza altezza fissa né clamp (729-748, 798).
+    - Drawer (index.html:1234-1240, app.js:1358-1360):
+      - `aria-expanded` e `aria-controls` sul toggle, `inert` quando è chiuso;
+      - chiusura alla navigazione, con Esc e con il backdrop;
+      - il focus torna al toggle.
+    - Tab: pattern WAI-ARIA completo (`aria-selected`, `aria-controls`, `role=tabpanel`, roving tabindex, frecce, Home ed End) per frameworks, dettaglio e card della gallery (index.html:3140-3180, app.js:623-628).
+    - Focus: `:focus-visible` globale; outline non più tagliati da `overflow` (943, 952, 795, 806).
+    - Route e struttura (app.js:739-782):
+      - `document.title` aggiornato e focus sull'h1 della vista a ogni cambio di route;
+      - un h1 per vista e uno skip link;
+      - sidebar dentro `<nav>` con `aria-current`;
+      - `<footer>` fuori da `<main>` (3338).
+    - Form e stati:
+      - `<label for>` e `<output>` nel theming lab (2331-2428);
+      - `aria-pressed` sui preset e sul toggle del tema;
+      - `aria-invalid` + `aria-describedby` sul JSON del playground;
+      - `role=status` sul toast (3397);
+      - `aria-hidden` sulle 3 SVG decorative e nome accessibile sui link icona npm e GitHub (1291-1308).
+    - Lingua: `document.documentElement.lang` aggiornato in `applyLanguage` (app.js:344-363).
+    - Movimento:
+      - blocco `prefers-reduced-motion` per fadeInView, pulseLive e i sollevamenti all'hover;
+      - lo streaming gira solo su `#/streaming`, parte da solo solo con `no-preference` e va in pausa al cambio di route e con `document.hidden` (app.js:937-967, 1434);
+      - badge testuale LIVE/PAUSED.
+    - Contrasto: cambiano solo 3 valori di token del sito: `--primary-dark` (testo bianco ≥ 4,5:1), l'emerald del LIVE in light e il bordo degli input (≥ 3:1).
+    - Fuori scope: i preset del lab (sostituiti in P8-9), l'i18n completa (D14), le icone emoji (spariscono al cutover).
+  - File: demo/index.html, demo/app.js, test/e2e/demo-a11y.spec.ts
+  - Fatto quando:
+    - `@axe-core/playwright` riporta 0 violazioni serious o critical sulle 8 viste, in light e in dark;
+    - nessuna vista scorre in orizzontale a 320 e a 375px;
+    - il drawer chiuso non riceve il focus con Tab;
+    - con reduced motion emulato nessun chart cambia per 5 s, su nessuna route;
+    - in un tab nascosto il contatore delle scritture di `data` resta a 0;
+    - con la lingua IT, `html[lang]` vale `it`.
+  - Finding: demo-a11y-1, demo-a11y-3, demo-a11y-4, demo-a11y-5 (parz.), demo-a11y-7 (parz.), demo-a11y-8, demo-a11y-9, demo-a11y-10, demo-a11y-12, demo-a11y-13, demo-a11y-19 (parz.), demo-ux-3, demo-ux-8 (parz.), demo-ux-14, demo-arch-7 (parz.), demo-arch-11 (parz.), chart-config-10 (parz.)
+
+- [ ] **P1-14 (esteso) · Verità della demo: attributi, part e affermazioni** · S · dip. P1-8, P1-9
+  - Cosa: si aggiunge a P1-14, nella stessa PR o in una separata.
+    - Sulla board di theming, `endpoint="last"` diventa `points="last"` (index.html:2447).
+    - Rimuovere o riscrivere `::part(point-last)`, che non esiste, e la promessa "eredita `currentColor`", che è falsa (index.html:2715-2768): src/core/svg.js:7 impone `color` su `:host`.
+    - Nella tabella dei token, correggere o togliere il default di `--mini-chart-color` (index.html:2856).
+    - Togliere "< 3 kB gzip per componente" e "100% Shadow DOM & SSR Safe" (index.html:1509-1514) finché size-limit e le fixture non li dimostrano.
+    - Riscrivere "LIVE WEBSOCKET / POLLING" (1562) e "live-tweak stops" (2909).
+    - In docs/demo-guide.md niente file inesistenti né "zero-allocation DOM diffing" (righe 10-13 e 36-42).
+    - `check-docs.mjs` confronta anche gli `observedAttributes` con gli attributi usati in demo/ e in docs/components/*.md: un attributo non osservato fa fallire il controllo.
+  - File: demo/index.html, demo/app.js, docs/demo-guide.md, scripts/check-docs.mjs
+  - Fatto quando: `check-docs` fallisce se si reintroduce `endpoint=`; la demo non contiene più `point-last`, `SSR Safe` né `WEBSOCKET`.
+  - Finding: demo-ux-5, demo-ux-11 (parz.), demo-ux-12 (parz.), demo-ux-16 (parz.), demo-a11y-15, demo-arch-3 (parz.), demo-arch-13, chart-config-1 (parz.), chart-config-5 (parz.)
+
+### P2 · 1.5.0 · Modifica: la demo legacy entra nel workspace, congelata
+
+- [ ] **P2-1 (modificato) · Workspace pnpm: `demo/` diventa `apps/demo/`, consumata tramite exports** · M · dip. P1-16, P1-17, P1-19
+  - Cosa: rispetto a P2-1 cambia quanto segue.
+    - `demo/` e `vite.config.demo.js` si spostano in `apps/demo/` senza modifiche al contenuto.
+    - La demo dipende da `sparkline-mini-charts: workspace:*`, risolto tramite `exports` (dist) sia in dev sia in build.
+    - Si eliminano:
+      - `demo-library-plugin`;
+      - la copia `closeBundle` dell'intero dist, 1,5 MB con .map, .cjs e .d.ts;
+      - la regola `external`, che non corrisponde a nulla (vite.config.demo.js:9-54, 67-69).
+    - `apps/docs/` non nasce qui ma in P4-5. In §3.1 `apps/demo/` esiste solo dalla 1.5 alla 1.8.
+    - Gli smoke di P1-18 e P1-19 puntano al nuovo path.
+  - File: apps/demo/**, pnpm-workspace.yaml, vercel.json, .github/workflows/ci.yml
+  - Fatto quando:
+    - `pnpm --filter demo build` senza il dist del core fallisce con un errore esplicito, invece di servire pagine con chart vuoti;
+    - gli smoke legacy sono verdi;
+    - il build della demo non contiene `.map`, `.cjs` né `.d.ts` della libreria.
+  - Finding: demo-arch-1
+
+### P3 · 1.6.0 · Aggiunte: configurazione per chart nella libreria
+
+**Ordine:** P3-1 → P3-11 e P3-10; P3-2 → P3-4 → P3-8 → P3-9 → P3-6 (esteso). Se la 1.6 cresce troppo, P3-8…P3-11 possono uscire in 1.7.0, purché prima di P4-1 e P5-1.
+
+- [ ] **P3-8 · API di configurazione per istanza: `options`, `preset`, `resolvedOptions()`, `optionSource()`** · M · dip. P3-2, P3-4
+  - Cosa:
+    - `core/options.ts` contiene il resolver puro `resolveOptions(schema, layers) → { values, sources }`, senza DOM, dietro il seam `this.option(name)` (§3.11).
+    - Superficie per istanza:
+      - `el.options`: sostituzione, copia shallow congelata, mai riflessa;
+      - `el.preset`: riflesso come attributo con più nomi separati da spazio, vince il più a destra;
+      - `el.resolvedOptions()` e `el.optionSource(key)`;
+      - `requestUpdate(key)` dopo una mutazione in place.
+    - Risoluzione:
+      - precedenza secondo D16;
+      - alias risolti nel nome canonico dentro ogni livello;
+      - `undefined` significa non impostato;
+      - un `false` esplicito si salva come proprietà e non si riflette.
+    - Schema:
+      - nuovi campi `instanceOnly` e `css` (D17);
+      - chiavi riservate `options` e `preset`, controllate dalla guardia di P3-1.
+    - Default nei componenti: i 5 pattern sparsi nei 17 componenti (`getAttribute(x) || "<d>"`, `!== "false"`, `hasAttribute`, valori dai dati, fallback interpolato nel CSS) passano tutti da `this.option(name)`. Il default vive solo in `schema.props[k].default`, oppure nel fallback CSS per le prop `css`.
+  - File: packages/core/src/core/options.ts, packages/core/src/core/props.ts, packages/core/src/meta/types.ts, packages/core/src/components/*.js (17), packages/core/test/contract/options.test.ts
+  - Fatto quando:
+    - la matrice di precedenza generata copre ogni prop su 6 livelli, impostata e non impostata;
+    - sostituire `options` cancella le chiavi rimosse;
+    - `options` e `preset` impostati prima del `define` sopravvivono all'upgrade;
+    - `optionSource()` restituisce il livello giusto in ogni caso della matrice;
+    - lo strato pesa ≤ 1 KB min+gz (size-limit);
+    - fuori dagli schemi non resta alcun default letterale nei 17 componenti (controllo grep in check-source).
+  - Finding: chart-config-3, chart-config-4 (parz.), chart-config-6 (parz.)
+
+- [ ] **P3-9 · Default per tipo e preset nel registry: `DefineMiniChartsOptions`, `configureMiniCharts`, `defineChartPreset`** · M · dip. P3-8
+  - Cosa:
+    - `DefineMiniChartsOptions` è un unico oggetto tipizzato con `registry`, `defaults`, `presets`, `reflectData` e `dev`.
+      - Più avanti lo estendono `legacy` (P7-1), `prefix` (P9-2) e `compat` (P10-1), invece di 4 option bag separati.
+      - La forma posizionale `defineMiniCharts(registry)` resta valida (src/define.js:49).
+    - `defaults`: le chiavi sono i tag canonici più `'*'`, che accetta solo le prop comuni ai 17 schemi.
+    - `presets`: mappa nome → `{ [tag]: Partial<O> }`.
+    - API di runtime:
+      - `configureMiniCharts(patch, { registry })` produce un solo render per ogni chart connesso;
+      - `defineChartPreset(name, map, { registry })`.
+    - Store:
+      - una `WeakMap<CustomElementRegistry, Store>`, più una chiave globale per l'SSR;
+      - letto al render e indipendente dall'ordine di registrazione: React registra all'import (src/react/index.ts:217), Angular nel costruttore (src/angular/mini-chart.directive.ts:99);
+      - per trovare il registry si prova `this.customElementRegistry`, poi `ownerDocument.defaultView.customElements`, poi `globalThis.customElements`;
+      - un Set delle istanze connesse per ogni registry.
+    - Validazione:
+      - immediata, alla chiamata;
+      - le prop `instanceOnly` e `css` vengono rifiutate in defaults e presets, con un warning che indica il token da usare.
+  - File: packages/core/src/define.ts, packages/core/src/core/options.ts, packages/core/src/core/registration.ts, packages/core/test/contract/registry-defaults.test.ts, packages/core/test/browser/iframe-registry.browser.test.ts
+  - Fatto quando:
+    - due registry (pagina e iframe) mantengono default diversi;
+    - importare il wrapper React prima di `configureMiniCharts` non fa perdere i default;
+    - cambiare il default di `locale` produce esattamente un render per ogni chart connesso;
+    - `defaults: { 'mini-line-chart': { data: [] } }` è un errore di tipo e produce un warning in dev;
+    - `defineMiniCharts(customElements)` continua a funzionare.
+  - Finding: chart-config-3, chart-config-7
+
+- [ ] **P3-10 · Warning in dev per attributi e chiavi sconosciuti** · S · dip. P3-1
+  - Cosa:
+    - Al primo connect, ogni attributo assente dallo schema produce un `warnOnce` con suggerimento did-you-mean (Levenshtein ≤ 2 su prop, alias e nomi d'attributo).
+    - Allowlist: attributi globali, `aria-*`, `data-*`, `on*`, `_ngcontent-*`, `_nghost-*`, `ng-*`, `data-v-*`, `astro-*`, `preset`.
+    - Lo stesso controllo vale per le chiavi di `options`, `defaults` e `presets`. In 1.x le chiavi kebab-case sono accettate con un warning.
+    - I nomi di preset sconosciuti vengono ignorati con un warning.
+    - Tutto è attivo solo sotto la condizione dev di §3.10.
+  - File: packages/core/src/core/dev.ts, packages/core/src/core/options.ts, packages/core/test/contract/unknown-keys.test.ts
+  - Fatto quando:
+    - `<mini-line-chart endpoint="last">` avverte una sola volta in dev;
+    - il build di produzione di una fixture consumer non contiene le stringhe dei warning;
+    - nelle fixture Angular, Vue e Astro gli attributi aggiunti dai framework non producono warning.
+  - Finding: chart-config-5
+
+- [ ] **P3-11 · Metadati di UI e di catalogo in `<tag>.docs.ts` (`defineChartDocs`)** · S · dip. P3-1
+  - Cosa:
+    - `defineChartDocs(schema, {...})` usa un tipo mappato: una prop, un evento o un token senza descrizione è un errore TS.
+    - Per ogni prop:
+      - `description`;
+      - `group`: Data, Scale, Shape, Marks, Labels, Interaction, Color, Motion o Accessibility;
+      - `order`, `control` (override), `step`, `range` per i numeri senza limiti, `autoLabel`;
+      - `common`: la prop compare di default nel configuratore.
+    - Per ogni chart:
+      - un `name` canonico unico, che mette fine ai nomi diversi tra sidebar, card e catalogo;
+      - `summary` di una riga;
+      - `category` pensata per l'utente (trends, signed, radial, meters, financial), accanto alla `family` di implementazione;
+      - `related` e `data.generator` per tipo di normalizzatore;
+      - `edgeCases`: empty, single, flat, negatives, gaps, large.
+    - Nessuno di questi campi entra nello schema runtime: il budget di 2,5 KB non cambia.
+    - Qui confluisce la prosa oggi sparsa tra docs/components/*.md, il dizionario i18n della demo (demo/app.js:34-299) e il README.
+  - File: packages/core/src/meta/docs-types.ts, packages/core/src/**/<tag>.docs.ts (17), packages/core/test/meta/docs.test.ts
+  - Fatto quando: un test verifica che ogni prop abbia `description` e `group` e che da ognuna si possa ricavare un controllo; il size-limit degli schemi runtime non cambia.
+  - Finding: demo-arch-2 (parz.), demo-ux-9 (parz.), chart-config-1 (parz.)
+
+- [ ] **P3-6 (esteso) · Matrice di precedenza nella suite di contratto** · S · dip. P3-9
+  - Cosa: casi generati per ogni prop:
+    - 6 livelli, ciascuno impostato o no;
+    - alias dentro lo stesso livello;
+    - `false` esplicito contro un default `true`;
+    - sostituzione di `options`;
+    - ordine dei preset;
+    - re-render dopo `configureMiniCharts`;
+    - prop `css` rifiutate nei default.
+  - File: packages/core/test/contract/generated/options.*.test.ts
+  - Fatto quando: togliere un livello dal resolver fa fallire la suite; la suite resta sotto i 60 s.
+  - Finding: chart-config-3 (parz.), chart-config-4 (parz.)
+
+### P4 · 1.7.0 · Aggiunte: contratto della configurazione pubblicato, scheletro del sito e pagine generate
+
+- [ ] **P4-1 (esteso) · Codegen: configurazione nel CEM e `chart-meta.json`** · S · dip. P3-9, P3-11
+  - Cosa:
+    - CEM:
+      - membri `options` (tipo `MiniXOptions`) e `preset` (anche come attributo);
+      - metodi `resolvedOptions()` e `optionSource()`;
+      - `default` e `deprecated` per ogni prop.
+    - `./types` esporta `ChartOptionsMap`, `ChartTag`, `ChartDefaults<T>`, `ChartPreset` e `DefineMiniChartsOptions`.
+    - Le tabelle delle docs guadagnano le colonne Since, Alias, Canale token e Solo istanza.
+    - Nuovo output privato `tools/codegen/generated/chart-meta.json` (forma descritta in §3.13), non pubblicato su npm.
+    - `codegen --check` copre anche `chart-meta.json`.
+  - File: tools/codegen/src/emit-cem.ts, tools/codegen/src/emit-types.ts, tools/codegen/src/emit-chart-meta.ts, tools/codegen/generated/chart-meta.json
+  - Fatto quando:
+    - `defaults: { 'mini-line-chart': { curve: 'smoth' } }` è un errore di tipo;
+    - una prop aggiunta allo schema aggiorna CEM, tipi e `chart-meta.json` con un solo `pnpm codegen`.
+  - Finding: chart-config-1, demo-arch-2 (parz.)
+
+- [ ] **P4-3 (esteso) · Esempi strutturati e template degli snippet isomorfi** · S · dip. P4-1, P3-11
+  - Cosa:
+    - Gli esempi stanno in `<tag>.docs.ts` come oggetti `{ id, title, data, options, tokens? }`:
+      - almeno 3 per chart;
+      - con le forme dati canoniche;
+      - le forme legacy compaiono in un solo esempio "legacy".
+    - I template in `tools/codegen/src/snippets/*` sono moduli ESM puri, senza dipendenze Node: `(tag, { data, options, tokens }, { framework, includeDefaults }) → string`. Li importano sia il codegen sia il configuratore nel browser (P5-5).
+    - Formati: html con JSON, html con CSV, tsx raw, wrapper React (da P5-1), Vue, Angular, Svelte, Solid, oggetto `options`, `defineChartPreset`, CSS dei token.
+    - Di default si emettono solo i valori diversi dal default.
+    - Sostituiscono le 68 stringhe scritte a mano di `COMPONENTS_CATALOG` (demo/app.js:370-567).
+  - File: tools/codegen/src/snippets/*.ts, packages/core/src/**/<tag>.docs.ts, tools/codegen/test/snippets.test.ts
+  - Fatto quando:
+    - i template girano in un test happy-dom senza globali Node;
+    - i loro output passano tsc, vue-tsc, ngc e svelte-check;
+    - un esempio con una prop non valida fa fallire il typecheck.
+  - Finding: chart-config-8, demo-arch-2 (parz.), demo-ux-1 (parz.)
+
+- [ ] **P4-5 · Sito `apps/docs` (Astro Starlight): scheletro, design system, anteprima, gate di accessibilità e prestazioni** · M · dip. P2-1, P4-1
+  - Cosa:
+    - Starlight in `apps/docs`, con la libreria consumata tramite gli exports in dev e in build e la registrazione in un override di `Head` (§3.13).
+    - Pagine:
+      - splash `/` con casi d'uso reali live (riga di tabella KPI, card, tile), comando d'installazione con `<Tabs syncKey="pkg">` e percorso in 3 passi;
+      - `/getting-started/*` e `/frameworks/*` migrati da docs/getting-started.md, docs/architecture.md e README;
+      - `/changelog/` e 404.
+    - Design system L1 e L2 (§3.13):
+      - `site-bridge.css` ricava `--sl-color-*` dai token della libreria (nomi legacy fino a P8-7);
+      - il sito non dichiara alcun `--mini-chart-*` né variabili senza prefisso;
+      - scale di Starlight, Fontsource self-hosted, icone di Starlight, niente emoji nei controlli.
+    - Componenti base: `ChartStage`, `StatusRegion`, `<Tabs syncKey="framework">`, Expressive Code. Bisogna verificare che la conferma "copiato" venga annunciata; se non lo è, passa dalla `StatusRegion`.
+    - Guida di stile breve in CONTRIBUTING:
+      - tono tecnico;
+      - un solo nome per tag, preso da `docs.ts`;
+      - ogni claim numerico generato oppure assente;
+      - i badge "New" derivano da `since`.
+    - Vercel: secondo progetto con root `apps/docs`, anteprima per ogni PR e sottodominio `next.`. La produzione resta sulla demo legacy fino a P5-6.
+    - CI (`docs.yml`):
+      - `astro check` e build;
+      - smoke Playwright su ogni route;
+      - axe in light, dark, forced-colors e reduced-motion;
+      - viewport 320, 768 e 1280;
+      - link checker;
+      - Lighthouse CI con i budget di D19.
+  - File: apps/docs/**, apps/docs/src/styles/site-bridge.css, apps/docs/lighthouserc.json, CONTRIBUTING.md, .github/workflows/docs.yml
+  - Fatto quando:
+    - i gate di D19 sono verdi su tutte le pagine esistenti;
+    - nessuna richiesta parte verso terze parti;
+    - cambiare `--mini-chart-color` nel bridge ricolora insieme chrome e chart;
+    - ogni PR ha un'anteprima raggiungibile.
+  - Finding: demo-arch-4, demo-arch-11 (parz.), demo-arch-14 (parz.), demo-ux-4, demo-ux-15, demo-a11y-6, demo-a11y-14, demo-a11y-18, demo-a11y-19, demo-a11y-21
+
+- [ ] **P4-6 · Pagine dei chart, gallery e reference generate** · L · dip. P4-1 (esteso), P4-3 (esteso), P4-5, P3-11
+  - Cosa:
+    - Collection `charts`: un loader Content Layer che legge `chart-meta.json`. Collection `examples`: l'output di P4-3.
+    - Il codegen scrive uno stub MDX per chart in `apps/docs/src/content/docs/charts/<slug>.mdx`, con frontmatter, `<ChartPage tag=… />` e slot per la prosa scritta a mano. `codegen --check` impone uno stub per ogni schema. In questo modo sidebar automatica, Pagefind e fallback i18n funzionano senza collegamenti manuali.
+    - Componenti a zero JS (§3.13): `ChartPage` con l'ordine fisso, `ChartPreview`, `PropsTable`, `EventsTable`, `PartsTable`, `TokensTable`, `DataShape`, `ExampleTabs`, `ChartCard`/`ChartGallery`, `VersionBadge`, `FrameworkMatrix`.
+    - `/charts/` è raggruppata per `category`, con filtro; ogni chart ha prev/next.
+    - `/guides/configuration/` mostra il diagramma della precedenza D16 ed esempi di `options`, `preset` e `defaults` in 6 framework, generati dai template.
+    - `/theming/` provvisoria: tabelle dei token e dei part generate dallo schema e una guida ai livelli corretta. Il lab interattivo torna in P8-9.
+    - Un test sul build verifica che ogni prop dello schema abbia una riga nella sua tabella.
+  - File: apps/docs/src/content.config.ts, apps/docs/src/loaders/charts.ts, apps/docs/src/components/*.astro, tools/codegen/src/emit-mdx-stubs.ts, apps/docs/src/content/docs/charts/*.mdx (generati)
+  - Fatto quando:
+    - una prop aggiunta allo schema compare in tabella, nei tipi e negli esempi con un solo `pnpm codegen`;
+    - nessuna tabella API è scritta a mano;
+    - le 17 pagine passano i gate di D19;
+    - Pagefind trova ogni chart sia per nome sia per tag.
+  - Finding: demo-arch-2, demo-arch-12, demo-ux-1, demo-ux-9, demo-ux-16 (parz.), demo-a11y-13 (parz.), chart-config-1, chart-config-8
+
+### P5 · 1.8.0 · Aggiunte: configurazione nei wrapper, configuratore, cutover del dominio
+
+- [ ] **P5-1 (esteso) · Wrapper con `options`, `preset` e `false` esplicito** · S · dip. P3-9
+  - Cosa:
+    - Ogni wrapper generato accetta `options?: Partial<O>` e `preset`.
+    - Unisce `{...options, ...propEsplicite}`, assegna ogni chiave come proprietà e imposta a `undefined` le chiavi sparite tra due render.
+    - Un `false` esplicito si assegna sempre come proprietà. Oggi va perso in src/react/index.ts:258-260 e in src/angular/mini-chart.directive.ts:35-40.
+    - In SSR i primitivi diventano attributi, mentre json e colorList diventano stringhe JSON.
+    - Per un `preset` di default nel sottoalbero si possono usare un context React, un `provide` Vue o `provideSparklineCharts({ defaults, presets })` in Angular. Costano 0 byte nel core.
+  - File: tools/codegen/src/wrappers/{react,vue,angular}/*, packages/{react,vue,angular}/test/options.test.*
+  - Fatto quando:
+    - con un default di registry pari a `true`, `hollowBullish={false}`, `:round-caps="false"` e `[sharedDomain]="false"` spengono il flag;
+    - togliere una chiave da `options` tra due render ripristina il default;
+    - l'HTML SSR contiene gli attributi primitivi.
+  - Finding: chart-config-4
+
+- [ ] **P5-5 · Configuratore per chart generato dallo schema (`<smc-configurator>`) e `/playground/`** · L · dip. P3-5, P3-9, P4-6, P5-1
+  - Cosa:
+    - Custom element in TS vanilla (D15), in `apps/docs/src/islands/configurator/`, montato `client:visible`.
+    - Usa l'API di P3-8: `el.options = diff`, `resolvedOptions()` e `optionSource()`.
+    - Controlli:
+      - uno per `PropType`, secondo la tabella di §3.13;
+      - raggruppati in `fieldset`/`legend` per `group`;
+      - "modificato" in testo e reset per singolo controllo e globale.
+    - Pannelli:
+      - Data: JSON, o CSV per le serie piatte; generatori per normalizzatore; esempi di `docs.ts` come preset;
+      - Token: solo `schema.tokens`, applicati allo stage;
+      - Eventi: `role=log`, 50 voci, annunci solo su richiesta;
+      - Inspector.
+    - Stage:
+      - un solo elemento, aggiornato tramite proprietà;
+      - taglie 80, 160 e 320 px più una maniglia di ridimensionamento;
+      - sfondo light o dark;
+      - contesti card, riga di tabella da 24px e inline nel testo.
+    - Codice: prodotto dai template isomorfi di P4-3 (6 framework, wrapper, `options`, `defineChartPreset`, CSS). Per default contiene solo i valori modificati.
+    - Stato nell'URL: diff in base64url, `replaceState` con debounce di 300 ms e nuova validazione al caricamento.
+    - Il configuratore compare in cima a ogni `/charts/<slug>/` e in `/playground/`, con selettore dei chart e ricerca.
+    - Sostituisce il playground e la pagina di dettaglio della demo legacy.
+  - File: apps/docs/src/islands/configurator/**, apps/docs/src/content/docs/playground.mdx, apps/docs/test/configurator.spec.ts, apps/docs/test/configurator-contract.test.ts
+  - Fatto quando:
+    - una prop aggiunta allo schema compare nel configuratore senza codice specifico per chart;
+    - un test di contratto fallisce se una prop non ha un controllo;
+    - per ogni chart, il codice esportato e incollato in una fixture produce gli stessi `resolvedOptions()` dello stage;
+    - un URL condiviso riproduce lo stato;
+    - axe riporta 0 violazioni serious o critical e tutto il configuratore si usa da tastiera;
+    - il JS del configuratore è ≤ 25 KB gz.
+  - Finding: demo-arch-9, demo-ux-1, demo-ux-2, demo-ux-11 (parz.), demo-a11y-11, chart-config-2, chart-config-9, chart-config-11
+
+- [ ] **P5-6 · Pagina `/live/`, parità e cutover del dominio** · M · dip. P5-5, P3-2
+  - Cosa:
+    - `<smc-live-board>`:
+      - uno scheduler su rAF, attivo solo con la pagina visibile e la card sullo schermo;
+      - parte da solo solo con `prefers-reduced-motion: no-preference` e se l'utente non l'aveva messo in pausa; la scelta si ricorda dentro un try/catch;
+      - il pulsante di pausa viene per primo, con `aria-pressed` e badge LIVE/PAUSED;
+      - nessun `aria-live` sui chart; annunci su richiesta al massimo ogni ~5 s;
+      - dati con `el.data = array` e `reflectData: false`, serie fatte scorrere invece che rigenerate;
+      - 6 chart di default, con l'opzione "mostra tutti i 17";
+      - ricetta in vanilla, React, Vue e Angular;
+      - cleanup con `AbortController`.
+    - Checklist di parità:
+      - ogni route legacy ha una destinazione (tabella dei redirect in §3.13);
+      - ogni chart ha la sua pagina e il configuratore;
+      - le guide dei framework sono pubblicate.
+    - Shim di redirect inline su `/`.
+    - Il dominio `sparkline-mini-charts.erlonrru.com` passa ad `apps/docs`.
+    - Si eliminano `apps/demo/`, `vite.config.demo.js` e `docs/demo-guide.md`.
+    - `assets/img/*.png` vengono rigenerate in light e dark da uno script Playwright; il README le usa con `<picture>`.
+  - File: apps/docs/src/islands/live-board/**, apps/docs/src/content/docs/live.mdx, apps/docs/src/components/HashRedirect.astro, scripts/screenshots.ts, README.md, assets/img/*, apps/demo/** (rimosso)
+  - Fatto quando:
+    - ogni URL della tabella dei redirect porta alla pagina giusta (test Playwright);
+    - con il tab nascosto o la board fuori schermo, il contatore delle scritture resta a 0;
+    - con reduced motion la board parte in pausa;
+    - lo smoke di produzione sul dominio è verde;
+    - nel repo non resta alcun riferimento a `demo/`.
+  - Finding: demo-arch-7, demo-arch-12 (parz.), demo-ux-10, demo-ux-16, demo-a11y-3, demo-a11y-16 (parz.), demo-a11y-17
+
+### P6 · 1.9.0 · Aggiunta: dati nel sito
+
+- [ ] **P6-10 · Guida Data generata e `DataIssue` nel configuratore** · S · dip. P6-1, P5-5
+  - Cosa:
+    - Pagina `/guides/data/`:
+      - la tabella dei normalizzatori di §3.4, con input canonico e legacy, generata;
+      - i tipi da `./types`;
+      - demo live di `gaps` drop, break e connect, aggiunte man mano che le famiglie migrano;
+      - il catalogo dei codici `DataIssue` con esempi.
+    - Il pannello Data del configuratore mostra gli issue dell'evento `sparkline-data-issue` accanto all'editor (`aria-describedby`), senza importare codice interno.
+  - File: apps/docs/src/content/docs/guides/data.mdx, apps/docs/src/islands/configurator/data-panel.ts, tools/codegen/src/emit-data-table.ts
+  - Fatto quando: `[1,"x",3]` nell'editor mostra un issue `not-finite` all'indice 1; la tabella dei normalizzatori non è scritta a mano.
+  - Finding: demo-ux-2 (parz.)
+
+### P8 · 1.11.0 · Aggiunte: theming del sito
+
+- [ ] **P8-7 (esteso) · palette-check su preset showcase e bridge del sito** · S · dip. P8-6
+  - Cosa:
+    - Preset showcase:
+      - i 5 preset della demo (ocean, emerald, cyberpunk, sunset, velvet) diventano `apps/docs/src/themes/showcase/*.css`;
+      - contengono solo token di livello 1 e 2, in coppie `light-dark()`.
+    - `tools/palette-check` controlla showcase e `site-bridge.css` in entrambi gli schemi:
+      - testo ≥ 4,5:1;
+      - segni (series, positive, negative, point, tie) ≥ 3:1 sulla surface;
+      - positive/negative e serie adiacenti separate sotto simulazione di deuteranopia e protanopia (ΔE minimo da concordare);
+      - un indizio non cromatico, le candele hollow, attivo nelle docs.
+    - Sito:
+      - il bridge passa ai token a livelli;
+      - il sito importa un solo preset (`themes/auto.css`), più "Alto contrasto" (`themes/high-contrast.css`, automatico con `prefers-contrast: more`) e un blocco `forced-colors`.
+    - Il "Fatto quando" di P8-7 "la board di theming della demo funziona con un solo import" diventa "`apps/docs` funziona con un solo import di preset".
+  - File: tools/palette-check/**, apps/docs/src/styles/site-bridge.css, apps/docs/src/themes/showcase/*.css
+  - Fatto quando:
+    - Cyberpunk in light supera 3:1 su tutti i segni, altrimenti viene ritirato;
+    - un palette-check rosso blocca la PR;
+    - esistono baseline forced-colors degli stati attivi del sito.
+  - Finding: demo-a11y-2, demo-a11y-7, demo-a11y-18 (parz.)
+
+- [ ] **P8-9 · Theme studio su `tokens.json` e `themes/*.css`: assorbe Theming Lab e Gradients Studio** · M · dip. P7-2, P8-7; export JS dopo P8-8
+  - Cosa:
+    - `<smc-theme-studio>` in `/theming/studio/`.
+    - Controlli:
+      - generati da `tokens.json` per livello: globale, semantico, serie 1..12 e componente, filtrabile per chart;
+      - solo per token davvero consumati.
+    - Preset:
+      - da `themes/*.css` e dagli showcase, applicati con una classe o `data-theme` su un contenitore di anteprima, oppure con `<mini-chart-theme>` dopo P8-8;
+      - niente scritture inline per elemento.
+    - Stato: preset base più override, salvato nell'URL. Cambiare un controllo non resetta il preset.
+    - Anteprima dei 17 chart in light, dark e forced-colors affiancati, con contrasto calcolato dal vivo.
+    - Editor degli stop `gradient-1..3`, al posto dei preset in pseudo-JSON con apici singoli (demo/app.js:1177-1218).
+    - Export:
+      - CSS, `themeToCSS`/`applyTheme()` e provider per i framework (dopo P8-8);
+      - toggle "applica al sito".
+    - Il pannello Token del configuratore (P5-5) passa a `tokens.json`.
+  - File: apps/docs/src/islands/theme-studio/**, apps/docs/src/content/docs/theming/*.mdx, apps/docs/src/islands/configurator/tokens-panel.ts
+  - Fatto quando:
+    - nessun token non consumato è controllabile;
+    - il CSS esportato, incollato in una fixture, produce lo stesso rendering (baseline visiva);
+    - axe riporta 0 violazioni serious o critical;
+    - le pagine `/theming/*` passano i gate di D19.
+  - Finding: demo-arch-3, demo-arch-8, demo-ux-5, demo-ux-7, demo-ux-11, demo-a11y-2 (parz.), demo-a11y-5, chart-config-10, chart-config-11
+
+### P9 · 1.12.0 · Modifica: chiusura del sito
+
+- [ ] **P9-3 (esteso) · Chiusura del sito: versioni, migrazione, audit finale** · M · dip. P5-6, P8-9, P9-1
+  - Cosa: sostituisce lo scope "sito docs" di P9-3, perché il sito nasce già in P4-5…P5-6.
+    - Docs versionate: v1.x dal branch `release/1.x` su un sottodominio e canale `next` per `2.0.0-next` (collegato a P10-5).
+    - `MIGRATION-2.0.md` e una sezione Migrazione per ogni chart, generate dalla tabella delle deprecazioni.
+    - docs/components/*.md rimossi, perché il contenuto vive in `docs.ts`; README ridotto, con link alle pagine.
+    - Foglie `/define` per pagina (P9-1): ogni pagina chart carica solo il proprio modulo; budget JS ricalibrato.
+    - Audit finale WCAG 2.2 AA del sito con il protocollo manuale per screen reader di P7-4 e un passaggio da tastiera scriptato su ogni pagina chart.
+    - Ricette `/examples/` (KPI card, tabella, ticker, dashboard) e overlay delle prestazioni su `/live/` dal reconciler **[rinviabile 2.1]**.
+  - File: apps/docs/**, MIGRATION-2.0.md, README.md, docs/components/** (rimossi)
+  - Fatto quando:
+    - nessuna tabella API scritta a mano (come prima);
+    - link checker verde;
+    - gate D19 verdi anche nella versione v1.x;
+    - ogni pagina chart carica un solo modulo chart.
+  - Finding: theming-8, data-api-7, packaging-15, adapters-12, demo-a11y-16, demo-ux-16 (parz.)

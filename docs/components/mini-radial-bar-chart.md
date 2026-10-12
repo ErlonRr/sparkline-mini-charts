@@ -28,12 +28,16 @@ The `data` property accepts the array directly and writes it to the attribute as
 | --- | --- | --- | --- |
 | `data` | JSON `(number \| { value, color? })[]` | `[]` | The ring values. |
 | `label` | string | `"Radial-bar chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `preset` | string | none | Space-separated names of presets registered with `defineChartPreset()` or `defineMiniCharts({ presets })`; the rightmost name wins. Explicit attributes and `options` beat presets. |
 | `max` | number | highest value (at least `1`) | Value of a full ring. A value that is not positive is ignored. |
-| `min` | number | none | Observed but not read: rings always start at `0`. |
+| `min` | number | `0` | Value of an empty ring: a ring fills from `min` to `max`. Ignored when it is not below the maximum. |
 | `sweep` | number (degrees) | `270` | Length of a full ring's arc, from `0` (exclusive) to `360`. A larger value draws a full circle; zero or a negative value keeps `270`. |
 | `round-caps` | boolean | on | Rounded ends on the rings and their tracks. Only `round-caps="false"` turns them off. Changes apply after the first render too. |
 | `gradient` | see [Gradient](#gradient) | off | Strokes the rings with linear gradients instead of flat colors. |
 | `interactive` | boolean (presence) | off | Highlights the ring under the pointer, dims the others and dispatches the events below. `interactive="false"` still enables it. |
+| `tooltip` | boolean | off | Shows the hovered value in a small built-in tooltip (`part="tooltip"`), formatted with `Intl.NumberFormat`. Implies `interactive`. |
+| `locale` | string | the page's | BCP 47 locale of the tooltip numbers, e.g. `de-DE`. |
+| `motion` | `auto` \| `reduce` | `auto` | `reduce` draws data updates at once, without the transition. `prefers-reduced-motion: reduce` does the same for every chart. |
 
 ## Gradient
 
@@ -51,11 +55,12 @@ Entries that are not CSS colors (checked with `CSS.supports("color", …)`; `var
 
 ## Events
 
-Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+Dispatched only when `interactive` is set. All bubble and cross the shadow boundary (`composed`). Since 1.5, every `sparkline-hover` and `sparkline-select` `detail` also carries the uniform keys `chart`, `index`, `seriesIndex`, `value`, `datum`, `color` (the mark's computed color) and `clientX`/`clientY`, and a hover fires only when the hovered point changes.
 
 | Event | `detail` | When |
 | --- | --- | --- |
 | `sparkline-hover` | `{ trackIndex, value, color, element }` | The pointer enters a ring. `trackIndex` is the ring's data index (`0` is innermost), `color` its data `color` or else the built-in palette color for that index (not a `--mini-chart-color-N` override), `element` the ring's `track-fg` path. |
+| `sparkline-select` | same as `sparkline-hover` | The pointer clicks a mark (or the chart, for the single-value meters). |
 | `sparkline-leave` | none | The pointer leaves the chart. |
 
 ## CSS custom properties

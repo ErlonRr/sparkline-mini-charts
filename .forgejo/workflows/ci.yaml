@@ -34,7 +34,8 @@ jobs:
         run: pnpm run lint:source
 
       # README, docs/ and the demo use only attributes, tokens and parts that exist in src/,
-      # and every chart page documents its whole API.
+      # every chart page documents its whole API, and the root README.md and LICENSE are
+      # copies of the packages/core ones.
       - name: Docs checks
         run: pnpm run lint:docs
 

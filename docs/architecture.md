@@ -2,6 +2,8 @@
 
 Sparkline Mini Charts is designed with a strict **"Zero Dependency, High Performance"** philosophy. The architecture relies purely on Vanilla Web Components and SVG to achieve maximum compatibility, fast initial paint, and isolation.
 
+The library is the `sparkline-mini-charts` package in `packages/core/` of the repository's pnpm workspace; the source paths below (`src/…`, `scripts/…`) are relative to it.
+
 ---
 
 ## 1. Custom Elements & Shadow DOM

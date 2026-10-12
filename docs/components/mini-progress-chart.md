@@ -20,12 +20,16 @@ The `data` property accepts the array directly (`chart.data = [75]`) and writes 
 | --- | --- | --- | --- |
 | `data` | JSON `[value]` | `[]` | The value to show. |
 | `label` | string | `"Progress chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `preset` | string | none | Space-separated names of presets registered with `defineChartPreset()` or `defineMiniCharts({ presets })`; the rightmost name wins. Explicit attributes and `options` beat presets. |
 | `min` | number | `0` | Value of the empty arc. |
 | `max` | number | `100` | Value of the full arc. A value that is not above `min` is ignored and `100` is used. |
 | `show-value` | boolean (presence) | off | Shows the value, rounded to an integer, in the middle of the arc. |
 | `unit` | string | none | Text appended to the shown value, e.g. `%`. Only used with `show-value`. |
 | `gradient` | see [Gradient](#gradient) | off | Paints the value arc with a linear gradient instead of `--mini-chart-value-color`. |
 | `interactive` | boolean (presence) | off | Brightens the value arc under the pointer and dispatches `sparkline-hover` / `sparkline-leave`. `interactive="false"` still enables it. |
+| `tooltip` | boolean | off | Shows the hovered value in a small built-in tooltip (`part="tooltip"`), formatted with `Intl.NumberFormat`. Implies `interactive`. |
+| `locale` | string | the page's | BCP 47 locale of the tooltip numbers, e.g. `de-DE`. |
+| `motion` | `auto` \| `reduce` | `auto` | `reduce` draws data updates at once, without the transition. `prefers-reduced-motion: reduce` does the same for every chart. |
 
 ## Gradient
 
@@ -39,12 +43,13 @@ Entries that are not CSS colors (checked with `CSS.supports("color", …)`; `var
 
 ## Events
 
-All events bubble and cross the shadow boundary (`composed`).
+All events bubble and cross the shadow boundary (`composed`). Since 1.5, every `sparkline-hover` and `sparkline-select` `detail` also carries the uniform keys `chart`, `index` (`0`), `seriesIndex` (`0`), `value`, `datum`, `color` (the computed color of the mark) and `clientX`/`clientY`; a hover fires once per entry into the chart.
 
 | Event | `detail` | When |
 | --- | --- | --- |
 | `progress-complete` | `{ value, max }` | The value moves to `max` (or past it) after a render that was not complete. It fires once per transition, not on every render at `max`; a change of another attribute alone (for example a lower `max`) does not fire it. It fires on the first render too (synchronously on connect) when the chart starts complete. It does not need `interactive`. |
 | `sparkline-hover` | `{ value, progress }` | The pointer moves over the chart (`interactive` only). `value` is the clamped value and `progress` its position between `min` and `max`, from `0` to `1`. |
+| `sparkline-select` | same as `sparkline-hover` | The pointer clicks a mark (or the chart, for the single-value meters). |
 | `sparkline-leave` | none | The pointer leaves the chart (`interactive` only). |
 
 ## CSS custom properties

@@ -1,0 +1,22 @@
+{
+  "name": "sparkline-mini-charts-demo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Interactive showcase of sparkline-mini-charts, deployed by Vercel. Not published.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "sparkline-mini-charts": "workspace:*"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.64.0",
+    "vite": "^8.2.1"
+  }
+}

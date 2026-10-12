@@ -1,0 +1,19 @@
+// tsconfig.adapters.json — The TypeScript React and Vue wrappers, under every strict flag of the base.
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // allowJs (without checkJs) only lets the compiler follow imports of the JavaScript
+    // sources, which it then reads from tsconfig.legacy.json's declarations: TypeScript
+    // ignores a referenced project's .js files otherwise (TS7016). It also rules out
+    // isolatedDeclarations (TS5053), which is deferred until the wrappers import no
+    // JavaScript source: src/core in TypeScript (P2-6) or generated wrappers in their
+    // own packages (P5).
+    "allowJs": true,
+    "composite": true,
+    "emitDeclarationOnly": true,
+    "outDir": "node_modules/.cache/tsc/adapters",
+    "rootDir": "src"
+  },
+  "include": ["src/react.ts", "src/react/**/*.ts", "src/vue.ts", "src/vue/**/*.ts"],
+  "references": [{ "path": "./tsconfig.legacy.json" }]
+}

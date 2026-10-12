@@ -1,0 +1,22 @@
+// tsconfig.json — Type-check entry of packages/core (`pnpm typecheck` runs `tsc --build`).
+//
+// JavaScript and TypeScript sources coexist until P9, and isolatedDeclarations cannot be
+// combined with allowJs, so the package is split into project references:
+// - tsconfig.legacy.json   JavaScript sources (allowJs + checkJs);
+// - tsconfig.adapters.json React and Vue wrappers (TypeScript);
+// - tsconfig.angular.json  Angular directives (the only project with experimentalDecorators);
+// - tsconfig.test.json     tests, repository scripts and the Vite config (Node types).
+// The published declarations come from tsconfig.build.json; test/types/ type-checks
+// them from the consumer side.
+//
+// Vite reads this solution file too: it resolves the referenced project that owns each
+// source file, so the Angular sources keep legacy decorators in the bundle.
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.legacy.json" },
+    { "path": "./tsconfig.adapters.json" },
+    { "path": "./tsconfig.angular.json" },
+    { "path": "./tsconfig.test.json" }
+  ]
+}

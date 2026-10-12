@@ -18,17 +18,22 @@ The `data` property accepts the array directly (`chart.data = [60, 25, 15]`) and
 | --- | --- | --- | --- |
 | `data` | JSON `number[]` | `[]` | The slice values. |
 | `label` | string | `"Half-pie chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `preset` | string | none | Space-separated names of presets registered with `defineChartPreset()` or `defineMiniCharts({ presets })`; the rightmost name wins. Explicit attributes and `options` beat presets. |
 | `donut` | number (ratio) | `0` | Hole size as a fraction of the radius, clamped to `0`–`0.9`. When both are set, `donut` wins over `inner-radius`. A bare `donut` attribute (no value) draws a solid half-pie. |
 | `inner-radius` | number (ratio) | `0` | Same as `donut`; used only when `donut` is absent or empty. |
 | `interactive` | boolean (presence) | off | Highlights the slice under the pointer, dims the others and dispatches the events below. `interactive="false"` still enables it. |
+| `tooltip` | boolean | off | Shows the hovered value in a small built-in tooltip (`part="tooltip"`), formatted with `Intl.NumberFormat`. Implies `interactive`. |
+| `locale` | string | the page's | BCP 47 locale of the tooltip numbers, e.g. `de-DE`. |
+| `motion` | `auto` \| `reduce` | `auto` | `reduce` draws data updates at once, without the transition. `prefers-reduced-motion: reduce` does the same for every chart. |
 
 ## Events
 
-Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+Dispatched only when `interactive` is set. All bubble and cross the shadow boundary (`composed`). Since 1.5, every `sparkline-hover` and `sparkline-select` `detail` also carries the uniform keys `chart`, `index`, `seriesIndex`, `value`, `datum`, `color` (the mark's computed color) and `clientX`/`clientY`, and a hover fires only when the hovered point changes.
 
 | Event | `detail` | When |
 | --- | --- | --- |
 | `sparkline-hover` | `{ index, value, percentage, color, element }` | The pointer enters a slice. `value` is the slice's data value, `percentage` its share of the total (one decimal), `color` the built-in palette color for that index (not a `--mini-chart-color-N` override), `element` the slice's `<path>`. |
+| `sparkline-select` | same as `sparkline-hover` | The pointer clicks a mark (or the chart, for the single-value meters). |
 | `sparkline-leave` | none | The pointer leaves the chart. |
 
 ## CSS custom properties

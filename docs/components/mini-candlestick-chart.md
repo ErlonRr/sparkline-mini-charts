@@ -27,16 +27,20 @@ The `data` property accepts the array directly (`chart.data = [[100, 110, 90, 10
 | --- | --- | --- | --- |
 | `data` | JSON `[open, high, low, close][]` | `[]` | The candles to plot. |
 | `label` | string | `"Candlestick chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `preset` | string | none | Space-separated names of presets registered with `defineChartPreset()` or `defineMiniCharts({ presets })`; the rightmost name wins. Explicit attributes and `options` beat presets. |
 | `hollow-bullish` | boolean | on | Bullish bodies are drawn hollow (outline only). The chart is hollow whether the attribute is absent or present; only `hollow-bullish="false"` fills bullish bodies. Bearish bodies are always filled. |
-| `wick-width` | number | `0.75` | Stroke width of the wick and of the body outline, in viewBox units (the viewBox is 100 × 30, so the stroke scales with the chart). An explicit attribute wins over an inherited `--mini-chart-wick-width`; a negative or non-numeric value is ignored. |
+| `wick-width` | number | `1` | Stroke width of the wick and of the body outline, in screen pixels: the stroke stays the same from a table row to a large card (before 1.5 it was in viewBox units and scaled with the chart). An explicit attribute wins over an inherited `--mini-chart-wick-width`; a negative or non-numeric value is ignored. |
 | `gap` | number | `0.2` | Share of each slot left empty between candles, from `0` to `0.8`. Values outside that range are clamped; a non-numeric value keeps the default. |
 | `min` | number | lowest price | Bottom of the price axis. Ignored when it is not below `max`, and the data extent is used instead. Prices outside the range are not clamped. |
 | `max` | number | highest price | Top of the price axis. Ignored when it is not above `min`. |
 | `interactive` | boolean (presence) | off | Highlights the candle under the pointer (the others fade to 0.45 opacity) and dispatches the events below. `interactive="false"` still enables it. |
+| `tooltip` | boolean | off | Shows the hovered value in a small built-in tooltip (`part="tooltip"`), formatted with `Intl.NumberFormat`. Implies `interactive`. |
+| `locale` | string | the page's | BCP 47 locale of the tooltip numbers, e.g. `de-DE`. |
+| `motion` | `auto` \| `reduce` | `auto` | `reduce` draws data updates at once, without the transition. `prefers-reduced-motion: reduce` does the same for every chart. |
 
 ## Events
 
-Dispatched only when `interactive` is set. All bubble and cross the shadow boundary (`composed`).
+Dispatched only when `interactive` is set. All bubble and cross the shadow boundary (`composed`). Since 1.5, every `sparkline-hover` and `sparkline-select` `detail` also carries the uniform keys `chart`, `index`, `seriesIndex`, `value`, `datum`, `color` (the mark's computed color) and `clientX`/`clientY`, and a hover fires only when the hovered point changes.
 
 | Event | `detail` | When |
 | --- | --- | --- |
@@ -50,7 +54,7 @@ Dispatched only when `interactive` is set. All bubble and cross the shadow bound
 | --- | --- | --- |
 | `--mini-chart-bullish-color` | `#10b981` | Wick, outline and (with `hollow-bullish="false"`) body of rising candles. |
 | `--mini-chart-bearish-color` | `#ef4444` | Wick, outline and body of falling candles. |
-| `--mini-chart-wick-width` | `0.75` | Wick and body outline width, in viewBox units, when the `wick-width` attribute is absent. |
+| `--mini-chart-wick-width` | `1` | Wick and body outline width, in screen pixels, when the `wick-width` attribute is absent. |
 | `--mini-chart-aspect-ratio` | `10 / 3` | Host aspect ratio when the host has no explicit height. |
 
 ## Parts
