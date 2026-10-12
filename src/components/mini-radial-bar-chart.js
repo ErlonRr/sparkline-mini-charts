@@ -1,9 +1,10 @@
 // mini-radial-bar-chart.js — Responsive SVG radial bar/activity ring sparkline Custom Element.
 
 import { createRadialBarLayout, describeArc } from "../core/geometry.js";
+import { parseGradient, resolveGradientColors, setGradientStops } from "../core/gradient.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
 import { getSegmentColor } from "../core/palette.js";
-import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+import { createSvgElement, createChartSvg, chartStyles, entranceDelay } from "../core/svg.js";
 
 /**
  * @typedef {Object} TrackCache
@@ -29,6 +30,9 @@ export class MiniRadialBarChart extends MiniChartElement {
     "gradient",
     "interactive",
   ];
+
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
 
   /** @type {boolean} */
   #initialized = false;
@@ -60,7 +64,8 @@ export class MiniRadialBarChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers and interaction listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -68,7 +73,6 @@ export class MiniRadialBarChart extends MiniChartElement {
       clearTimeout(this.#timerId);
       this.#timerId = null;
     }
-    this.#detachInteractionListeners();
   }
 
   /**
@@ -104,27 +108,40 @@ export class MiniRadialBarChart extends MiniChartElement {
       if (title) title.textContent = label;
     }
 
+    this.#applyOptions();
     this.#updateChart(data);
+  }
+
+  /**
+   * Applies the styling attributes on every render, so changing them after the
+   * first render takes effect.
+   */
+  #applyOptions() {
+    if (!this.#svg) return;
+    if (this.getAttribute("round-caps") === "false") {
+      this.#svg.removeAttribute("data-round-caps");
+    } else {
+      this.#svg.setAttribute("data-round-caps", "");
+    }
   }
 
   /**
    * @param {string} label 
    */
   #createDOM(label) {
-    const roundCaps = this.getAttribute("round-caps") !== "false";
-
+    // Static text: per-instance options live on the svg (see #applyOptions), never in the stylesheet.
     const style = document.createElement("style");
     style.textContent = `${chartStyles}
 :host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
 [part~="track-bg"] {
   fill: none;
   stroke: var(--mini-chart-track-bg, var(--mini-chart-track-color, rgba(128, 128, 128, 0.15)));
-  stroke-linecap: ${roundCaps ? "round" : "butt"};
+  stroke-linecap: butt;
 }
 
 [part~="track-fg"] {
   fill: none;
-  stroke-linecap: ${roundCaps ? "round" : "butt"};
+  stroke-linecap: butt;
   transition: stroke-dashoffset 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, filter 0.2s ease;
   cursor: default;
 }
@@ -137,6 +154,10 @@ export class MiniRadialBarChart extends MiniChartElement {
 }
 :host([interactive]) [part="tracks"]:has([part~="track-fg"]:hover) [part~="track-fg"]:not(:hover) {
   opacity: 0.45;
+}
+svg[data-round-caps] [part~="track-bg"],
+svg[data-round-caps] [part~="track-fg"] {
+  stroke-linecap: round;
 }`;
 
     this.#svg = createChartSvg({ width: this.chartWidth, height: this.chartHeight, label });
@@ -174,42 +195,51 @@ export class MiniRadialBarChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#container?.addEventListener("pointerover", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
   }
 
-  #detachInteractionListeners() {
-    this.#container?.removeEventListener("pointerover", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
+  /**
+   * Resolves the gradient colors of one ring. A JSON list of color lists gives
+   * one gradient per ring; a flat list is shared by every ring.
+   * @param {number} index Ring index.
+   * @param {string} baseColor The ring's own color, the first default stop.
+   * @returns {string[] | null} The stop colors, or `null` for a flat stroke.
+   */
+  #resolveTrackGradient(index, baseColor) {
+    const setting = parseGradient(this.getAttribute("gradient"));
+    if (setting === false) return null;
+    if (setting === true) return [baseColor, getSegmentColor(index + 3)];
+
+    const ring = setting[index];
+    if (Array.isArray(ring)) return ring;
+    return resolveGradientColors(setting, []);
   }
 
   /**
-   * Resolves gradient colors for a specific track index.
-   * @param {number} index
-   * @param {string} baseColor
-   * @returns {string[] | null}
+   * Strokes a ring with its gradient, or with its flat color when the gradient is off.
+   * @param {TrackCache} cache The ring's nodes.
+   * @param {number} index Ring index.
+   * @param {any} item The ring's data entry: a number or `{ value, color }`.
    */
-  #resolveTrackGradient(index, baseColor) {
-    const raw = this.getAttribute("gradient");
-    if (raw === null || raw === "false") return null;
-    if (raw === "" || raw === "true") {
-      // Create vibrant multi-hue gradient based on base color
-      return [baseColor, getSegmentColor(index + 3)];
+  #paintTrack(cache, index, item) {
+    const itemColor = typeof item === "object" && item.color ? item.color : null;
+    const gradStops = this.#resolveTrackGradient(index, itemColor ?? getSegmentColor(index));
+
+    if (gradStops) {
+      setGradientStops(cache.gradient, gradStops);
+      cache.fg.style.stroke = `url(#${cache.gradient.id})`;
+    } else {
+      cache.fg.style.stroke = itemColor ?? `var(--mini-chart-color-${index + 1}, ${getSegmentColor(index)})`;
     }
-    try {
-      const normalized = raw.replace(/'/g, '"');
-      const parsed = JSON.parse(normalized);
-      if (Array.isArray(parsed)) {
-        if (Array.isArray(parsed[index])) return parsed[index];
-        if (typeof parsed[0] === "string") return parsed;
-      }
-    } catch {}
-    if (raw.includes(",")) {
-      const colors = raw.replace(/[\[\]'"]/g, "").split(",").map((s) => s.trim()).filter(Boolean);
-      if (colors.length >= 2) return colors;
-    }
-    return null;
   }
 
   /**
@@ -232,11 +262,13 @@ export class MiniRadialBarChart extends MiniChartElement {
     }
 
     const rawValues = data.map((d) => (typeof d === "number" ? d : d.value));
+    // A max that is not positive cannot scale the rings: keep the default (the data maximum).
     const maxAttr = parseFloat(this.getAttribute("max") || "");
-    const maxDomain = !isNaN(maxAttr) ? maxAttr : undefined;
+    const maxDomain = Number.isFinite(maxAttr) && maxAttr > 0 ? maxAttr : undefined;
 
+    // The sweep lives in (0, 360]: a larger one is a full ring, a non-positive one keeps the default.
     const sweepAttr = parseFloat(this.getAttribute("sweep") || "270");
-    const sweepDeg = !isNaN(sweepAttr) ? sweepAttr : 270;
+    const sweepDeg = Number.isFinite(sweepAttr) && sweepAttr > 0 ? Math.min(sweepAttr, 360) : 270;
     const sweepRad = (sweepDeg * Math.PI) / 180;
     const startAngle = -Math.PI / 2;
     const endAngle = startAngle + sweepRad;
@@ -277,6 +309,12 @@ export class MiniRadialBarChart extends MiniChartElement {
       this.#tracks.push({ group, bg, fg, gradient });
     }
 
+    // Rings beyond the new data length are removed, with their gradients, so no stale ring stays drawn.
+    for (const surplus of this.#tracks.splice(tracks.length)) {
+      surplus.group.remove();
+      surplus.gradient.remove();
+    }
+
     if (isInitial) {
       // Step 1: Set initial track arcs with stroke-dashoffset = 100 (empty)
       tracks.forEach((geo, index) => {
@@ -295,37 +333,24 @@ export class MiniRadialBarChart extends MiniChartElement {
         cache.fg.style.strokeDashoffset = "100";
         cache.fg.style.opacity = geo.value > 0 ? "1" : "0";
         
-        const item = data[index];
-        const baseColor = (typeof item === "object" && item.color) || `var(--mini-chart-color-${index + 1}, ${getSegmentColor(index)})`;
-        const gradStops = this.#resolveTrackGradient(index, typeof item === "object" && item.color ? item.color : getSegmentColor(index));
-
-        if (gradStops && cache.gradient) {
-          cache.gradient.innerHTML = "";
-          gradStops.forEach((col, sIdx) => {
-            const offset = gradStops.length > 1 ? `${(sIdx / (gradStops.length - 1)) * 100}%` : "0%";
-            cache.gradient.append(createSvgElement("stop", { offset, "stop-color": col }));
-          });
-          cache.fg.style.stroke = `url(#${cache.gradient.id})`;
-        } else {
-          cache.fg.style.stroke = baseColor;
-        }
+        this.#paintTrack(cache, index, data[index]);
       });
 
       // Step 2: Single batch reflow
       this.#svg.getBoundingClientRect();
 
-      // Step 3: Trigger staggered stroke-dashoffset animation
+      // Step 3: Trigger staggered stroke-dashoffset animation; the whole stagger is capped, however many rings there are.
       tracks.forEach((geo, index) => {
         const cache = this.#tracks[index];
         const progress = Math.max(0, Math.min(1, (geo.endAngle - startAngle) / (sweepRad || 1)));
         const targetOffset = (1 - progress) * 100;
 
-        const delay = index * 0.1;
-        cache.fg.style.transition = `stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s, opacity 0.3s ease ${delay}s`;
+        const delay = entranceDelay(index, tracks.length, 100);
+        cache.fg.style.transition = `stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, opacity 0.3s ease ${delay}ms`;
         cache.fg.style.strokeDashoffset = String(targetOffset);
       });
 
-      const maxDuration = 800 + tracks.length * 100 + 50;
+      const maxDuration = 800 + entranceDelay(tracks.length - 1, tracks.length, 100) + 50;
       this.#timerId = setTimeout(() => {
         if (this.isConnected) {
           this.#tracks.forEach((t) => {
@@ -356,20 +381,7 @@ export class MiniRadialBarChart extends MiniChartElement {
         cache.fg.style.strokeDashoffset = String(targetOffset);
         cache.fg.style.opacity = geo.value > 0 ? "1" : "0";
 
-        const item = data[index];
-        const baseColor = (typeof item === "object" && item.color) || `var(--mini-chart-color-${index + 1}, ${getSegmentColor(index)})`;
-        const gradStops = this.#resolveTrackGradient(index, typeof item === "object" && item.color ? item.color : getSegmentColor(index));
-
-        if (gradStops && cache.gradient) {
-          cache.gradient.innerHTML = "";
-          gradStops.forEach((col, sIdx) => {
-            const offset = gradStops.length > 1 ? `${(sIdx / (gradStops.length - 1)) * 100}%` : "0%";
-            cache.gradient.append(createSvgElement("stop", { offset, "stop-color": col }));
-          });
-          cache.fg.style.stroke = `url(#${cache.gradient.id})`;
-        } else {
-          cache.fg.style.stroke = baseColor;
-        }
+        this.#paintTrack(cache, index, data[index]);
       });
     }
   }

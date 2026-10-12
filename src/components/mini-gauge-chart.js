@@ -2,6 +2,7 @@
 
 import { parsePositionalData } from "../core/data.js";
 import { describeArc } from "../core/geometry.js";
+import { parseGradient, resolveGradientColors, setGradientStops } from "../core/gradient.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
 import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
 
@@ -10,6 +11,15 @@ import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
  * @property {number} upTo
  * @property {string} color
  */
+
+/** Default 6-stop smooth gradient from safe (green) to warning (amber) to danger (red). */
+const DEFAULT_GRADIENT = Object.freeze(["#10b981", "#84cc16", "#eab308", "#f59e0b", "#f97316", "#ef4444"]);
+
+/** Needle outlines by `needle-type`, pointing up from the pivot at (50, 50). */
+const NEEDLE_PATHS = Object.freeze({
+  triangle: "M 47 50 L 53 50 L 50 15 Z",
+  line: "M 49 50 L 51 50 L 50 15 Z",
+});
 
 /**
  * Builds the default 3-band zone config (safe/warn/danger) from the current range.
@@ -24,6 +34,16 @@ function defaultZones(min, max) {
     { upTo: min + span * 0.666, color: "var(--mini-chart-warn-color, var(--mini-chart-warning-color, #f59e0b))" },
     { upTo: max, color: "var(--mini-chart-danger-color, var(--mini-chart-bearish-color, #ef4444))" },
   ];
+}
+
+/**
+ * Reads a zone bound: a finite number, or a numeric string such as `"50"`.
+ * @param {unknown} value Raw `upTo` from the `zones` attribute.
+ * @returns {number | null} The number, or `null` when the value is not numeric.
+ */
+function toFiniteNumber(value) {
+  const number = typeof value === "string" && value.trim() !== "" ? Number(value) : value;
+  return typeof number === "number" && Number.isFinite(number) ? number : null;
 }
 
 /**
@@ -43,6 +63,12 @@ export class MiniGaugeChart extends MiniChartElement {
     "gradient",
     "interactive",
   ];
+
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
+
+  /** Whether the needle has played its entrance sweep. */
+  #entered = false;
 
   /** @type {boolean} */
   #initialized = false;
@@ -70,6 +96,13 @@ export class MiniGaugeChart extends MiniChartElement {
 
   /** @type {number} */
   #currentZoneIndex = -1;
+  /**
+   * The value (as given, before clamping) the active zone was last computed
+   * for, or `null` before the first reading. `zone-change` fires only when the
+   * value itself moves: a new `min` or `max` that changes the clamped value does not count.
+   * @type {number | null}
+   */
+  #zoneValue = null;
   /** @type {number} */
   #currentValue = 0;
   /** @type {ZoneConfig[]} */
@@ -91,7 +124,8 @@ export class MiniGaugeChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending frames and interaction listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -99,7 +133,6 @@ export class MiniGaugeChart extends MiniChartElement {
       cancelAnimationFrame(this.#rafId);
       this.#rafId = null;
     }
-    this.#detachInteractionListeners();
   }
 
   /**
@@ -192,18 +225,8 @@ export class MiniGaugeChart extends MiniChartElement {
 
     // Needle rests at pivot (50, 50), pointing straight UP toward (50, 15).
     // CSS rotation: -90deg = left (gauge min), 0deg = top (midpoint), +90deg = right (gauge max)
-    const needleType = this.getAttribute("needle-type") || "triangle";
-    if (needleType === "line") {
-      this.#needle = /** @type {SVGPathElement} */ (createSvgElement("path", {
-        part: "needle",
-        d: "M 49 50 L 51 50 L 50 15 Z",
-      }));
-    } else {
-      this.#needle = /** @type {SVGPathElement} */ (createSvgElement("path", {
-        part: "needle",
-        d: "M 47 50 L 53 50 L 50 15 Z",
-      }));
-    }
+    // Its shape follows `needle-type` on every render (see #updateChart).
+    this.#needle = /** @type {SVGPathElement} */ (createSvgElement("path", { part: "needle" }));
 
     const pivot = createSvgElement("circle", {
       part: "pivot",
@@ -249,36 +272,16 @@ export class MiniGaugeChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#svg?.addEventListener("pointermove", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#svg?.removeEventListener("pointermove", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  /**
-   * Resolves gradient colors if specified as boolean true, array, or comma-separated string.
-   * @returns {string[] | null}
-   */
-  #resolveGradientStops() {
-    const raw = this.getAttribute("gradient");
-    if (raw === null || raw === "false") return null;
-    if (raw === "" || raw === "true") {
-      // Default 6-stop smooth gradient from safe (green) to warning (amber) to danger (red)
-      return ["#10b981", "#84cc16", "#eab308", "#f59e0b", "#f97316", "#ef4444"];
-    }
-    try {
-      const normalized = raw.replace(/'/g, '"');
-      const parsed = JSON.parse(normalized);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    } catch {}
-    if (raw.includes(",")) {
-      return raw.replace(/[\[\]'"]/g, "").split(",").map((s) => s.trim()).filter(Boolean);
-    }
-    return null;
   }
 
   /**
@@ -291,14 +294,74 @@ export class MiniGaugeChart extends MiniChartElement {
     if (raw) {
       try {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed
-            .filter((z) => z && typeof z.color === "string" && Number.isFinite(z.upTo))
-            .sort((a, b) => a.upTo - b.upTo);
+        if (Array.isArray(parsed)) {
+          /** @type {ZoneConfig[]} */
+          const zones = [];
+          for (const zone of parsed) {
+            if (!zone || typeof zone.color !== "string") continue;
+            const upTo = toFiniteNumber(zone.upTo);
+            if (upTo === null) continue;
+            // A zone past either end of the dial is cut at that end, never drawn around the pivot.
+            zones.push({ ...zone, upTo: Math.max(min, Math.min(max, upTo)) });
+          }
+          // With no valid zone left, the dial keeps its default bands instead of rendering empty.
+          if (zones.length > 0) return zones.sort((a, b) => a.upTo - b.upTo);
         }
       } catch {}
     }
     return defaultZones(min, max);
+  }
+
+  /**
+   * Draws the dial: one continuous gradient track, or one track segment per
+   * zone. Nothing is rebuilt while the range, zones and gradient are unchanged.
+   * @param {number} min Lower bound of the gauge.
+   * @param {number} max Upper bound of the gauge.
+   * @param {ZoneConfig[]} zones Resolved zones, sorted by `upTo`.
+   */
+  #drawDial(min, max, zones) {
+    if (!this.#zonesGroup || !this.#gradient) return;
+
+    const gradientStops = resolveGradientColors(parseGradient(this.getAttribute("gradient")), DEFAULT_GRADIENT);
+    const signature = `${min}|${max}|${JSON.stringify(zones)}|${JSON.stringify(gradientStops)}`;
+    if (signature === this.#zonesSignature) return;
+    this.#zonesSignature = signature;
+
+    const range = max - min || 1;
+    /** @type {SVGPathElement[]} */
+    const tracks = [];
+
+    if (gradientStops) {
+      // Continuous smooth gradient mode
+      setGradientStops(this.#gradient, gradientStops);
+      const fullArc = describeArc(50, 50, 40, Math.PI, 2 * Math.PI);
+      if (fullArc) {
+        tracks.push(createSvgElement("path", {
+          part: "track",
+          stroke: `url(#${this.#gradId})`,
+          d: fullArc,
+        }));
+      }
+    } else {
+      // Segmented discrete zones mode
+      let prevUpTo = min;
+      zones.forEach((zone) => {
+        const startAngle = Math.PI + Math.PI * ((prevUpTo - min) / range);
+        const endAngle = Math.PI + Math.PI * ((zone.upTo - min) / range);
+        prevUpTo = zone.upTo;
+
+        const arcPath = describeArc(50, 50, 40, startAngle, endAngle);
+        if (arcPath) {
+          tracks.push(createSvgElement("path", {
+            part: "track",
+            stroke: zone.color,
+            d: arcPath,
+          }));
+        }
+      });
+    }
+
+    this.#zonesGroup.replaceChildren(...tracks);
   }
 
   /**
@@ -311,13 +374,7 @@ export class MiniGaugeChart extends MiniChartElement {
       this.#rafId = null;
     }
 
-    if (data.length === 0) {
-      this.#needle.style.opacity = "0";
-      this.#valueText.style.display = "none";
-      this.removeAttribute("aria-valuenow");
-      this.#svg.removeAttribute("aria-valuenow");
-      return;
-    }
+    this.#needle.setAttribute("d", NEEDLE_PATHS[this.getAttribute("needle-type") === "line" ? "line" : "triangle"]);
 
     const minAttr = parseFloat(this.getAttribute("min") || "");
     const maxAttr = parseFloat(this.getAttribute("max") || "");
@@ -327,21 +384,35 @@ export class MiniGaugeChart extends MiniChartElement {
     let max = !isNaN(maxAttr) ? maxAttr : (data[2] ?? 100);
 
     if (min >= max) max = min + 1;
-    this.#svg.setAttribute("aria-valuemin", String(min));
-    this.#svg.setAttribute("aria-valuemax", String(max));
+    const range = max - min || 1;
 
-    // A null value is no reading: hide the needle instead of reporting a false 0.
-    const value = data[0];
+    // The dial is drawn even without a reading, so an empty gauge still shows its track.
+    const zones = this.#resolveZones(min, max);
+    this.#currentZones = zones;
+    this.#drawDial(min, max, zones);
+
+    // No reading (empty data, or a null value): hide the needle and the value text, and
+    // clear the value on the svg, which is the element that carries role="meter".
+    const value = data[0] ?? null;
     if (value === null) {
       this.#needle.style.opacity = "0";
       this.#valueText.style.display = "none";
+      this.#valueText.textContent = "";
       this.#svg.removeAttribute("aria-valuenow");
+      if (data.length === 0) {
+        this.#svg.removeAttribute("aria-valuemin");
+        this.#svg.removeAttribute("aria-valuemax");
+      } else {
+        this.#svg.setAttribute("aria-valuemin", String(min));
+        this.#svg.setAttribute("aria-valuemax", String(max));
+      }
       return;
     }
+    this.#svg.setAttribute("aria-valuemin", String(min));
+    this.#svg.setAttribute("aria-valuemax", String(max));
     this.#needle.style.opacity = "1";
 
     const clampedVal = Math.max(min, Math.min(max, value));
-    const range = max - min || 1;
     const progress = (clampedVal - min) / range;
 
     this.#currentValue = clampedVal;
@@ -358,64 +429,16 @@ export class MiniGaugeChart extends MiniChartElement {
       this.#valueText.style.display = "none";
     }
 
-    const gradientStops = this.#resolveGradientStops();
-    const zones = this.#resolveZones(min, max);
-    this.#currentZones = zones;
-
-    const signature = `${min}|${max}|${JSON.stringify(zones)}|${JSON.stringify(gradientStops)}`;
-
-    if (signature !== this.#zonesSignature) {
-      this.#zonesSignature = signature;
-      this.#zonesGroup.innerHTML = "";
-
-      if (gradientStops) {
-        // Continuous smooth gradient mode
-        this.#gradient.innerHTML = "";
-        const count = gradientStops.length;
-        gradientStops.forEach((color, idx) => {
-          const offset = count > 1 ? `${(idx / (count - 1)) * 100}%` : "0%";
-          const stop = createSvgElement("stop", {
-            offset,
-            "stop-color": color,
-          });
-          this.#gradient?.append(stop);
-        });
-
-        const fullArc = describeArc(50, 50, 40, Math.PI, 2 * Math.PI);
-        if (fullArc) {
-          const trackEl = createSvgElement("path", {
-            part: "track",
-            stroke: `url(#${this.#gradId})`,
-            d: fullArc,
-          });
-          this.#zonesGroup.append(trackEl);
-        }
-      } else {
-        // Segmented discrete zones mode
-        let prevUpTo = min;
-        zones.forEach((zone) => {
-          const startAngle = Math.PI + Math.PI * ((prevUpTo - min) / range);
-          const endAngle = Math.PI + Math.PI * ((zone.upTo - min) / range);
-          prevUpTo = zone.upTo;
-
-          const arcPath = describeArc(50, 50, 40, startAngle, endAngle);
-          if (arcPath) {
-            const zoneEl = createSvgElement("path", {
-              part: "track",
-              stroke: zone.color,
-              d: arcPath,
-            });
-            this.#zonesGroup?.append(zoneEl);
-          }
-        });
-      }
-    }
-
     // Identify active zone
     let activeZoneIdx = zones.findIndex((z) => clampedVal <= z.upTo);
     if (activeZoneIdx === -1) activeZoneIdx = zones.length - 1;
 
-    if (activeZoneIdx !== this.#currentZoneIndex && this.#currentZoneIndex !== -1) {
+    // Only a value moving into another zone is a transition. The first reading and
+    // re-renders that leave the value in place (label, gradient, zones, range) stay silent.
+    const valueMoved = this.#zoneValue !== null && value !== this.#zoneValue;
+    this.#zoneValue = value;
+
+    if (valueMoved && activeZoneIdx !== this.#currentZoneIndex) {
       this.dispatchEvent(new CustomEvent("zone-change", {
         bubbles: true,
         composed: true,
@@ -428,9 +451,9 @@ export class MiniGaugeChart extends MiniChartElement {
     }
     this.#currentZoneIndex = activeZoneIdx;
 
-    const isInitial = !this.#needle.dataset.rendered;
+    const isInitial = !this.#entered;
     if (isInitial) {
-      this.#needle.dataset.rendered = "true";
+      this.#entered = true;
       this.#needle.style.transition = "none";
       this.#needle.style.transform = "rotate(-90deg)"; // Start at minimum
 

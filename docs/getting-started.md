@@ -160,7 +160,7 @@ Works in Svelte via custom elements, with no wrapper. Svelte assigns `data={…}
 
 ## 🎨 Styling & Theming
 
-The charts utilize the **Shadow DOM**, protecting them from global CSS leaks while exposing styling hooks via **CSS Custom Properties** and `::part()`:
+Each chart renders inside its own Shadow DOM, so page CSS cannot reach the SVG by accident. Style it through `--mini-chart-*` custom properties, which inherit through the shadow boundary, and through `::part()`:
 
 ```css
 mini-line-chart {
@@ -168,8 +168,8 @@ mini-line-chart {
   inline-size: 12rem;
   block-size: 3rem;
 
-  /* Theme Tokens */
-  --mini-chart-color-1: #10b981;
+  /* Theme tokens */
+  --mini-chart-color: #10b981;
   --mini-chart-stroke-width: 2.5;
 }
 
@@ -178,3 +178,46 @@ mini-line-chart::part(point) {
   stroke-width: 2;
 }
 ```
+
+Set tokens on `:root`, on a container or on the chart itself. They follow the normal CSS cascade, so the closest declaration wins. Where a chart has both an attribute and a token for the same setting (`radius` and `--mini-chart-bar-radius`, `wick-width` and `--mini-chart-wick-width`, `tick-width` and `--mini-chart-tick-width`), an explicit attribute wins over the inherited token. Charts read only `--mini-*` custom properties, never your app's own variables (such as `--primary`), and never write the host's `style` attribute, so an inline `style="--mini-chart-color: …"` survives every render.
+
+The chart's color comes from `--mini-chart-color`, not from the inherited CSS `color`: each chart sets its host's `color` to `var(--mini-chart-color, #2563eb)`.
+
+### Theming tokens
+
+These tokens are read by the stylesheet every chart shares. Chart-specific tokens (track, needle, bands, wicks, markers, …) are listed in each chart's page under [`docs/components/`](components/).
+
+| Property | Default | What it styles |
+| --- | --- | --- |
+| `--mini-chart-color` | `#2563eb` | The chart's main color: lines, single-series bars and areas, progress arcs. It becomes the host's `color`, so `currentColor` inside the chart is this value. |
+| `--mini-chart-aspect-ratio` | the chart's own ratio | Host aspect ratio when only one dimension is set: `10 / 3` for most charts, `1 / 1` for pie and radial bar, `2 / 1` for half-pie, gauge and progress. |
+| `--mini-chart-default-aspect-ratio` | set by each chart | The chart's own ratio, used when `--mini-chart-aspect-ratio` is not set. Set `--mini-chart-aspect-ratio` instead. |
+| `--mini-chart-stroke-width` | `2` | Thickness of `line` parts (line, area, combo), in screen pixels. Gauge (default `14`) and progress (default `12`) read it as their arc thickness in viewBox units, so a small value set on `:root` also thins their arcs. |
+| `--mini-chart-fill` | the segment color, then `currentColor` | Fill of `bar` and `segment` parts. Pie and half-pie segments ignore it (use `--mini-chart-color-N`), and charts with their own bar colors (bar, combo, win-loss, OHLC) override it. |
+| `--mini-chart-segment-color` | `currentColor` | Per-segment color. Pie and half-pie set it inline on every segment from `--mini-chart-color-N`, so setting it yourself has no effect there. |
+| `--mini-chart-point-fill` | `currentColor` | Fill of `point` parts (line, area, combo markers) and of the hover `active-point`. Scatter uses `--mini-chart-point-color` instead. |
+| `--mini-chart-ref-color` | `rgba(128, 128, 128, 0.45)` | `reference-line` stroke (line, area). |
+| `--mini-chart-ref-width` | `1` | `reference-line` thickness. |
+| `--mini-chart-crosshair-color` | `rgba(128, 128, 128, 0.5)` | Hover `crosshair` stroke (line, area, combo). |
+| `--mini-chart-crosshair-width` | `1` | Hover `crosshair` thickness. |
+| `--mini-chart-bullish-color` | `#10b981` | Rising color for `trend-color="auto"` (line, area), and the rising/win color of the financial and win-loss charts. |
+| `--mini-chart-bearish-color` | `#ef4444` | Falling color for `trend-color="auto"`, and the falling/loss color of the financial and win-loss charts. |
+| `--mini-chart-color-N` | built-in 16-color palette | Color of the Nth slice, layer or ring (N starts at 1) in pie, half-pie, stacked area, stream and radial bar. A missing N falls back to the palette. |
+
+### Gradients
+
+Area, bullet, gauge, progress and radial-bar accept a `gradient` attribute, parsed the same way by all five:
+
+| Value | Meaning |
+| --- | --- |
+| absent | Off, except on the area chart, whose gradient fill is on by default. |
+| `"false"`, `"0"` | Off (what Angular and Vue write for `false`). |
+| `""` (bare `gradient`), `"true"` | On, with the chart's default stops. |
+| JSON array, e.g. `'["#10b981", "#f59e0b"]'` | On, one evenly spaced stop per color. Single quotes inside the JSON are accepted. Radial bar also takes one array per ring. |
+| comma list, e.g. `"#10b981, rgb(0, 0, 0), var(--brand)"` | On, one stop per color. Commas inside `rgb()`, `hsl()`, `oklch()` or `var()` stay inside their color. |
+
+A value with no usable color turns the gradient off.
+
+### Reduced motion
+
+Entrance and update transitions become instant when the user asks for reduced motion (`prefers-reduced-motion: reduce`). Only timing changes: the plotted geometry is the same. There are no tokens for animation timing.

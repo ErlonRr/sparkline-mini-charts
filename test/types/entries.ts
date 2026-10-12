@@ -21,6 +21,9 @@ import { MiniStackedAreaChart } from "sparkline-mini-charts/mini-stacked-area-ch
 import { MiniStreamChart } from "sparkline-mini-charts/mini-stream-chart";
 import { MiniWinLossChart } from "sparkline-mini-charts/mini-win-loss-chart";
 import { createDomain, createLinearScale, TAU } from "sparkline-mini-charts/math";
+import { MiniChartDirective, MiniLineChartDirective, SPARKLINE_DIRECTIVES } from "sparkline-mini-charts/angular";
+import { MiniLineChart as ReactLineChart, type MiniChartProps } from "sparkline-mini-charts/react";
+import { MiniLineChart as VueLineChart } from "sparkline-mini-charts/vue";
 
 /** Every component subpath exports a custom element class. */
 const elements: CustomElementConstructor[] = [
@@ -57,4 +60,10 @@ const x: number = createLinearScale(domain, [0, TAU]).project(2);
 // @ts-expect-error The math entry is typed: createDomain takes an array of numbers.
 createDomain("1,2,3");
 
-export { elements, parsed, x };
+/** The framework entries resolve to typed declarations, not `any`. */
+const reactProps: MiniChartProps = { data: [1, 2, 3], interactive: true };
+// @ts-expect-error React props are typed: `interactive` is a boolean.
+const badReactProps: MiniChartProps = { interactive: 42 };
+const frameworks = [ReactLineChart, VueLineChart, MiniChartDirective, MiniLineChartDirective, SPARKLINE_DIRECTIVES.length] as const;
+
+export { badReactProps, elements, frameworks, parsed, reactProps, x };

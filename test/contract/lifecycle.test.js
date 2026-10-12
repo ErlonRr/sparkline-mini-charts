@@ -1,9 +1,7 @@
 // lifecycle.test.js — Lifecycle contract checks (a)-(g) for every tag registered by src/define.js.
 //
-// Each check runs once per tag. Pairs that fail on the current code are listed
-// in `knownFailures` and reported as TODO until the backlog item that fixes
-// them removes their entry. Run with LIFECYCLE_STRICT=1 to ignore the table
-// and see the real status of every pair.
+// Each check runs once per tag and must pass on every tag: there is no list of
+// known failures and no TODO test.
 
 import assert from "node:assert/strict";
 import { after, afterEach, describe, test } from "node:test";
@@ -18,36 +16,6 @@ import {
   stubSvgLayout,
 } from "./dom.js";
 import { chartFixtures, invalidData } from "./fixtures.js";
-
-/** Charts whose hover picks the nearest x from the pointer position. */
-const nearestXTags = ["mini-line-chart", "mini-area-chart", "mini-combo-chart"];
-
-/**
- * Tag/check pairs that fail today, with the backlog item that fixes them. The
- * first entry that lists a tag wins, and `"*"` matches every tag. Delete an
- * entry, or a whole check, when the fix lands.
- *
- * @type {Record<string, { reason: string, tags: readonly string[] | "*" }[]>}
- */
-const knownFailures = {
-  d: [{ reason: "fixed by P1-2", tags: "*" }],
-  e: [
-    { reason: "nearest-x hover: TODO until browser mode (P2)", tags: nearestXTags },
-    { reason: "fixed by P1-1", tags: "*" },
-  ],
-};
-
-const strict = process.env.LIFECYCLE_STRICT === "1";
-
-/**
- * @param {string} check Check letter.
- * @param {string} tag Chart tag name.
- * @returns {string | false} The TODO reason, or false when the pair must pass.
- */
-function todo(check, tag) {
-  if (strict) return false;
-  return knownFailures[check]?.find((entry) => entry.tags === "*" || entry.tags.includes(tag))?.reason ?? false;
-}
 
 const isolationSkip = !canIsolateRealms && "needs module.registerHooks() (Node.js 22.15 or newer)";
 
@@ -160,7 +128,7 @@ describe("contract fixtures", () => {
 
 describe("(a) el.data = value renders like setAttribute('data', JSON)", () => {
   for (const tag of tags) {
-    test(`<${tag}>`, { todo: todo("a", tag) }, async () => {
+    test(`<${tag}>`, async () => {
       await assertRendersLikeAttribute(tag, (element, data) => {
         element.data = data;
       });
@@ -170,7 +138,7 @@ describe("(a) el.data = value renders like setAttribute('data', JSON)", () => {
 
 describe("(b) el.data = JSON string renders like setAttribute('data', JSON)", () => {
   for (const tag of tags) {
-    test(`<${tag}>`, { todo: todo("b", tag) }, async () => {
+    test(`<${tag}>`, async () => {
       await assertRendersLikeAttribute(tag, (element, data) => {
         element.data = JSON.stringify(data);
       });
@@ -180,7 +148,7 @@ describe("(b) el.data = JSON string renders like setAttribute('data', JSON)", ()
 
 describe("(c) el.data set before define survives the upgrade", () => {
   for (const tag of tags) {
-    test(`<${tag}>`, { todo: todo("c", tag), skip: isolationSkip }, async () => {
+    test(`<${tag}>`, { skip: isolationSkip }, async () => {
       const { data } = fixtureFor(tag);
       const realm = await createRealm(`c-${tag}`);
 
@@ -212,7 +180,7 @@ describe("(c) el.data set before define survives the upgrade", () => {
 
 describe("(d) upgrading an element already in the document renders once", () => {
   for (const tag of tags) {
-    test(`<${tag}>`, { todo: todo("d", tag), skip: isolationSkip }, async () => {
+    test(`<${tag}>`, { skip: isolationSkip }, async () => {
       const { data } = fixtureFor(tag);
       const realm = await createRealm(`d-${tag}`);
 
@@ -236,7 +204,7 @@ describe("(d) upgrading an element already in the document renders once", () => 
 
 describe("(e) hover still emits sparkline-hover after disconnect and reconnect", () => {
   for (const tag of tags) {
-    test(`<${tag}>`, { todo: todo("e", tag) }, async () => {
+    test(`<${tag}>`, async () => {
       const { data, hover } = fixtureFor(tag);
       const element = mount(tag, (chart) => {
         chart.setAttribute("interactive", "");
@@ -255,7 +223,7 @@ describe("(e) hover still emits sparkline-hover after disconnect and reconnect",
 
 describe("(f) invalid data does not throw", () => {
   for (const tag of tags) {
-    test(`<${tag}>`, { todo: todo("f", tag) }, async () => {
+    test(`<${tag}>`, async () => {
       const fixtureJson = JSON.stringify(fixtureFor(tag).data);
       /** @type {string[]} */
       const failures = [];
@@ -287,7 +255,7 @@ describe("(f) invalid data does not throw", () => {
 
 describe("(g) no chart prototype owns a data descriptor", () => {
   for (const tag of tags) {
-    test(`<${tag}>`, { todo: todo("g", tag) }, () => {
+    test(`<${tag}>`, () => {
       const component = /** @type {CustomElementConstructor} */ (main.components.get(tag));
       assert.equal(Object.getOwnPropertyDescriptor(component.prototype, "data"), undefined);
     });

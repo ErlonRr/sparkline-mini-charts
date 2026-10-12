@@ -1,38 +1,73 @@
 # Stacked Area Chart (`<mini-stacked-area-chart>`)
 
-The Stacked Area Chart visualizes multiple datasets by stacking their filled areas on top of one another, illustrating part-to-whole relationships over time.
+Several series stacked on top of each other, so the top edge shows the total and each band shows one series' share. With `normalize`, every column is scaled to 100%.
 
-## Data Structure
-Expects a 2D JSON array of numbers, where each sub-array represents a separate series.
+## Data
+
+A JSON array of series, each an array of numbers (series-major: the first inner array is the bottom layer). An entry that is not a finite number counts as `0` at its own index, so every series stays aligned by column. A series shorter than the longest one is padded with `0`, and an entry that is not an array becomes an empty series.
+
 ```json
 [
-  [10, 15, 20, 25], 
-  [5,  10, 15, 20]
+  [10, 20, 15, 30, 25],
+  [8, 12, 10, 14, 18],
+  [4, 6, 9, 7, 10]
 ]
 ```
 
-## HTML Attributes
-- **`data`** *(string)*: The JSON 2D array.
-- **`label`** *(string, optional)*: ARIA label and `<title>` for accessibility.
+The value axis starts at `0`. Negative values are not stacked separately: they are added to the running total like any other value, so layers can overlap.
 
-## CSS Styling
+The `data` property accepts the array directly (`chart.data = [[10, 20], [8, 12]]`) and writes it to the attribute as JSON.
 
-### Custom Properties
-The chart uses indexed color variables for each series:
-- `--mini-chart-color-1`: Fill color for the first series (default: `#3b82f6`).
-- `--mini-chart-color-2`: Fill color for the second series (default: `#10b981`).
-- `--mini-chart-color-3`: Fill color for the third series (default: `#f59e0b`).
-- *(Up to 6 default colors, then rotates or fallback).*
+## Attributes
 
-### Shadow Parts (`::part()`)
-- `part="layer"`: The individual stacked SVG `<path>` elements. Use `:nth-child()` to target specific layers.
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | JSON `number[][]` | `[]` | The series to stack, bottom layer first. |
+| `label` | string | `"Stacked-area chart with N values"` (N = number of series) | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `curve` | `linear` \| `smooth` | `linear` | `smooth` draws curved layer edges when a series has more than two values. Any other value, including `step`, draws straight segments. |
+| `normalize` | boolean (presence) | off | Scales every column so the layers add up to 100% (a column whose sum is `0` stays empty). `normalize="false"` still enables it. |
+| `interactive` | boolean (presence) | off | Highlights the layer under the pointer, dims the others and dispatches the events below. `interactive="false"` still enables it. |
 
-## Usage Example
+## Events
+
+Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+
+| Event | `detail` | When |
+| --- | --- | --- |
+| `sparkline-hover` | `{ layerIndex, seriesData, color, element }` | The pointer enters a layer. `layerIndex` is zero-based, `seriesData` is that series as parsed (invalid entries already `0`), `color` is the layer's built-in palette color (it does not reflect a `--mini-chart-color-N` override), and `element` is the layer's `<path>`. |
+| `sparkline-leave` | none | The pointer leaves the chart. |
+
+## CSS custom properties
+
+| Property | Default | What it styles |
+| --- | --- | --- |
+| `--mini-chart-color-N` | built-in 16-color palette (`#84cc16`, `#f43f5e`, `#0ea5e9`, `#f59e0b`, …) | Fill of layer N, counting from 1 (`--mini-chart-color-1` is the bottom layer). The palette repeats after 16 layers. |
+| `--mini-chart-aspect-ratio` | `10 / 3` | Host aspect ratio when the host has no explicit height. |
+
+## Parts
+
+| Part | Element | Description |
+| --- | --- | --- |
+| `svg` | `<svg>` | The chart root. |
+| `layers` | `<g>` | Clipped group that holds the layers. |
+| `layer` | `<path>` | Every layer. |
+| `layer-N` | `<path>` | Layer N, counting from 1 from the bottom (`layer-1`, `layer-2`, …). Use it to style one layer: `::part(layer-2)`. |
+
+## Example
 
 ```html
-<mini-stacked-area-chart 
-  data="[[5,10,15], [3,6,9], [1,2,3]]" 
-  label="Resource Allocation"
-  style="--mini-chart-color-1: red; --mini-chart-color-2: blue; --mini-chart-color-3: yellow;">
-</mini-stacked-area-chart>
+<mini-stacked-area-chart
+  data="[[10, 20, 15, 30, 25], [8, 12, 10, 14, 18], [4, 6, 9, 7, 10]]"
+  curve="smooth"
+  normalize
+  interactive
+  label="Resource distribution"
+  style="--mini-chart-color-1: #0ea5e9; --mini-chart-color-2: #6366f1"
+></mini-stacked-area-chart>
+```
+
+```css
+mini-stacked-area-chart::part(layer-3) {
+  opacity: 0.6;
+}
 ```

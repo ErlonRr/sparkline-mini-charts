@@ -1,34 +1,86 @@
 # Line Chart (`<mini-line-chart>`)
 
-The Line Chart is the most traditional sparkline. It visualizes an array of numbers as a continuous line path, connecting the data points from left to right.
+The classic sparkline: an ordered series of numbers drawn as one line from left to right, with an optional marker on the last point.
 
-## Data Structure
-Expects a 1D JSON array of numbers.
+## Data
+
+A JSON array of numbers. Entries that are not finite numbers (`null`, strings, `NaN`) are skipped, and the remaining values are spaced evenly.
+
 ```json
 [10, 25, 40, 15, 60, 45, 90]
 ```
 
-## HTML Attributes
-- **`data`** *(string)*: The JSON array of values.
-- **`label`** *(string, optional)*: ARIA label and `<title>` for accessibility.
+The `data` property accepts the array directly (`chart.data = [10, 25, 40]`) and writes it to the attribute as JSON.
 
-## CSS Styling
+## Attributes
 
-### Custom Properties
-- `--mini-chart-color-1`: Color of the line stroke (default: `#3b82f6` / blue).
-- `--mini-chart-stroke-width`: Thickness of the line (default: `2`).
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | JSON `number[]` | `[]` | The values to plot. |
+| `label` | string | `"Line chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `curve` | `linear` \| `smooth` \| `step` \| `step-after` \| `step-before` | `linear` | Interpolation between points. `step` is the same as `step-after`. |
+| `points` | `last` \| `all` \| `min-max` \| `none` | `last` | Which points get a marker. `min-max` marks the lowest and the highest value. Any other value (including `ends`, which the React types still accept) draws no marker. |
+| `min` | number | lowest value | Bottom of the value axis. Ignored when it is not below `max`. Values outside the range are not clamped. |
+| `max` | number | highest value | Top of the value axis. Ignored when it is not above `min`. |
+| `reference-value` | number | none | Draws a dashed horizontal `reference-line` at this value. It does not extend the value axis. |
+| `trend-color` | `auto` | none | With `auto` and at least two values, colors the chart with `--mini-chart-bullish-color` when the last value is at or above the first, and `--mini-chart-bearish-color` otherwise. The chart marks its internal svg with `data-trend="up"` or `"down"`; it never writes the host's `style`. |
+| `interactive` | boolean (presence) | off | Shows a crosshair and a highlighted point under the pointer and dispatches the events below. `interactive="false"` still enables it. |
 
-### Shadow Parts (`::part()`)
-- `part="line"`: The actual `<path>` drawing the line.
-- `part="point"`: The final dot/circle indicator at the end of the line.
-- `part="mask-line"`: The mask used for the wiping entrance animation.
+## Events
 
-## Usage Example
+Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+
+| Event | `detail` | When |
+| --- | --- | --- |
+| `sparkline-hover` | `{ index, value, x, y }` | The pointer moves over the chart. `index` is the nearest point among the plotted values, `x` and `y` are in viewBox units (100 × 30). |
+| `sparkline-leave` | none | The pointer leaves the chart. |
+
+## CSS custom properties
+
+| Property | Default | What it styles |
+| --- | --- | --- |
+| `--mini-chart-color` | `#2563eb` | Line and marker color (the host's `color`). |
+| `--mini-chart-stroke-width` | `2` | Line thickness, in screen pixels (non-scaling stroke). |
+| `--mini-chart-point-fill` | the line color | Fill of the markers and of the hover `active-point`. |
+| `--mini-chart-bullish-color` | `#10b981` | Chart color for a rising series with `trend-color="auto"`. |
+| `--mini-chart-bearish-color` | `#ef4444` | Chart color for a falling series with `trend-color="auto"`. |
+| `--mini-chart-ref-color` | `rgba(128, 128, 128, 0.45)` | `reference-line` stroke. |
+| `--mini-chart-ref-width` | `1` | `reference-line` thickness. |
+| `--mini-chart-crosshair-color` | `rgba(128, 128, 128, 0.5)` | Hover crosshair stroke. |
+| `--mini-chart-crosshair-width` | `1` | Hover crosshair thickness. |
+| `--mini-chart-aspect-ratio` | `10 / 3` | Host aspect ratio when the host has no explicit height. |
+
+## Parts
+
+| Part | Element | Description |
+| --- | --- | --- |
+| `svg` | `<svg>` | The chart root. |
+| `group` | `<g>` | Clipped group that holds the line. |
+| `line` | `<path>` | The line itself. |
+| `points` | `<g>` | Container of the markers. |
+| `point` | `<circle>` | Every marker. |
+| `point-last`, `point-min`, `point-max` | `<circle>` | The marker of the last point (`points="last"`) or of the lowest and highest value (`points="min-max"`). With `points="all"` every marker also has the part `point-point`. |
+| `reference-line` | `<line>` | Dashed line drawn by `reference-value`. |
+| `crosshair` | `<line>` | Vertical hover guide (`interactive`). |
+| `active-point` | `<circle>` | Highlighted point under the pointer (`interactive`). |
+
+## Example
 
 ```html
-<mini-line-chart 
-  data="[10, 25, 40, 15, 60]" 
+<mini-line-chart
+  data="[10, 25, 40, 15, 60]"
+  curve="smooth"
+  points="min-max"
+  trend-color="auto"
+  interactive
   label="Revenue trend"
-  style="--mini-chart-color-1: #10b981; --mini-chart-stroke-width: 3;">
-</mini-line-chart>
+  style="--mini-chart-stroke-width: 3"
+></mini-line-chart>
+```
+
+```css
+mini-line-chart::part(point-last) {
+  stroke: white;
+  stroke-width: 1;
+}
 ```

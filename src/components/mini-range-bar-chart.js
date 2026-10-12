@@ -2,7 +2,7 @@
 
 import { createRangeBarLayout } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
-import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+import { createSvgElement, createChartSvg, chartStyles, entranceDelay, setLengthProperty } from "../core/svg.js";
 
 /**
  * @typedef {Object} RangeBarCache
@@ -27,6 +27,9 @@ export class MiniRangeBarChart extends MiniChartElement {
     "interactive",
   ];
 
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
+
   /** @type {boolean} */
   #initialized = false;
 
@@ -50,7 +53,8 @@ export class MiniRangeBarChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers and interaction listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -58,7 +62,6 @@ export class MiniRangeBarChart extends MiniChartElement {
       clearTimeout(this.#timerId);
       this.#timerId = null;
     }
-    this.#detachInteractionListeners();
   }
 
   /**
@@ -91,22 +94,32 @@ export class MiniRangeBarChart extends MiniChartElement {
       if (title) title.textContent = label;
     }
 
+    this.#applyOptions();
     this.#updateChart(data);
+  }
+
+  /**
+   * Applies the styling attributes on every render, so changing them after the
+   * first render takes effect. An explicit `radius` wins over the inherited
+   * `--mini-chart-bar-radius` token.
+   */
+  #applyOptions() {
+    if (!this.#svg) return;
+    setLengthProperty(this.#svg, "--_mc-radius", this.getAttribute("radius"), "px");
   }
 
   /**
    * @param {string} label 
    */
   #createDOM(label) {
-    const radius = this.getAttribute("radius") || "3";
-
+    // Static text: per-instance options live on the svg (see #applyOptions), never in the stylesheet.
     const style = document.createElement("style");
     style.textContent = `${chartStyles}
-:host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
+:host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; --_mc-radius: initial; }
 [part~="range-bar"] {
   fill: var(--mini-chart-range-color, var(--mini-chart-color, #3b82f6));
-  rx: var(--mini-chart-bar-radius, ${radius}px);
-  ry: var(--mini-chart-bar-radius, ${radius}px);
+  rx: var(--_mc-radius, var(--mini-chart-bar-radius, 3px));
+  ry: var(--_mc-radius, var(--mini-chart-bar-radius, 3px));
   transition: opacity 0.2s ease, filter 0.2s ease;
   cursor: default;
 }
@@ -160,14 +173,16 @@ export class MiniRangeBarChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#container?.addEventListener("pointerover", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#container?.removeEventListener("pointerover", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 
   /**
@@ -246,20 +261,22 @@ export class MiniRangeBarChart extends MiniChartElement {
       // Step 2: Batch single reflow
       this.#svg.getBoundingClientRect();
 
-      // Step 3: Staggered reveal
+      // Step 3: Staggered reveal; the whole stagger is capped, however many bars there are.
       bars.forEach((item, index) => {
         const cache = this.#bars[index];
-        cache.bar.style.transition = `y 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.03}s, height 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.03}s`;
+        const delay = entranceDelay(index, bars.length, 30);
+        cache.bar.style.transition = `y 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, height 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`;
         cache.bar.setAttribute("y", String(item.y));
         cache.bar.setAttribute("height", String(item.height));
 
         if (item.marker) {
-          cache.marker.style.transition = `opacity 0.4s ease ${index * 0.03 + 0.2}s`;
+          // The marker fades in over the second half of its bar's entrance, so it ends with the bar.
+          cache.marker.style.transition = `opacity 0.2s ease ${delay + 200}ms`;
           cache.marker.style.opacity = "1";
         }
       });
 
-      const maxDuration = 400 + bars.length * 30 + 50;
+      const maxDuration = 400 + entranceDelay(bars.length - 1, bars.length, 30) + 50;
       this.#timerId = setTimeout(() => {
         if (this.isConnected) {
           this.#bars.forEach((b) => {

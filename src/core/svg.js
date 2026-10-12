@@ -69,6 +69,117 @@ export const chartStyles = `
 `;
 
 /**
+ * Trend colors for `trend-color="auto"`. The chart marks its own svg with
+ * `data-trend` and never writes the host's style, which belongs to the page.
+ */
+export const trendStyles = `
+  svg[data-trend="up"] {
+    --mini-chart-color: var(--mini-chart-bullish-color, #10b981);
+    color: var(--mini-chart-color);
+  }
+
+  svg[data-trend="down"] {
+    --mini-chart-color: var(--mini-chart-bearish-color, #ef4444);
+    color: var(--mini-chart-color);
+  }
+`;
+
+/**
+ * Sets `data-trend="up|down"` on a chart's svg when `trend-color="auto"` and
+ * there are at least two values, and removes it otherwise.
+ *
+ * @param {SVGSVGElement} svg The chart's root svg.
+ * @param {readonly number[]} values Chart values in order.
+ * @param {string | null} trendColor Value of the `trend-color` attribute.
+ */
+export function setTrend(svg, values, trendColor) {
+  if (trendColor === "auto" && values.length >= 2) {
+    svg.setAttribute("data-trend", values[values.length - 1] >= values[0] ? "up" : "down");
+  } else {
+    svg.removeAttribute("data-trend");
+  }
+}
+
+/**
+ * Writes a per-instance length attribute to a private `--_mc-*` custom
+ * property on an internal node, where the static stylesheet reads it as
+ * `var(--_mc-x, var(--mini-chart-x, default))`. The value is parsed to a
+ * finite, non-negative number first, so attribute text never reaches CSS.
+ * An absent or invalid attribute removes the property, and the stylesheet
+ * falls back to the theme token, then to the default. The stylesheet must
+ * declare the property `initial` on `:host`, so a page value cannot leak in.
+ *
+ * @param {SVGElement} node Internal node that carries the property (the chart's svg).
+ * @param {`--_mc-${string}`} property Private custom property name.
+ * @param {string | null} raw Attribute value, or `null` when it is absent.
+ * @param {string} [unit] Unit appended to the number, e.g. `"px"`.
+ */
+export function setLengthProperty(node, property, raw, unit = "") {
+  const value = raw === null || raw.trim() === "" ? Number.NaN : Number.parseFloat(raw);
+
+  if (Number.isFinite(value) && value >= 0) {
+    node.style.setProperty(property, `${value}${unit}`);
+  } else {
+    node.style.removeProperty(property);
+  }
+}
+
+/**
+ * Longest delay, in milliseconds, between the first and the last mark of a
+ * staggered entrance. Whatever the number of marks, the entrance takes at most
+ * this long plus one transition.
+ */
+export const ENTRANCE_STAGGER_MS = 300;
+
+/**
+ * Entrance delay of one mark. Marks keep their own step while the whole
+ * stagger (from the first mark to the last) fits in `ENTRANCE_STAGGER_MS`;
+ * past that, the delays are spread as `index / (count - 1) × ENTRANCE_STAGGER_MS`,
+ * so 365 bars enter as fast as 10.
+ *
+ * @param {number} index Mark index.
+ * @param {number} count Number of marks that enter together.
+ * @param {number} step Preferred delay between two marks, in milliseconds.
+ * @returns {number} Delay in whole milliseconds.
+ */
+export function entranceDelay(index, count, step) {
+  if (count <= 0) return 0;
+  return Math.round(index * Math.min(step, ENTRANCE_STAGGER_MS / Math.max(count - 1, 1)));
+}
+
+/**
+ * Converts a pointer position to the x coordinate of the chart's viewBox.
+ * The screen CTM includes the `preserveAspectRatio="xMidYMid meet"`
+ * letterboxing, so a host whose aspect ratio differs from the viewBox still
+ * maps the cursor onto the mark under it. Without a usable CTM (no layout, a
+ * singular matrix) the svg's client rect is used instead.
+ *
+ * @param {SVGSVGElement} svg The chart's root svg.
+ * @param {{ clientX: number, clientY: number }} pointer Pointer position in client pixels.
+ * @param {number} viewBoxWidth Width of the svg's viewBox.
+ * @returns {number | null} The x coordinate in viewBox units, or `null` when the svg has no size.
+ */
+export function pointerToViewBoxX(svg, { clientX, clientY }, viewBoxWidth) {
+  const ctm = typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+
+  if (ctm) {
+    try {
+      // A singular matrix inverts to NaN entries (DOMMatrix), which the finiteness check rejects,
+      // or throws (legacy SVGMatrix), which falls through to the rect below.
+      const { a, c, e } = ctm.inverse();
+      const x = a * clientX + c * clientY + e;
+      if (Number.isFinite(x)) return x;
+    } catch {
+      // Not invertible: use the client rect.
+    }
+  }
+
+  const rect = svg.getBoundingClientRect();
+  if (rect.width === 0) return null;
+  return ((clientX - rect.left) / rect.width) * viewBoxWidth;
+}
+
+/**
  * Creates an SVG element and assigns string attributes.
  *
  * @template {keyof SVGElementTagNameMap} K

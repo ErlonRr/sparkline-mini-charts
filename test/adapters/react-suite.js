@@ -278,14 +278,15 @@ export async function runReactSuite({ major }) {
     test("roundCaps={false} produces round-caps=\"false\" and flat caps", async () => {
       const flat = await renderChart(charts.MiniRadialBarChart, { data: [30], roundCaps: false });
       assert.equal(flat.element.getAttribute("round-caps"), "false");
-      assert.match(flat.element.shadowRoot?.querySelector("style")?.textContent ?? "", /stroke-linecap: butt/);
+      assert.equal(flat.element.shadowRoot?.querySelector("svg")?.hasAttribute("data-round-caps"), false);
 
       const round = await renderChart(charts.MiniRadialBarChart, { data: [30], roundCaps: true });
       assert.equal(round.element.getAttribute("round-caps"), "");
+      assert.equal(round.element.shadowRoot?.querySelector("svg")?.hasAttribute("data-round-caps"), true);
 
       const unset = await renderChart(charts.MiniRadialBarChart, { data: [30] });
       assert.equal(unset.element.hasAttribute("round-caps"), false);
-      assert.match(unset.element.shadowRoot?.querySelector("style")?.textContent ?? "", /stroke-linecap: round/);
+      assert.equal(unset.element.shadowRoot?.querySelector("svg")?.hasAttribute("data-round-caps"), true);
     });
 
     test("default-true flags receive \"false\"; presence-only flags are omitted when false", async () => {

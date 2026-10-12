@@ -19,7 +19,7 @@ A patch release that fixes the critical bugs found in 1.4.0 without changing the
 
 - Peer dependency ranges are now bounded to the tested majors: `react` `^18.3.0 || ^19.0.0` (was `>=18.0.0`), `vue` `^3.5.0` (was `>=3.5.0`) and `@angular/core` `^20.0.0 || ^21.0.0 || ^22.0.0` (was `>=20.0.0`). All three stay optional.
 - `repository` and `bugs` in package.json now point to [github.com/ErlonRr/sparkline-mini-charts](https://github.com/ErlonRr/sparkline-mini-charts); the old `ErlonRru` URLs were broken. GitHub is the canonical repository and runs the CI that gates merges; the Forgejo instance is a mirror.
-- Publishing is guarded: `prepack` runs `pnpm build`, and `prepublishOnly` runs the unit tests, the build and the package tests, so a publish from a fresh clone can no longer ship a tarball without `dist/`.
+- Publishing is guarded: `prepack` runs `pnpm build`, and `prepublishOnly` runs the unit tests, the build, the package tests and the API report check (`pnpm api:check`), so a publish from a fresh clone can no longer ship a tarball without `dist/` or with an unreviewed change to the public types.
 - React: only props that are attributes of that chart (its `observedAttributes`, in camelCase or kebab-case) are converted. Any other prop reaches React unchanged, as in 1.3.0, so for example `trendColor` on a bar chart is no longer written as `trend-color`. No chart reads such attributes, so nothing renders differently.
 - TypeScript: the element `data` accessor is declared once on the base class, with a setter typed `unknown` and a getter typed `any`, instead of `any[]` and the per-chart `get data(): …` declarations. This only widens types.
 - Invalid `data` entries now keep their position instead of being dropped or crashing (see Fixed). Visible effects on invalid input only: pie `[3, null, 1]` keeps 3 slices with an empty middle one; progress `["x", 50]` shows 0 instead of 50; gauge `[null, 0, 50]` exposes min 0 and max 50 but, like `[null]`, still hides the needle and reports no value.
@@ -43,7 +43,6 @@ A patch release that fixes the critical bugs found in 1.4.0 without changing the
 
 - **Angular: what this release does not restore.** The 17 per-chart signal directives (`MiniLineChartDirective`, …) and `SPARKLINE_DIRECTIVES` still do not work from `node_modules`: AOT builds reject them (NG2012), and in JIT Angular sees none of their inputs or outputs. They stay exported, unchanged, so 1.4.0 code keeps compiling; they will work from the dedicated `@sparkline-mini-charts/angular` package, planned for 1.5. `MiniChartDirective` works in JIT only; AOT builds (the Angular CLI default) reject it too.
 - **Angular AOT workaround**: `import "sparkline-mini-charts/register"`, add `CUSTOM_ELEMENTS_SCHEMA` to the component, and bind `[data]` on the raw tags (see the README).
-- TypeScript projects that `require()` the CommonJS build get the ESM declarations ("masquerading as ESM" in attw). Planned fix: separate `.d.cts` declarations.
 
 ## [1.4.0] - 2026-08-17
 
@@ -175,7 +174,7 @@ React and Vue `data` forwarding was also broken in 1.4.0, but not because of a 1
 
 [Unreleased]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.4.0...HEAD
 [1.4.0]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.3.0...v1.4.0
-[1.3.1]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.3.0...v1.4.0
+[1.3.1]: https://github.com/ErlonRr/sparkline-mini-charts/commit/5a9322d
 [1.3.0]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.1.0...v1.2.0

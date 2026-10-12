@@ -2,7 +2,7 @@
 
 import { createCandlestickLayout } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
-import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+import { createSvgElement, createChartSvg, chartStyles, entranceDelay, setLengthProperty } from "../core/svg.js";
 
 /**
  * Renders OHLC data as a financial OHLC tick sparkline with batch animations and interactions.
@@ -19,6 +19,9 @@ export class MiniOhlcChart extends MiniChartElement {
     "max",
     "interactive",
   ];
+
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
 
   /** @type {boolean} */
   #initialized = false;
@@ -43,7 +46,8 @@ export class MiniOhlcChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers and interaction listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -51,7 +55,6 @@ export class MiniOhlcChart extends MiniChartElement {
       clearTimeout(this.#timerId);
       this.#timerId = null;
     }
-    this.#detachInteractionListeners();
   }
 
   /**
@@ -85,7 +88,18 @@ export class MiniOhlcChart extends MiniChartElement {
       if (title) title.textContent = label;
     }
 
+    this.#applyOptions();
     this.#updateChart(data);
+  }
+
+  /**
+   * Applies the styling attributes on every render, so changing them after the
+   * first render takes effect. An explicit `tick-width` wins over the inherited
+   * `--mini-chart-tick-width` token.
+   */
+  #applyOptions() {
+    if (!this.#svg) return;
+    setLengthProperty(this.#svg, "--_mc-tick", this.getAttribute("tick-width"));
   }
 
   /**
@@ -93,12 +107,12 @@ export class MiniOhlcChart extends MiniChartElement {
    * @param {string} label 
    */
   #createDOM(label) {
-    const tickWidth = this.getAttribute("tick-width") || "0.75";
-
+    // Static text: per-instance options live on the svg (see #applyOptions), never in the stylesheet.
     const style = document.createElement("style");
     style.textContent = `${chartStyles}
+:host { --_mc-tick: initial; }
 [part~="bar"] { 
-  stroke-width: var(--mini-chart-tick-width, ${tickWidth}); 
+  stroke-width: var(--_mc-tick, var(--mini-chart-tick-width, 0.75)); 
   stroke-linecap: square;
   fill: none;
   transition: opacity 0.2s ease, filter 0.2s ease, stroke-width 0.2s ease; 
@@ -158,14 +172,16 @@ export class MiniOhlcChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#container?.addEventListener("pointerover", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#container?.removeEventListener("pointerover", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 
   /**
@@ -235,18 +251,18 @@ export class MiniOhlcChart extends MiniChartElement {
       // Step 2: Batch single reflow
       this.#svg.getBoundingClientRect();
 
-      // Step 3: Staggered expansion
+      // Step 3: Staggered expansion; the whole stagger is capped, however many bars there are.
       candles.forEach((geo, index) => {
         const path = this.#bars[index];
         const cx = geo.x + geo.bodyWidth / 2;
         const d = `M ${cx} ${geo.high} L ${cx} ${geo.low} M ${geo.x} ${geo.open} L ${cx} ${geo.open} M ${cx} ${geo.close} L ${geo.x + geo.bodyWidth} ${geo.close}`;
 
-        path.style.transition = `d 0.4s ease-out ${index * 0.03}s`;
+        path.style.transition = `d 0.4s ease-out ${entranceDelay(index, candles.length, 30)}ms`;
         path.setAttribute("d", d);
       });
 
       // Step 4: Clear inline transition delay after animation completes
-      const maxDuration = 400 + candles.length * 30 + 50;
+      const maxDuration = 400 + entranceDelay(candles.length - 1, candles.length, 30) + 50;
       this.#timerId = setTimeout(() => {
         if (this.isConnected) {
           this.#bars.forEach((b) => {

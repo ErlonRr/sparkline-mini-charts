@@ -1,14 +1,24 @@
 // mini-area-chart.js — Responsive SVG area sparkline Custom Element.
 
 import { createCartesianLayout, createSmoothAreaPath, createSmoothPath, createStepPath } from "../core/geometry.js";
+import { parseGradient, resolveGradientColors, setGradientStops } from "../core/gradient.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
-import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+import { createSvgElement, createChartSvg, chartStyles, pointerToViewBoxX, setTrend, trendStyles } from "../core/svg.js";
 
 /**
  * @typedef {Object} Point2D
  * @property {number} x
  * @property {number} y
  */
+
+/** Default fill: the chart color, fading out toward the baseline. */
+const DEFAULT_STOPS = Object.freeze(["currentColor", "currentColor"]);
+
+/**
+ * @param {number} index Stop index.
+ * @returns {string} `stop-opacity` of a default stop.
+ */
+const defaultStopOpacity = (index) => (index === 0 ? "0.45" : "0.02");
 
 /**
  * Renders a numeric series as a filled area sparkline with native gradients, smooth curves, and animations.
@@ -28,6 +38,9 @@ export class MiniAreaChart extends MiniChartElement {
     "trend-color",
     "interactive",
   ];
+
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
 
   /** @type {Point2D[]} */
   #prevPoints = [];
@@ -74,12 +87,12 @@ export class MiniAreaChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers, frames, and event listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
     this.#cancelPendingAnimations();
-    this.#detachInteractionListeners();
   }
 
   /** Cancels any active requestAnimationFrame or setTimeout in flight. */
@@ -115,7 +128,7 @@ export class MiniAreaChart extends MiniChartElement {
    */
   #createDOM(label) {
     const style = document.createElement("style");
-    style.textContent = `${chartStyles}
+    style.textContent = `${chartStyles}${trendStyles}
 :host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
 [part="line"] { transition: d 0.4s ease-out; }
 [part="area"] { transition: d 0.4s ease-out; }
@@ -138,17 +151,7 @@ export class MiniAreaChart extends MiniChartElement {
       y2: "1",
     }));
 
-    const stop1 = createSvgElement("stop", {
-      offset: "0%",
-      "stop-color": "currentColor",
-      "stop-opacity": "0.45",
-    });
-    const stop2 = createSvgElement("stop", {
-      offset: "100%",
-      "stop-color": "currentColor",
-      "stop-opacity": "0.02",
-    });
-    this.#gradient.append(stop1, stop2);
+    setGradientStops(this.#gradient, DEFAULT_STOPS, defaultStopOpacity);
 
     const clipPath = createSvgElement("clipPath", { id: clipId });
     this.#clipRect = /** @type {SVGRectElement} */ (createSvgElement("rect", {
@@ -200,10 +203,10 @@ export class MiniAreaChart extends MiniChartElement {
   #onPointerMove = (/** @type {PointerEvent} */ e) => {
     if (!this.hasAttribute("interactive") || this.#currentPoints.length === 0 || !this.#svg) return;
 
-    const rect = this.#svg.getBoundingClientRect();
-    if (rect.width === 0) return;
+    // Through the screen CTM, so letterboxing (host aspect ratio ≠ viewBox) does not shift the index.
+    const relativeX = pointerToViewBoxX(this.#svg, e, this.chartWidth);
+    if (relativeX === null) return;
 
-    const relativeX = ((e.clientX - rect.left) / rect.width) * this.chartWidth;
     let closestIndex = 0;
     let minDistance = Infinity;
 
@@ -247,14 +250,16 @@ export class MiniAreaChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#svg?.addEventListener("pointermove", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#svg?.removeEventListener("pointermove", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 
   /**
@@ -308,6 +313,7 @@ export class MiniAreaChart extends MiniChartElement {
       this.#areaPath.style.display = "none";
       this.#pointElements.forEach((el) => { el.style.display = "none"; });
       this.#refLine.style.display = "none";
+      this.#svg?.removeAttribute("data-trend");
       this.#prevPoints = [];
       this.#currentPoints = [];
       this.#currentValues = [];
@@ -330,18 +336,8 @@ export class MiniAreaChart extends MiniChartElement {
     this.#currentPoints = points;
     this.#currentValues = data;
 
-    // Trend color calculation
-    if (this.getAttribute("trend-color") === "auto" && data.length >= 2) {
-      const isBullish = data[data.length - 1] >= data[0];
-      this.style.setProperty(
-        "--mini-chart-color",
-        isBullish
-          ? "var(--mini-chart-bullish-color, #10b981)"
-          : "var(--mini-chart-bearish-color, #ef4444)"
-      );
-    } else {
-      this.style.removeProperty("--mini-chart-color");
-    }
+    // Trend color: a data attribute on the internal svg, never the host's style.
+    if (this.#svg) setTrend(this.#svg, data, this.getAttribute("trend-color"));
 
     // Reference value line
     const refVal = parseFloat(this.getAttribute("reference-value") || "");
@@ -376,52 +372,25 @@ export class MiniAreaChart extends MiniChartElement {
     this.#linePath.style.display = "";
     this.#areaPath.style.display = "";
 
-    // Dynamic gradient configuration (support boolean, array of colors, or comma-separated stops)
-    const gradAttr = this.getAttribute("gradient");
-    if (gradAttr === "false") {
-      this.#areaPath.setAttribute("fill", "var(--mini-chart-fill, currentColor)");
+    // Gradient fill: on by default; "false", "0" (or no usable color) switches to a flat translucent fill.
+    const rawGradient = this.getAttribute("gradient");
+    const gradient = rawGradient === null ? true : parseGradient(rawGradient);
+    const customColors = Array.isArray(gradient) ? resolveGradientColors(gradient, []) : null;
+    if (gradient === false || !this.#gradient) {
+      this.#areaPath.removeAttribute("fill");
+      this.#areaPath.style.fill = "var(--mini-chart-fill, currentColor)";
       this.#areaPath.style.opacity = "0.2";
     } else {
-      let customColors = null;
-      if (gradAttr && gradAttr !== "true") {
-        try {
-          const normalized = gradAttr.replace(/'/g, '"');
-          const parsed = JSON.parse(normalized);
-          if (Array.isArray(parsed) && parsed.length > 0) customColors = parsed;
-        } catch {}
-        if (!customColors && gradAttr.includes(",")) {
-          customColors = gradAttr.replace(/[\[\]'"]/g, "").split(",").map((s) => s.trim()).filter(Boolean);
-        }
+      if (customColors?.length === 1) {
+        // One color fades like the default gradient, instead of a single stop at the last-stop opacity.
+        setGradientStops(this.#gradient, [customColors[0], customColors[0]], defaultStopOpacity);
+      } else if (customColors) {
+        setGradientStops(this.#gradient, customColors, (index, count) => (index === count - 1 ? "0.05" : "0.55"));
+      } else {
+        setGradientStops(this.#gradient, DEFAULT_STOPS, defaultStopOpacity);
       }
-
-      if (this.#gradient) {
-        this.#gradient.innerHTML = "";
-        if (customColors && customColors.length > 0) {
-          const count = customColors.length;
-          customColors.forEach((col, idx) => {
-            const offset = count > 1 ? `${(idx / (count - 1)) * 100}%` : "0%";
-            const stop = createSvgElement("stop", {
-              offset,
-              "stop-color": col,
-              "stop-opacity": idx === count - 1 ? "0.05" : "0.55",
-            });
-            this.#gradient?.append(stop);
-          });
-        } else {
-          const stop1 = createSvgElement("stop", {
-            offset: "0%",
-            "stop-color": "currentColor",
-            "stop-opacity": "0.45",
-          });
-          const stop2 = createSvgElement("stop", {
-            offset: "100%",
-            "stop-color": "currentColor",
-            "stop-opacity": "0.02",
-          });
-          this.#gradient.append(stop1, stop2);
-        }
-      }
-      this.#areaPath.setAttribute("fill", `url(#${this.#gradient?.id})`);
+      this.#areaPath.setAttribute("fill", `url(#${this.#gradient.id})`);
+      this.#areaPath.style.fill = "";
       this.#areaPath.style.opacity = "";
     }
 

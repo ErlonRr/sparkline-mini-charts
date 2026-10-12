@@ -75,7 +75,7 @@ function demoTabSnippets(html) {
   for (const framework of ["react", "vue", "angular", "svelte"]) {
     const start = html.indexOf(`id="tab-${framework}"`);
     if (start === -1) continue;
-    const code = html.slice(start).match(/<pre><code>([\s\S]*?)<\/code><\/pre>/);
+    const code = html.slice(start).match(/<pre[^>]*><code>([\s\S]*?)<\/code><\/pre>/);
     if (code) snippets.set(framework, unescapeHtml(code[1]));
   }
   return snippets;

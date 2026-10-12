@@ -1,4 +1,4 @@
-// package-types.test.js — Compiles the TypeScript entry fixture against dist/ under Node16 and Bundler resolution (requires `pnpm build`).
+// package-types.test.js — Compiles the TypeScript entry fixtures (ESM .ts and, under Node16, CommonJS .cts) against dist/ under Node16 and Bundler resolution (requires `pnpm build`).
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -15,7 +15,7 @@ const tsc = resolve(typescriptDir, require("typescript/package.json").bin.tsc);
 
 for (const resolution of ["node16", "bundler"]) {
   test(`entry fixture type-checks with moduleResolution ${resolution}`, () => {
-    for (const types of ["dist/mini-line-chart.d.ts", "dist/math.d.ts"]) {
+    for (const types of ["dist/mini-line-chart.d.ts", "dist/mini-line-chart.d.cts", "dist/math.d.ts", "dist/math.d.cts"]) {
       assert.ok(existsSync(resolve(root, types)), `${types} is missing: run \`pnpm build\` before \`pnpm test:package\`.`);
     }
 

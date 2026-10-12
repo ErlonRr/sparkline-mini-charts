@@ -13,6 +13,10 @@ const HTMLElementBase = /** @type {typeof HTMLElement} */ (globalThis.HTMLElemen
 export class MiniChartElement extends HTMLElementBase {
   static observedAttributes = ["data", "label"];
 
+  /**
+   * Whether a microtask render is pending. A synchronous render clears it, so
+   * the queued microtask is skipped instead of rendering the same state twice.
+   */
   #renderQueued = false;
 
   /** Whether a render error has already been logged for this element. */
@@ -106,12 +110,18 @@ export class MiniChartElement extends HTMLElementBase {
     this.requestRender();
   }
 
-  /** Schedules a single rerender for a batch of synchronous attribute changes. */
+  /**
+   * Schedules a single rerender for a batch of synchronous attribute changes.
+   * A render that runs before the microtask (the upgrade of an element that is
+   * already in the document queues one per attribute, then connects) makes it
+   * a no-op, so entrance animations are not cancelled by a second pass.
+   */
   requestRender() {
     if (!this.isConnected || this.#renderQueued) return;
 
     this.#renderQueued = true;
     queueMicrotask(() => {
+      if (!this.#renderQueued) return;
       this.#renderQueued = false;
       if (this.isConnected) this.#safeRender();
     });
@@ -136,6 +146,9 @@ export class MiniChartElement extends HTMLElementBase {
    * and leaves an accessible empty chart instead of a blank or stale tree.
    */
   #safeRender() {
+    // This render covers every attribute change so far: a queued microtask has nothing left to do.
+    this.#renderQueued = false;
+
     if (this.#replacedTree) {
       this.shadowRoot?.replaceChildren(...this.#replacedTree);
       this.#replacedTree = null;

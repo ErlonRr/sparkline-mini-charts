@@ -2,7 +2,7 @@
 
 import { createCartesianLayout, createSmoothPath, createStepPath } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
-import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+import { createSvgElement, createChartSvg, chartStyles, pointerToViewBoxX, setTrend, trendStyles } from "../core/svg.js";
 
 /**
  * @typedef {Object} Point2D
@@ -27,6 +27,9 @@ export class MiniLineChart extends MiniChartElement {
     "trend-color",
     "interactive",
   ];
+
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
 
   /** @type {Point2D[]} */
   #prevPoints = [];
@@ -67,12 +70,12 @@ export class MiniLineChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers, frames, and event listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
     this.#cancelPendingAnimations();
-    this.#detachInteractionListeners();
   }
 
   /** Cancels any active requestAnimationFrame or setTimeout in flight. */
@@ -110,7 +113,7 @@ export class MiniLineChart extends MiniChartElement {
    */
   #createDOM(label) {
     const style = document.createElement("style");
-    style.textContent = `${chartStyles}
+    style.textContent = `${chartStyles}${trendStyles}
 :host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
 [part="line"] { transition: d 0.4s ease-out; }
 [part~="point"] { transition: cx 0.4s ease-out, cy 0.4s ease-out, opacity 0.2s ease-out; }
@@ -169,10 +172,10 @@ export class MiniLineChart extends MiniChartElement {
   #onPointerMove = (/** @type {PointerEvent} */ e) => {
     if (!this.hasAttribute("interactive") || this.#currentPoints.length === 0 || !this.#svg) return;
 
-    const rect = this.#svg.getBoundingClientRect();
-    if (rect.width === 0) return;
+    // Through the screen CTM, so letterboxing (host aspect ratio ≠ viewBox) does not shift the index.
+    const relativeX = pointerToViewBoxX(this.#svg, e, this.chartWidth);
+    if (relativeX === null) return;
 
-    const relativeX = ((e.clientX - rect.left) / rect.width) * this.chartWidth;
     let closestIndex = 0;
     let minDistance = Infinity;
 
@@ -216,14 +219,16 @@ export class MiniLineChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#svg?.addEventListener("pointermove", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#svg?.removeEventListener("pointermove", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 
   /**
@@ -257,6 +262,7 @@ export class MiniLineChart extends MiniChartElement {
       this.#linePath.style.display = "none";
       this.#pointElements.forEach((el) => { el.style.display = "none"; });
       this.#refLine.style.display = "none";
+      this.#svg?.removeAttribute("data-trend");
       this.#prevPoints = [];
       this.#currentPoints = [];
       this.#currentValues = [];
@@ -278,18 +284,8 @@ export class MiniLineChart extends MiniChartElement {
     this.#currentPoints = points;
     this.#currentValues = data;
 
-    // Trend color calculation
-    if (this.getAttribute("trend-color") === "auto" && data.length >= 2) {
-      const isBullish = data[data.length - 1] >= data[0];
-      this.style.setProperty(
-        "--mini-chart-color",
-        isBullish
-          ? "var(--mini-chart-bullish-color, #10b981)"
-          : "var(--mini-chart-bearish-color, #ef4444)"
-      );
-    } else {
-      this.style.removeProperty("--mini-chart-color");
-    }
+    // Trend color: a data attribute on the internal svg, never the host's style.
+    if (this.#svg) setTrend(this.#svg, data, this.getAttribute("trend-color"));
 
     // Reference value line
     const refVal = parseFloat(this.getAttribute("reference-value") || "");

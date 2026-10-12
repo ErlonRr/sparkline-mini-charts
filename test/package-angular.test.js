@@ -19,6 +19,7 @@ const restoreSvgLayout = stubSvgLayout(dom.window);
 // which is what happens to this package in an app that is not built ahead of time.
 await import("@angular/compiler");
 const ng = await import("@angular/core");
+const { SIGNAL } = await import("@angular/core/primitives/signals");
 const { TestBed } = await import("@angular/core/testing");
 const { BrowserTestingModule, platformBrowserTesting } = await import("@angular/platform-browser/testing");
 const angular = await import("../dist/angular.js");
@@ -300,4 +301,47 @@ describe("documented limitation of the signal-based per-chart directives", () =>
       assert.deepEqual(definition.outputs, {}, `the ${tag} directive unexpectedly has outputs`);
     }
   });
+});
+
+describe("signal-based per-chart directives: options that are on by default", () => {
+  // JIT cannot bind these directives from the package (see the test above), so
+  // each one is created in an injection context and its input signal is set
+  // directly, as Angular would set it once the dedicated package ships metadata.
+  /** @type {{ directive: string, tag: string, input: string, attribute: string, svgFlag?: string }[]} */
+  const flags = [
+    { directive: "MiniCandlestickChartDirective", tag: "mini-candlestick-chart", input: "hollowBullish", attribute: "hollow-bullish", svgFlag: "data-hollow-bullish" },
+    { directive: "MiniRadialBarChartDirective", tag: "mini-radial-bar-chart", input: "roundCaps", attribute: "round-caps", svgFlag: "data-round-caps" },
+    { directive: "MiniComboChartDirective", tag: "mini-combo-chart", input: "sharedDomain", attribute: "shared-domain" },
+  ];
+
+  for (const { directive, tag, input, attribute, svgFlag } of flags) {
+    test(`[${input}]="false" writes ${attribute}="false", which turns the option off`, async () => {
+      const element = /** @type {HTMLElement & { data: unknown }} */ (document.createElement(tag));
+      document.body.append(element);
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({ providers: [{ provide: ng.ElementRef, useValue: new ng.ElementRef(element) }] });
+      const instance = TestBed.runInInjectionContext(() => new (/** @type {any} */ (angular)[directive])());
+      const node = instance[input][SIGNAL];
+      const setInput = (/** @type {unknown} */ value) => {
+        node.applyValueToInputSignal(node, node.transformFn(value));
+        TestBed.tick();
+      };
+      element.data = chartFixtures.find((fixture) => fixture.tag === tag)?.data;
+      TestBed.tick();
+      await flushMicrotasks();
+
+      assert.equal(element.getAttribute(attribute), "", "unbound, the option stays on");
+      if (svgFlag) assert.ok(element.shadowRoot?.querySelector("svg")?.hasAttribute(svgFlag));
+
+      setInput(false);
+      await flushMicrotasks();
+      assert.equal(element.getAttribute(attribute), "false");
+      if (svgFlag) assert.equal(element.shadowRoot?.querySelector("svg")?.hasAttribute(svgFlag), false, "the chart ignored the off value");
+
+      setInput("");
+      await flushMicrotasks();
+      assert.equal(element.getAttribute(attribute), "", "the bare attribute turns it back on");
+      element.remove();
+    });
+  }
 });

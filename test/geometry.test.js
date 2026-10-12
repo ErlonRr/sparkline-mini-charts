@@ -7,9 +7,11 @@ import { parseNumericData } from "../src/core/data.js";
 import {
   createBarLayout,
   createBulletLayout,
+  createCandlestickLayout,
   createCartesianLayout,
   createDomain,
   createLinearScale,
+  createRadialBarLayout,
   createRadialLayout,
   createRangeBarLayout,
   createScatterLayout,
@@ -135,6 +137,19 @@ test("createRangeBarLayout projects floating intervals and optional markers", ()
   assert.equal(layout.bars[0].max, 20);
 });
 
+test("createRangeBarLayout reads low/high/value as aliases of min/max/current", () => {
+  const aliased = createRangeBarLayout([{ low: 10, high: 30, value: 22 }], { width: 100, height: 30 });
+  const canonical = createRangeBarLayout([{ min: 10, max: 30, current: 22 }], { width: 100, height: 30 });
+  assert.deepEqual(aliased, canonical);
+  assert.equal(aliased.bars[0].current, 22);
+  assert.ok(aliased.bars[0].marker);
+
+  const both = createRangeBarLayout([{ min: 5, low: 10, max: 25, high: 30, current: 15, value: 22 }]);
+  assert.equal(both.bars[0].min, 5);
+  assert.equal(both.bars[0].max, 25);
+  assert.equal(both.bars[0].current, 15);
+});
+
 test("createScatterLayout maps 2D points and calculates linear regression trendline", () => {
   const layout = createScatterLayout([[1, 2], [2, 4], [3, 6], [4, 8]], { width: 100, height: 30 });
   assert.equal(layout.points.length, 4);
@@ -145,5 +160,83 @@ test("createScatterLayout maps 2D points and calculates linear regression trendl
   assert.equal(layout.domainY[1], 8);
 });
 
+test("createCandlestickLayout scales only open/high/low/close: extra tuple columns are ignored", () => {
+  const ohlc = [[10, 12, 9, 11], [11, 14, 10, 13], [13, 13, 8, 9]];
+  const expected = createCandlestickLayout(ohlc);
 
+  const ohlcv = ohlc.map((row, index) => [...row, 50_000 * (index + 1)]);
+  assert.deepEqual(createCandlestickLayout(ohlcv), expected);
 
+  const timestamped = ohlc.map((row) => [...row, "2024-01-01"]);
+  assert.deepEqual(createCandlestickLayout(timestamped), expected);
+});
+
+test("createStackedLayout counts a missing value as 0 at its own index", () => {
+  const { layers } = createStackedLayout([[1, null, 3], [2, 2, 2]], { width: 100, height: 30, padding: 2 });
+  const [bottom, top] = layers;
+
+  // Stack heights per column: 3, 2, 5. The 3 of the first series stays at index 2.
+  const yOf = (/** @type {number} */ value) => 28 - (value / 5) * 26;
+  assert.deepEqual(bottom.points.map((p) => p.y1), [yOf(1), yOf(0), yOf(3)]);
+  assert.deepEqual(top.points.map((p) => p.y1), [yOf(3), yOf(2), yOf(5)]);
+  assert.deepEqual(top.points.map((p) => p.y0), bottom.points.map((p) => p.y1));
+});
+
+test("extents of large series are measured without spreading into Math.min/Math.max", () => {
+  const values = Array.from({ length: 1_000_000 }, (_, index) => index % 1000);
+
+  assert.deepEqual(createDomain(values), [0, 999]);
+  assert.deepEqual(createCartesianLayout(values).domain, [0, 999]);
+  assert.equal(createBarLayout(values).bars.length, values.length);
+
+  const candles = Array.from({ length: 250_000 }, (_, index) => [index % 7, 10, 0, (index + 3) % 7]);
+  assert.equal(createCandlestickLayout(candles).candles.length, candles.length);
+
+  assert.equal(createRadialBarLayout(values).tracks.length, values.length);
+  assert.equal(createBulletLayout({ value: 5, target: 7, ranges: values }).max, 999);
+  assert.equal(createRangeBarLayout(values.map((v) => [v, v + 1])).bars.length, values.length);
+  const scatter = createScatterLayout(values.map((v, index) => [index, v]));
+  assert.deepEqual(scatter.domainY, [0, 999]);
+  assert.deepEqual(scatter.domainX, [0, values.length - 1]);
+});
+
+test("createDomain skips entries that are not finite numbers", () => {
+  assert.deepEqual(createDomain([3, Number.NaN, 7, Infinity]), [3, 7]);
+  assert.deepEqual(createDomain([Number.NaN]), [0, 1]);
+});
+
+test("crossed explicit bounds (min >= max) fall back to the data extent instead of flipping the chart", () => {
+  assert.deepEqual(createDomain([1, 2, 3], { min: 10, max: 0 }), [1, 3]);
+  assert.deepEqual(createDomain([1, 2, 3], { min: 5 }), [1, 3]);
+  assert.deepEqual(createDomain([1, 2, 3], { max: -1 }), [1, 3]);
+  assert.deepEqual(createDomain([1, 2, 3], { min: 2, max: 2 }), [1, 3]);
+  assert.deepEqual(createDomain([5, 10], { includeZero: true, min: 20, max: 0 }), [0, 10]);
+  // Valid explicit bounds are still honoured.
+  assert.deepEqual(createDomain([1, 2, 3], { min: 0, max: 10 }), [0, 10]);
+
+  const flipped = createCartesianLayout([1, 2, 3], { min: 10, max: 0 });
+  assert.deepEqual(flipped, createCartesianLayout([1, 2, 3]));
+  assert.ok(flipped.points[2].y < flipped.points[0].y, "a higher value is drawn higher");
+  for (const point of flipped.points) assert.ok(point.y >= 2 && point.y <= 28);
+
+  assert.deepEqual(createBarLayout([2, 8], { min: 10, max: 0 }), createBarLayout([2, 8]));
+  const candles = [[10, 12, 9, 11], [11, 14, 10, 13]];
+  assert.deepEqual(createCandlestickLayout(candles, { min: 10, max: 0 }), createCandlestickLayout(candles));
+  const ranges = [[10, 20, 15], [5, 30, 22]];
+  assert.deepEqual(createRangeBarLayout(ranges, { min: 10, max: 0 }), createRangeBarLayout(ranges));
+  const points = [[1, 2], [2, 4], [3, 6]];
+  assert.deepEqual(createScatterLayout(points, { minX: 10, maxX: 0, minY: 10, maxY: 0 }), createScatterLayout(points));
+
+  const bullet = createBulletLayout({ value: 75, target: 85, ranges: [50, 80, 100], min: 10, max: 0 });
+  assert.equal(bullet.min, 0);
+  assert.equal(bullet.max, 100);
+});
+
+test("createRadialBarLayout ignores a maximum that is not positive", () => {
+  const expected = createRadialBarLayout([50, 100]);
+  assert.deepEqual(createRadialBarLayout([50, 100], { maxDomain: 0 }), expected);
+  assert.deepEqual(createRadialBarLayout([50, 100], { maxDomain: -5 }), expected);
+  for (const track of createRadialBarLayout([0, 50], { maxDomain: 0 }).tracks) {
+    assert.ok(Number.isFinite(track.endAngle));
+  }
+});

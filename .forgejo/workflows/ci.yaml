@@ -3,11 +3,12 @@ name: CI
 on:
   push:
 
-# One run per ref: a newer push cancels the stale run on feature branches,
-# while runs on main queue instead, so a demo deploy is never interrupted mid-copy.
+# Checks only: the demo is deployed by Vercel (see vercel.json), and GitHub is the
+# canonical repository whose CI gates merges. One run per ref; a newer push cancels
+# the stale run.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  cancel-in-progress: true
 
 jobs:
   build-test:
@@ -28,13 +29,26 @@ jobs:
       - name: Typecheck
         run: pnpm run typecheck
 
+      # No host style writes, no HTML string sinks, no app-level custom properties in src/.
+      - name: Source checks
+        run: pnpm run lint:source
+
+      # README, docs/ and the demo use only attributes, tokens and parts that exist in src/,
+      # and every chart page documents its whole API.
+      - name: Docs checks
+        run: pnpm run lint:docs
+
       - name: Unit tests
         run: pnpm run test:unit
 
       - name: Build library
         run: pnpm run build
 
-      # publint + attw on the packed tarball; see "Package lint" in CONTRIBUTING.md for the allowlist.
+      # The public API of every entry must match the reports in api/ (see "API reports" in CONTRIBUTING.md).
+      - name: API report
+        run: pnpm run api:check
+
+      # publint + attw on the packed tarball; see "Package lint" in CONTRIBUTING.md.
       - name: Lint package
         run: pnpm run lint:package
 
@@ -43,16 +57,3 @@ jobs:
 
       - name: Build demo
         run: pnpm run build:demo
-
-      - name: Deploy demo
-        if: github.ref == 'refs/heads/main'
-        run: |
-          mkdir -p /deploy/sparkline-mini-charts
-          rm -rf /deploy/sparkline-mini-charts/*
-          cp -a dist-demo/. /deploy/sparkline-mini-charts/
-
-      - name: Verify deploy
-        if: github.ref == 'refs/heads/main'
-        run: |
-          ls -la /deploy/sparkline-mini-charts
-          test -f /deploy/sparkline-mini-charts/index.html

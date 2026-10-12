@@ -1,37 +1,64 @@
 # Stream Chart (`<mini-stream-chart>`)
 
-A Stream Chart (or ThemeRiver) is a variation of a stacked area chart where the baseline is shifted to the center, creating an organic, flowing shape that emphasizes trends and volumes rather than exact baseline values.
+A streamgraph (ThemeRiver): several series stacked around a horizontal center line instead of a zero baseline, so the overall volume reads as a flowing band.
 
-## Data Structure
-Expects a 2D JSON array of numbers, where each sub-array represents a separate flowing series. (Minimum 2 series recommended for the stream effect).
+## Data
+
+A JSON array of series, each an array of numbers (series-major: the first inner array is the bottom layer). An entry that is not a finite number counts as `0` at its own index, so every series stays aligned by column. A series shorter than the longest one is padded with `0`, and an entry that is not an array becomes an empty series.
+
 ```json
 [
-  [14, 24, 32, 37],
-  [8,  12, 19, 23],
-  [5,  9,  14, 18]
+  [10, 15, 20, 18, 25],
+  [5, 12, 8, 15, 10],
+  [8, 6, 14, 10, 12]
 ]
 ```
 
-## HTML Attributes
-- **`data`** *(string)*: The JSON 2D array.
-- **`label`** *(string, optional)*: ARIA label and `<title>` for accessibility.
+Each column is centered on its total: the layers start at minus half the column sum.
 
-## CSS Styling
+The `data` property accepts the array directly (`chart.data = [[10, 15], [5, 12]]`) and writes it to the attribute as JSON.
 
-### Custom Properties
-The chart uses indexed color variables for each flowing layer:
-- `--mini-chart-color-1`: Fill color for the first layer (default: `#3b82f6`).
-- `--mini-chart-color-2`: Fill color for the second layer (default: `#10b981`).
-- `--mini-chart-color-3`: Fill color for the third layer (default: `#f59e0b`).
+## Attributes
 
-### Shadow Parts (`::part()`)
-- `part="layer"`: The individual SVG `<path>` elements that make up the stream.
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | JSON `number[][]` | `[]` | The series to stack, bottom layer first. |
+| `label` | string | `"Stream chart with N values"` (N = number of series) | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `curve` | `smooth` \| `linear` | `smooth` | `linear` draws straight segments. Any other value, including `step`, draws curved layer edges (when a series has more than two values). |
+| `interactive` | boolean (presence) | off | Highlights the layer under the pointer, dims the others and dispatches the events below. `interactive="false"` still enables it. |
 
-## Usage Example
+## Events
+
+Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+
+| Event | `detail` | When |
+| --- | --- | --- |
+| `sparkline-hover` | `{ layerIndex, seriesData, color, element }` | The pointer enters a layer. `layerIndex` is zero-based, `seriesData` is that series as parsed (invalid entries already `0`), `color` is the layer's built-in palette color (it does not reflect a `--mini-chart-color-N` override), and `element` is the layer's `<path>`. |
+| `sparkline-leave` | none | The pointer leaves the chart. |
+
+## CSS custom properties
+
+| Property | Default | What it styles |
+| --- | --- | --- |
+| `--mini-chart-color-N` | built-in 16-color palette (`#84cc16`, `#f43f5e`, `#0ea5e9`, `#f59e0b`, …) | Fill of layer N, counting from 1 (`--mini-chart-color-1` is the bottom layer). The palette repeats after 16 layers. |
+| `--mini-chart-aspect-ratio` | `10 / 3` | Host aspect ratio when the host has no explicit height. |
+
+## Parts
+
+| Part | Element | Description |
+| --- | --- | --- |
+| `svg` | `<svg>` | The chart root. |
+| `layers` | `<g>` | Clipped group that holds the layers. |
+| `layer` | `<path>` | Every layer. |
+| `layer-N` | `<path>` | Layer N, counting from 1 from the bottom (`layer-1`, `layer-2`, …). Use it to style one layer: `::part(layer-2)`. |
+
+## Example
 
 ```html
-<mini-stream-chart 
-  data="[[28,22,19,19,22], [14,24,32,37,37], [5,9,14,18,22]]" 
-  label="Market Flow">
-</mini-stream-chart>
+<mini-stream-chart
+  data="[[10, 15, 20, 18, 25], [5, 12, 8, 15, 10], [8, 6, 14, 10, 12]]"
+  interactive
+  label="Organic stream flow"
+  style="--mini-chart-color-1: #0ea5e9; --mini-chart-color-2: #8b5cf6; --mini-chart-color-3: #ec4899"
+></mini-stream-chart>
 ```

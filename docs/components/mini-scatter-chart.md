@@ -1,48 +1,90 @@
 # Scatter & Bubble Chart (`<mini-scatter-chart>`)
 
-The Scatter Chart plots 2D coordinates `(x, y)` to visualize distributions, clusters, and correlations. It supports automatic linear regression computation (`trend-line="true"`) to draw a best-fit trendline across points.
+Plots `(x, y)` points to show distributions, clusters and correlations. A third value per point sets its radius, which turns it into a bubble chart, and `trend-line` adds a least-squares regression line.
 
-## Data Structure
+## Data
 
-Expects a 2D array of coordinate pairs `[x, y][]` or an array of objects `{ x: number, y: number }[]`.
+A JSON array of points. Each point can be:
+
+- `[x, y]` or `[x, y, r]`;
+- `{ "x": …, "y": …, "r": … }` (`r` optional);
+- a bare number, plotted as `[index, value]`.
 
 ```json
 [
   [5, 12],
-  [10, 18],
-  [15, 14],
-  [22, 28],
-  [30, 35],
-  [42, 38]
+  [10, 18, 4],
+  { "x": 15, "y": 14 },
+  22
 ]
 ```
 
-## HTML Attributes
-- **`data`** *(string)*: JSON 2D array of coordinate points.
-- **`label`** *(string, optional)*: Accessible name applied to the rendered SVG.
-- **`trend-line`** *(boolean/string, optional)*: `"true"` computes and draws an ordinary least-squares regression line.
-- **`point-radius`** *(number, optional)*: Radius in SVG viewBox units for each scatter dot (default: `2.5`).
-- **`min-x`** / **`max-x`**: Explicit bounds for horizontal X axis.
-- **`min-y`** / **`max-y`**: Explicit bounds for vertical Y axis.
-- **`interactive`** *(boolean/string, optional)*: Enables point hover crosshairs and events.
+- `r` is a radius in viewBox units (the viewBox is 100 × 30); without it the point uses `point-radius`.
+- Entries that are neither an array, an object nor a finite number (`null`, strings, booleans) are dropped, and `index` then counts the remaining points.
+- Inside a kept point, a missing or non-finite `x` becomes the point's index and a missing or non-finite `y` becomes `0`, so a malformed object such as `{}` still draws a point at `y = 0`. A one-element array `[v]` is plotted at `x = v, y = v`.
 
-## CSS Styling
+The `data` property accepts the array directly (`chart.data = [[5, 12], [10, 18]]`) and writes it to the attribute as JSON.
 
-### Custom Properties
-- `--mini-chart-color-1`: Point circle color (default: `#0ea5e9`).
-- `--mini-chart-trendline-color`: Regression trendline stroke color.
+## Attributes
 
-### Shadow Parts (`::part()`)
-- `part="circle"`: Individual scatter coordinate circle dots.
-- `part="trendline"`: The linear regression trendline.
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `data` | JSON array of points | `[]` | The points to plot. |
+| `label` | string | `"Scatter chart with N values"` | Accessible name, used as the svg's `aria-label` and `<title>`. |
+| `point-radius` | number | `3` | Radius of points without their own `r`, in viewBox units. A non-numeric value keeps the default. |
+| `trend-line` | boolean | off | Draws a dashed least-squares regression line across the x range. On when the attribute is present with any value except `"false"`. Needs at least two points with different `x`. |
+| `min-x` | number | lowest `x` | Left end of the x axis. |
+| `max-x` | number | highest `x` | Right end of the x axis. |
+| `min-y` | number | lowest `y` | Bottom of the y axis. |
+| `max-y` | number | highest `y` | Top of the y axis. |
+| `interactive` | boolean (presence) | off | Highlights the point under the pointer (the others fade to 0.45 opacity) and dispatches the events below. `interactive="false"` still enables it. |
 
-## Usage Example
+For each axis, a minimum that is not below its maximum is ignored and the data extent is used instead. Points outside an explicit range are not clamped.
+
+## Events
+
+Dispatched only when `interactive` is set. Both bubble and cross the shadow boundary (`composed`).
+
+| Event | `detail` | When |
+| --- | --- | --- |
+| `sparkline-hover` | `{ index, data, element }` | The pointer enters a point. `data` is the entry as written in `data` (an array, an object or a number), `element` is its `<circle>`. |
+| `sparkline-leave` | none | The pointer leaves the chart. |
+
+## CSS custom properties
+
+| Property | Default | What it styles |
+| --- | --- | --- |
+| `--mini-chart-point-color` | `--mini-chart-color` | Point fill. |
+| `--mini-chart-color` | `#3b82f6` | Point fill when `--mini-chart-point-color` is not set, and base of the default trend line color. |
+| `--mini-chart-point-stroke` | `#ffffff` | Point outline (1px; 2.5px on hover). |
+| `--mini-chart-trend-color` | `--mini-chart-color` at 40% opacity | Trend line stroke. |
+| `--mini-chart-trend-width` | `1.5px` | Trend line thickness. |
+| `--mini-chart-aspect-ratio` | `10 / 3` | Host aspect ratio when the host has no explicit height. |
+
+## Parts
+
+| Part | Element | Description |
+| --- | --- | --- |
+| `svg` | `<svg>` | The chart root. |
+| `points` | `<g>` | Container of the points. |
+| `point` | `<circle>` | One point. |
+| `trend-line` | `<line>` | The regression line (`trend-line`). |
+
+## Example
 
 ```html
-<mini-scatter-chart 
-  data="[[5, 10], [12, 18], [20, 24], [28, 22], [35, 38], [50, 48]]" 
-  trend-line="true"
-  label="Correlation Analysis"
-  style="--mini-chart-color-1: #8b5cf6;">
-</mini-scatter-chart>
+<mini-scatter-chart
+  data="[[5, 10], [12, 18], [20, 24, 5], [28, 22], [35, 38], [50, 48]]"
+  trend-line
+  point-radius="2.5"
+  interactive
+  label="Latency vs throughput"
+  style="--mini-chart-point-color: #8b5cf6; --mini-chart-trend-color: #a78bfa"
+></mini-scatter-chart>
+```
+
+```css
+mini-scatter-chart::part(trend-line) {
+  stroke-dasharray: none;
+}
 ```

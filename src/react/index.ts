@@ -66,8 +66,10 @@ export interface BaseSparklineProps extends Omit<HTMLAttributes<HTMLElement>, "d
 // ---------------------------------------------------------------------------
 
 export interface MiniLineChartProps extends BaseSparklineProps {
-  curve?: "linear" | "smooth" | "step";
-  points?: "none" | "all" | "last" | "ends";
+  /** `step` is `step-after`. */
+  curve?: "linear" | "smooth" | "step" | "step-before" | "step-after";
+  /** `ends` draws no markers; it is kept so existing code still compiles. */
+  points?: "none" | "all" | "last" | "min-max" | "ends";
   min?: number;
   max?: number;
   "reference-value"?: number;
@@ -85,8 +87,10 @@ export interface MiniBarChartProps extends BaseSparklineProps {
 }
 
 export interface MiniAreaChartProps extends BaseSparklineProps {
-  curve?: "linear" | "smooth" | "step";
-  points?: "none" | "all" | "last" | "ends";
+  /** `step` is `step-after`. */
+  curve?: "linear" | "smooth" | "step" | "step-before" | "step-after";
+  /** `ends` draws no markers; it is kept so existing code still compiles. */
+  points?: "none" | "all" | "last" | "min-max" | "ends";
   gradient?: boolean | string | string[];
   min?: number;
   max?: number;
@@ -187,7 +191,8 @@ export interface MiniBulletChartProps extends BaseSparklineProps {
 export interface MiniWinLossChartProps extends BaseSparklineProps {
   gap?: number;
   radius?: number;
-  mode?: "win-loss" | "uptime";
+  /** `binary` is an alias of `win-loss`, and `uptime` of `status`. */
+  mode?: "win-loss" | "binary" | "status" | "uptime";
   "win-color"?: string;
   winColor?: string;
   "loss-color"?: string;

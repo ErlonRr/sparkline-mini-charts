@@ -3,6 +3,8 @@
 node_modules/
 dist/
 dist-demo/
+test-results/
+playwright-report/
 *.tgz
 
 .agents/

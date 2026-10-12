@@ -2,7 +2,7 @@
 
 import { createCandlestickLayout } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
-import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+import { createSvgElement, createChartSvg, chartStyles, entranceDelay, setLengthProperty } from "../core/svg.js";
 
 /**
  * @typedef {Object} CandleCache
@@ -28,6 +28,9 @@ export class MiniCandlestickChart extends MiniChartElement {
     "interactive",
   ];
 
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
+
   /** @type {boolean} */
   #initialized = false;
 
@@ -51,7 +54,8 @@ export class MiniCandlestickChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers and interaction listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -59,7 +63,6 @@ export class MiniCandlestickChart extends MiniChartElement {
       clearTimeout(this.#timerId);
       this.#timerId = null;
     }
-    this.#detachInteractionListeners();
   }
 
   /**
@@ -93,7 +96,23 @@ export class MiniCandlestickChart extends MiniChartElement {
       if (title) title.textContent = label;
     }
 
+    this.#applyOptions();
     this.#updateChart(data);
+  }
+
+  /**
+   * Applies the styling attributes on every render, so changing them after the
+   * first render takes effect. An explicit `wick-width` wins over the inherited
+   * `--mini-chart-wick-width` token.
+   */
+  #applyOptions() {
+    if (!this.#svg) return;
+    if (this.getAttribute("hollow-bullish") === "false") {
+      this.#svg.removeAttribute("data-hollow-bullish");
+    } else {
+      this.#svg.setAttribute("data-hollow-bullish", "");
+    }
+    setLengthProperty(this.#svg, "--_mc-wick", this.getAttribute("wick-width"));
   }
 
   /**
@@ -101,15 +120,15 @@ export class MiniCandlestickChart extends MiniChartElement {
    * @param {string} label 
    */
   #createDOM(label) {
-    const isHollow = this.getAttribute("hollow-bullish") !== "false";
-    const wickWidth = this.getAttribute("wick-width") || "0.75";
-
+    // Static text: per-instance options live on the svg (see #applyOptions), never in the stylesheet.
     const style = document.createElement("style");
     style.textContent = `${chartStyles}
+:host { --_mc-wick: initial; }
 [part="candle"] { transition: opacity 0.2s ease, filter 0.2s ease; cursor: default; pointer-events: all; }
-[part="wick"] { stroke: currentColor; stroke-width: var(--mini-chart-wick-width, ${wickWidth}); transition: stroke-width 0.2s ease; stroke-linecap: square; pointer-events: none; }
-[part="body"] { stroke: currentColor; stroke-width: var(--mini-chart-wick-width, ${wickWidth}); pointer-events: all; }
-[part="candle"][data-bullish] { color: var(--mini-chart-bullish-color, #10b981); fill: ${isHollow ? "transparent" : "currentColor"}; }
+[part="wick"] { stroke: currentColor; stroke-width: var(--_mc-wick, var(--mini-chart-wick-width, 0.75)); transition: stroke-width 0.2s ease; stroke-linecap: square; pointer-events: none; }
+[part="body"] { stroke: currentColor; stroke-width: var(--_mc-wick, var(--mini-chart-wick-width, 0.75)); pointer-events: all; }
+[part="candle"][data-bullish] { color: var(--mini-chart-bullish-color, #10b981); fill: currentColor; }
+svg[data-hollow-bullish] [part="candle"][data-bullish] { fill: transparent; }
 [part="candle"]:not([data-bullish]) { color: var(--mini-chart-bearish-color, #ef4444); fill: currentColor; }
 :host([interactive]) [part="candle"] { cursor: pointer; }
 :host([interactive]) [part="candle"]:hover { opacity: 1 !important; filter: brightness(1.2); }
@@ -196,16 +215,17 @@ export class MiniCandlestickChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#container?.addEventListener("pointerover", this.#onPointerMove);
     this.#container?.addEventListener("click", this.#onClick);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#container?.removeEventListener("pointerover", this.#onPointerMove);
-    this.#container?.removeEventListener("click", this.#onClick);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 
   /**
@@ -288,11 +308,12 @@ export class MiniCandlestickChart extends MiniChartElement {
       // Step 2: Single batch reflow
       this.#svg.getBoundingClientRect();
 
-      // Step 3: Trigger staggered expansion
+      // Step 3: Trigger staggered expansion; the whole stagger is capped, however many candles there are.
       candles.forEach((geo, index) => {
         const cache = this.#candles[index];
-        cache.wick.style.transition = `all 0.4s ease-out ${index * 0.03}s`;
-        cache.body.style.transition = `all 0.4s ease-out ${index * 0.03}s`;
+        const delay = entranceDelay(index, candles.length, 30);
+        cache.wick.style.transition = `all 0.4s ease-out ${delay}ms`;
+        cache.body.style.transition = `all 0.4s ease-out ${delay}ms`;
 
         cache.wick.setAttribute("y1", String(geo.high));
         cache.wick.setAttribute("y2", String(geo.low));
@@ -301,7 +322,7 @@ export class MiniCandlestickChart extends MiniChartElement {
         cache.body.setAttribute("height", String(geo.bodyHeight));
       });
 
-      const maxDuration = 400 + candles.length * 30 + 50;
+      const maxDuration = 400 + entranceDelay(candles.length - 1, candles.length, 30) + 50;
       this.#timerId = setTimeout(() => {
         if (this.isConnected) {
           this.#candles.forEach((c) => {

@@ -32,11 +32,11 @@ Use them in any modern frontend application without Canvas, heavy charting runti
 - **17 Native SVG Web Components**: Trend lines, bars, areas, radial gauges, financial candlestick/OHLC, bullet, win/loss, stream, and scatter plots.
 - **Zero Runtime Dependencies**: Ultra-lightweight core built with pure Custom Elements v1 and SVG `<path>` geometry.
 - **100% Shadow DOM Encapsulation**: Isolated styles with customizable CSS Custom Properties and `::part()` pseudo-elements.
-- **Adaptive Dark & Light Theming**: Built-in design token inheritance across all charts (`--mini-chart-color-1..8`, `--mini-chart-safe/warn/danger-color`).
+- **CSS Theme Tokens**: `--mini-chart-*` custom properties inherit through the shadow boundary, so one declaration on `:root` or a container themes every chart (`--mini-chart-color`, `--mini-chart-color-N`, `--mini-chart-bullish-color`, …).
 - **Responsive `viewBox` Scaling**: Automatically adapts to container dimensions with pure vector rendering.
-- **Declarative & Reactive**: Synchronized HTML `data` / `label` attributes and JavaScript properties.
-- **SSR-Safe**: Safe for server-side evaluation (Next.js, Nuxt, Astro, SvelteKit, Angular SSR).
-- **Framework Adapters**: First-class bindings for Angular, React, and Vue included as separate, tree-shakeable entry points.
+- **Declarative & Reactive**: Every option is an HTML attribute and re-renders on change; the `data` property also accepts arrays and objects and writes them to the attribute as JSON.
+- **Server-import safe**: Importing the package on the server (Next.js, Nuxt, Astro, SvelteKit, Angular SSR) does not touch the DOM. Charts are not rendered on the server: they draw in the browser once the elements are registered.
+- **Framework Adapters**: Typed React and Vue wrappers as separate, tree-shakeable entry points. Angular uses the raw elements (see the known limitation below).
 
 ---
 
@@ -52,7 +52,7 @@ npm install sparkline-mini-charts
 yarn add sparkline-mini-charts
 ```
 
-The package publishes typed ESM and CJS distributions with source maps and TypeScript definitions (`.d.ts`).
+The package publishes typed ESM and CJS distributions with source maps and TypeScript declarations: `.d.ts` for `import` and `.d.cts` for `require`.
 
 ---
 
@@ -98,20 +98,20 @@ defineMiniChart("mini-line-chart", MiniLineChart);
 | `<mini-line-chart>`         | Ordered trend lines                  | `number[]` (e.g. `[10, 20, 14, 28, 35]`)      |
 | `<mini-bar-chart>`          | Signed comparison from baseline      | `number[]` (e.g. `[-8, 12, 4, -3, 18]`)       |
 | `<mini-area-chart>`         | Filled trend with gradient           | `number[]` (e.g. `[12, 18, 15, 27, 34]`)      |
-| `<mini-stacked-area-chart>` | Cumulative multi-layer volume        | `number[][]` (e.g. `[[10, 20], [15, 25]]`)    |
-| `<mini-stream-chart>`       | Organic ThemeRiver flow              | `number[][]` (e.g. multi-layer stream series) |
+| `<mini-stacked-area-chart>` | Cumulative multi-layer volume        | `number[][]`, one array per layer             |
+| `<mini-stream-chart>`       | Organic ThemeRiver flow              | `number[][]`, one array per layer             |
 | `<mini-pie-chart>`          | 360° Part-to-whole / Donut           | `number[]` (e.g. `[45, 30, 15, 10]`)          |
 | `<mini-half-pie-chart>`     | 180° Semi-radial gauge distribution  | `number[]` (e.g. `[60, 25, 15]`)              |
 | `<mini-radial-bar-chart>`   | Concentric activity rings            | `number[]` or `{ value, color }[]`            |
-| `<mini-progress-chart>`     | Semi-radial progress meter           | `number[]` (e.g. `[75]`, single percentage)   |
-| `<mini-gauge-chart>`        | Speedometer gauge with needle        | `[value, min, max]` + `zones` JSON            |
-| `<mini-candlestick-chart>`  | Financial OHLC candles with wicks    | `[Open, High, Low, Close][]`                  |
-| `<mini-ohlc-chart>`         | Financial tick bar charts            | `[Open, High, Low, Close][]`                  |
+| `<mini-progress-chart>`     | Semi-radial progress meter           | `[value]` against `min`/`max` (0–100)         |
+| `<mini-gauge-chart>`        | Speedometer gauge with needle        | `[value, min?, max?]` + `zones` JSON          |
+| `<mini-candlestick-chart>`  | Financial OHLC candles with wicks    | `[open, high, low, close][]`                  |
+| `<mini-ohlc-chart>`         | Financial tick bar charts            | `[open, high, low, close][]`                  |
 | `<mini-combo-chart>`        | Hybrid Bar + Line trend              | `{ bar: number, line: number }[]`             |
-| `<mini-bullet-chart>`       | Stephen Few KPI benchmark            | `[val, target, r1, r2, r3]`                   |
-| `<mini-range-bar-chart>`    | Floating interval min-max spans      | `[min, max, val?][]`                          |
-| `<mini-win-loss-chart>`     | Edward Tufte binary / status strip   | `(1 \| 0 \| -1)[]`                            |
-| `<mini-scatter-chart>`      | 2D Scatter plot with regression line | `[x, y][]`                                    |
+| `<mini-bullet-chart>`       | Stephen Few KPI benchmark            | `[value, target?, ...ranges]` or an object    |
+| `<mini-range-bar-chart>`    | Floating interval min-max spans      | `[low, high, current?][]` or objects          |
+| `<mini-win-loss-chart>`     | Edward Tufte binary / status strip   | `number[]`, sign only (`1`, `0`, `-1`)        |
+| `<mini-scatter-chart>`      | 2D Scatter plot with regression line | `[x, y, r?][]` or `{ x, y, r? }[]`            |
 
 ---
 
@@ -139,14 +139,26 @@ mini-line-chart {
 
 mini-pie-chart {
   inline-size: 6rem;
-  --mini-chart-fill: #7c3aed;
+  --mini-chart-color-1: #7c3aed;
+  --mini-chart-color-2: #0ea5e9;
 }
 ```
 
 ### Global Design Tokens
 
-| Custom Property                                                                     | Default            | Description                                           |
-| :---------------------------------------------------------------------------------- | :----------------- | :---------------------------------------------------- |
+| Custom Property                                                                     | Default                    | Description                                                                                       |
+| :---------------------------------------------------------------------------------- | :------------------------- | :------------------------------------------------------------------------------------------------ |
+| `--mini-chart-color`                                                                | `#2563eb`                  | Main color of every single-series chart. It becomes the host's `color`; inherited `color` is not used. |
+| `--mini-chart-color-N`                                                              | built-in 16-color palette  | Color of the Nth slice, layer or ring (pie, half-pie, stacked area, stream, radial bar).          |
+| `--mini-chart-stroke-width`                                                         | `2`                        | Line thickness (line, area, combo). Gauge (`14`) and progress (`12`) use it as arc thickness.     |
+| `--mini-chart-bullish-color`                                                        | `#10b981`                  | Rising color: candlestick, OHLC, win-loss wins, `trend-color="auto"`.                             |
+| `--mini-chart-bearish-color`                                                        | `#ef4444`                  | Falling color: candlestick, OHLC, win-loss losses, `trend-color="auto"`.                          |
+| `--mini-chart-safe-color` / `--mini-chart-warn-color` / `--mini-chart-danger-color` | bullish, `#f59e0b`, bearish | The three default gauge zones.                                                                   |
+| `--mini-chart-track-color`                                                          | `rgba(128, 128, 128, 0.18)` progress, `0.15` radial bar | Background track of progress and radial bar.                      |
+
+Every chart-specific token (bands, needle, markers, wicks, …), attribute, event and `::part()` is listed in its page under [`docs/components/`](docs/components/), and the shared tokens in [Getting Started](docs/getting-started.md#theming-tokens). Where an attribute and a token set the same thing (`radius` / `--mini-chart-bar-radius`, `wick-width`, `tick-width`), the attribute wins.
+
+---------------------------------------------------------------------------------- | :----------------- | :---------------------------------------------------- |
 | `--mini-chart-color`                                                                | `#0ea5e9`          | Primary line, bar, and single-value accent color.     |
 | `--mini-chart-color-1` ... `--mini-chart-color-8`                                   | Built-in Palette   | Theme colors for multi-layer/radial charts.           |
 | `--mini-chart-stroke-width`                                                         | `2`                | Stroke width for lines, wicks, and arcs.              |
@@ -250,7 +262,7 @@ Works in Svelte via custom elements, with no wrapper. Svelte assigns `data={…}
 
 ## ♿ Accessibility
 
-Every component renders semantic SVG elements with `role="img"` (or `role="meter"` for gauge/progress) and binds accessible labels via the `label` attribute and internal `<title>` elements.
+Every component renders semantic SVG elements with `role="img"` (or `role="meter"` for gauge, progress and bullet) and binds accessible labels via the `label` attribute and internal `<title>` elements.
 
 ---
 
@@ -265,14 +277,17 @@ Release notes for every version live in the [CHANGELOG](CHANGELOG.md), including
 ```sh
 pnpm install
 pnpm typecheck     # Validate TypeScript definitions
+pnpm lint:source   # Forbidden patterns in src/
+pnpm lint:docs     # README, docs/ and demo checked against src/
 pnpm test:unit     # Unit tests on src/ with the Node test runner (`pnpm test` is an alias)
 pnpm build         # Build typed ESM/CJS bundles in dist/
+pnpm api:check     # Public API of every entry against api/*.api.md (run after build)
 pnpm lint:package  # publint + attw on the packed tarball
 pnpm test:package  # Test the built dist/ entry points (run after build)
-pnpm dev           # Launch interactive showcase dev server
+pnpm dev           # Launch interactive showcase dev server (serves the built dist/)
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full check sequence and the pull request workflow.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full check sequence, the pull request workflow, changesets and releases.
 
 ---
 

@@ -34,10 +34,12 @@
         --surface-muted-light: hsl(210 30% 95%);
         --border-light: hsl(215 25% 88%);
         --text-light: hsl(222 47% 11%);
-        --text-muted-light: hsl(215 16% 47%);
+        --text-muted-light: hsl(215 18% 42%);
         --primary-light: hsl(250 84% 60%);
         --primary-hover-light: hsl(250 84% 54%);
         --primary-subtle-light: hsl(250 84% 96%);
+        --on-primary-light: hsl(0 0% 100%);
+        --input-border-light: hsl(215 16% 55%);
 
         /* Dark Theme Tokens (Sleek Slate/Violet Craft) */
         --bg-dark: hsl(224 71% 4%);
@@ -46,9 +48,15 @@
         --border-dark: hsl(217 33% 18%);
         --text-dark: hsl(210 40% 98%);
         --text-muted-dark: hsl(215 20% 65%);
-        --primary-dark: hsl(250 84% 67%);
-        --primary-hover-dark: hsl(250 84% 73%);
+        /* Contrast: text in this color on the dark surfaces is >= 4.5:1, so filled
+           buttons use the dark --on-primary text instead of white. */
+        --primary-dark: hsl(250 84% 72%);
+        --primary-hover-dark: hsl(250 84% 78%);
+        --on-primary-dark: hsl(224 71% 4%);
+        --input-border-dark: hsl(217 20% 45%);
         --primary-subtle-dark: hsl(250 50% 14%);
+        --error-text-dark: hsl(350 89% 74%);
+        --error-text-light: hsl(350 80% 40%);
 
         /* Vibrant Palette Accents */
         --emerald: hsl(158 64% 52%);
@@ -68,6 +76,9 @@
         --primary: var(--primary-dark);
         --primary-hover: var(--primary-hover-dark);
         --primary-subtle: var(--primary-subtle-dark);
+        --error-text: var(--error-text-dark);
+        --on-primary: var(--on-primary-dark);
+        --input-border: var(--input-border-dark);
 
         /* Default Dark Mode Chart CSS Tokens */
         --mini-chart-color: hsl(217 91% 60%);
@@ -117,6 +128,11 @@
         --primary: var(--primary-light);
         --primary-hover: var(--primary-hover-light);
         --primary-subtle: var(--primary-subtle-light);
+        --error-text: var(--error-text-light);
+        --on-primary: var(--on-primary-light);
+        --input-border: var(--input-border-light);
+        /* The LIVE badge text is >= 4.5:1 on the light background. */
+        --emerald: hsl(160 84% 25%);
 
         /* Light Mode Chart CSS Tokens */
         --mini-chart-color: hsl(221 83% 53%);
@@ -165,7 +181,6 @@
         font-size: 0.95rem;
         line-height: 1.6;
         min-height: 100vh;
-        overflow-x: hidden;
         transition:
           background-color 0.25s ease,
           color 0.25s ease;
@@ -266,12 +281,13 @@
 
       .btn-primary {
         background: var(--primary);
-        color: white;
+        color: var(--on-primary);
         box-shadow: 0 4px 14px
           color-mix(in srgb, var(--primary) 40%, transparent);
       }
       .btn-primary:hover {
         background: var(--primary-hover);
+        color: var(--on-primary);
         transform: translateY(-1px);
       }
 
@@ -534,9 +550,9 @@
 
       .hero-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
         gap: 1rem;
-        margin-block-top: 1rem;
+        margin-block-start: 1rem;
       }
 
       .hero-metric-card {
@@ -593,7 +609,7 @@
       .stream-select {
         background: var(--surface-muted);
         color: var(--text);
-        border: 1px solid var(--border);
+        border: 1px solid var(--input-border);
         border-radius: 8px;
         padding: 0.45rem 0.85rem;
         font-size: 0.85rem;
@@ -602,7 +618,7 @@
 
       .stream-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
         gap: 1.25rem;
       }
 
@@ -629,6 +645,14 @@
         font-size: 0.75rem;
         font-weight: 750;
         color: var(--emerald);
+      }
+
+      .live-indicator.is-paused {
+        color: var(--text-muted);
+      }
+      .live-indicator.is-paused .live-pulse {
+        background: var(--text-muted);
+        animation: none;
       }
 
       .live-pulse {
@@ -726,8 +750,6 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        height: 480px;
-        min-height: 480px;
         gap: 1rem;
       }
 
@@ -740,12 +762,6 @@
       .gallery-card-desc {
         font-size: 0.85rem;
         line-height: 1.45;
-        height: 42px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
       }
 
       .gallery-stage {
@@ -795,7 +811,6 @@
         overflow: hidden;
         border: 1px solid var(--border);
         background: var(--surface-muted);
-        height: 140px;
         display: flex;
         flex-direction: column;
       }
@@ -831,7 +846,7 @@
         overflow: hidden;
       }
       .card-code-block {
-        height: 100%;
+        max-height: 9rem;
         padding: 0.65rem;
         margin: 0;
         background: transparent;
@@ -872,7 +887,7 @@
       }
       .detail-stage-wrapper {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
         gap: 1.5rem;
       }
       .detail-table {
@@ -899,7 +914,7 @@
       /* Playground */
       .playground-wrapper {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
         gap: 1.75rem;
       }
 
@@ -918,7 +933,7 @@
 
       .form-control {
         background: var(--surface-muted);
-        border: 1px solid var(--border);
+        border: 1px solid var(--input-border);
         border-radius: 8px;
         padding: 0.6rem 0.85rem;
         color: var(--text);
@@ -929,6 +944,13 @@
       .form-control:focus {
         outline: 2px solid var(--primary);
         border-color: transparent;
+      }
+
+      .form-error {
+        margin: 0;
+        color: var(--error-text);
+        font-size: 0.825rem;
+        font-weight: 600;
       }
 
       textarea.form-control {
@@ -1015,6 +1037,9 @@
         transform: translateY(0);
         opacity: 1;
       }
+      .toast.toast-error {
+        border-color: var(--rose);
+      }
 
       /* Mobile Drawer Toggle */
       .mobile-menu-btn {
@@ -1046,6 +1071,16 @@
         }
       }
 
+      .drawer-backdrop {
+        position: fixed;
+        inset: var(--header-height) 0 0 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 90;
+      }
+      .drawer-backdrop[hidden] {
+        display: none;
+      }
+
       /* --- Interactive Theming Lab Styles --- */
       .theming-lab {
         background: var(--surface);
@@ -1069,7 +1104,7 @@
         padding: 0.45rem 0.9rem;
         border-radius: 9999px;
         border: 1px solid var(--border);
-        background: var(--surface-subtle);
+        background: var(--surface-muted);
         color: var(--text);
         font-size: 0.825rem;
         font-weight: 600;
@@ -1082,7 +1117,7 @@
       }
       .preset-pill.active {
         background: var(--primary);
-        color: #ffffff;
+        color: var(--on-primary);
         border-color: var(--primary);
         box-shadow: 0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
       }
@@ -1093,9 +1128,9 @@
       }
       .theming-controls-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
         gap: 1rem;
-        background: var(--surface-subtle);
+        background: var(--surface-muted);
         padding: 1.25rem;
         border-radius: 12px;
         border: 1px solid var(--border);
@@ -1131,10 +1166,10 @@
         padding: 0;
       }
       .theme-ctrl input[type="color"]::-webkit-color-swatch {
-        border: 1px solid var(--border);
+        border: 1px solid var(--input-border);
         border-radius: 8px;
       }
-      .theme-ctrl input[type="text"] {
+      .theme-ctrl output {
         flex: 1;
         font-family: var(--font-mono);
         font-size: 0.8rem;
@@ -1144,13 +1179,22 @@
         padding: 0.35rem 0.5rem;
         border-radius: 6px;
       }
+      .theme-ctrl .range-value {
+        flex: none;
+        width: max-content;
+        padding: 0;
+        border: none;
+        background: none;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
       .theming-preview-board {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
         gap: 1.25rem;
         padding: 1.5rem;
         border-radius: 14px;
-        background: var(--surface-subtle);
+        background: var(--surface-muted);
         border: 1px solid var(--border);
         transition: all 0.3s ease;
       }
@@ -1205,7 +1249,7 @@
       .token-table {
         width: 100%;
         border-collapse: collapse;
-        margin-block-top: 1rem;
+        margin-block-start: 1rem;
         font-size: 0.85rem;
       }
       .token-table th,
@@ -1215,13 +1259,105 @@
         border-bottom: 1px solid var(--border);
       }
       .token-table th {
-        background: var(--surface-subtle);
+        background: var(--surface-muted);
         color: var(--text);
         font-weight: 700;
       }
       .token-table td code {
         color: var(--primary);
         font-weight: 600;
+      }
+
+      /* Shared surfaces used by the theming and gradients views */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+      }
+      .grid {
+        display: grid;
+        gap: 1.25rem;
+      }
+      .grid-2 {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      }
+      .grid > * {
+        min-width: 0;
+      }
+      .span-full {
+        grid-column: 1 / -1;
+      }
+      .table-scroll {
+        overflow-x: auto;
+        max-width: 100%;
+      }
+
+      /* "Default (no theme)": drop the site's chart tokens so the board shows the library defaults */
+      .theming-preview-board.is-library-default {
+        --mini-chart-color: initial;
+        --mini-chart-bullish-color: initial;
+        --mini-chart-bearish-color: initial;
+        --mini-chart-win-color: initial;
+        --mini-chart-loss-color: initial;
+        --mini-chart-tie-color: initial;
+        --mini-chart-track-color: initial;
+        --mini-chart-ref-color: initial;
+        --mini-chart-crosshair-color: initial;
+        --mini-chart-needle-color: initial;
+        --mini-chart-point-color: initial;
+        --mini-chart-range-color: initial;
+        --mini-chart-marker-color: initial;
+        --mini-chart-safe-color: initial;
+        --mini-chart-warn-color: initial;
+        --mini-chart-danger-color: initial;
+        --mini-chart-bar-color: initial;
+        --mini-chart-range-1: initial;
+        --mini-chart-range-2: initial;
+        --mini-chart-range-3: initial;
+        --mini-chart-color-1: initial;
+        --mini-chart-color-2: initial;
+        --mini-chart-color-3: initial;
+        --mini-chart-color-4: initial;
+        --mini-chart-color-5: initial;
+        --mini-chart-color-6: initial;
+        --mini-chart-color-7: initial;
+        --mini-chart-color-8: initial;
+      }
+
+      /* Narrow screens: the header keeps the menu, brand, language and theme
+         buttons; install, author, npm and GitHub links are in the overview and footer. */
+      @media (max-width: 639px) {
+        .install-pill,
+        .author-pill,
+        .navbar-actions .nav-link-icon {
+          display: none;
+        }
+      }
+      @media (max-width: 400px) {
+        .navbar-brand .badge {
+          display: none;
+        }
+        .navbar-brand {
+          font-size: 1rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+        .live-pulse {
+          animation: none;
+        }
+        .btn-primary:hover,
+        .preset-pill:hover {
+          transform: none;
+        }
       }
     </style>
   </head>
@@ -1234,14 +1370,16 @@
         <button
           id="mobile-menu-btn"
           class="mobile-menu-btn"
-          aria-label="Toggle navigation"
+          aria-label="Navigation menu"
+          aria-controls="docs-sidebar"
+          aria-expanded="false"
         >
           ☰
         </button>
         <a href="#/overview" class="navbar-brand">
-          <div class="logo-icon">📈</div>
+          <div class="logo-icon" aria-hidden="true">📈</div>
           <span>Sparkline Mini Charts</span>
-          <span class="badge">v1.4.0</span>
+          <span class="badge">v%SMC_VERSION%</span>
         </a>
       </div>
 
@@ -1250,11 +1388,13 @@
         <button
           id="quick-install-btn"
           class="install-pill"
-          aria-label="Copy install command"
+          aria-label="Copy install command: pnpm add sparkline-mini-charts"
           title="Click to copy install command"
         >
-          <span>pnpm add sparkline-mini-charts</span>
+          <span id="quick-install-text">pnpm add sparkline-mini-charts</span>
           <svg
+            aria-hidden="true"
+            focusable="false"
             class="copy-icon"
             width="14"
             height="14"
@@ -1287,10 +1427,11 @@
           href="https://www.npmjs.com/package/sparkline-mini-charts"
           target="_blank"
           rel="noopener noreferrer"
-          class="nav-btn"
-          title="View on NPM"
+          class="nav-btn nav-link-icon"
+          title="View on npm"
+          aria-label="sparkline-mini-charts on npm"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path
               d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"
             />
@@ -1299,13 +1440,14 @@
 
         <!-- GitHub Link -->
         <a
-          href="https://github.com/ErlonRru/sparkline-mini-charts"
+          href="%SMC_GITHUB_URL%"
           target="_blank"
           rel="noopener noreferrer"
-          class="nav-btn"
+          class="nav-btn nav-link-icon"
           title="View on GitHub"
+          aria-label="sparkline-mini-charts on GitHub"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path
               d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
             />
@@ -1325,7 +1467,7 @@
           class="nav-btn"
           aria-label="Toggle color theme"
         >
-          <span id="theme-icon">🌙</span>
+          <span id="theme-icon" aria-hidden="true">🌙</span>
         </button>
       </div>
     </header>
@@ -1476,6 +1618,7 @@
           </ul>
         </div>
       </aside>
+      <div id="drawer-backdrop" class="drawer-backdrop" hidden></div>
 
       <!-- Main Content Container with SPA Page Views -->
       <main class="main-content">
@@ -1506,12 +1649,12 @@
                 <span class="hero-metric-label">Runtime Dependencies</span>
               </div>
               <div class="hero-metric-card">
-                <span class="hero-metric-value">&lt; 3 kB</span>
-                <span class="hero-metric-label">Gzip Per Component</span>
+                <span class="hero-metric-value">24</span>
+                <span class="hero-metric-label">Typed Package Entry Points</span>
               </div>
               <div class="hero-metric-card">
                 <span class="hero-metric-value">100%</span>
-                <span class="hero-metric-label">Shadow DOM & SSR Safe</span>
+                <span class="hero-metric-label">Shadow DOM Encapsulated</span>
               </div>
             </div>
 
@@ -1520,7 +1663,7 @@
                 display: flex;
                 flex-wrap: wrap;
                 gap: 0.75rem;
-                margin-block-top: 1rem;
+                margin-block-start: 1rem;
               "
             >
               <a href="#/streaming" class="btn btn-primary"
@@ -1537,15 +1680,30 @@
 
           <section>
             <h2>Installation & Quick Start</h2>
-            <div class="tabs-container" style="margin-block-start: 1rem">
-              <div class="tab-list">
-                <button class="tab-btn active">pnpm</button>
-                <button class="tab-btn">npm</button>
-                <button class="tab-btn">yarn</button>
-                <button class="tab-btn">CDN (ESM)</button>
+            <div
+              id="install-tabs"
+              class="tabs-container"
+              style="margin-block-start: 1rem"
+            >
+              <div class="tab-list" role="tablist" aria-label="Package manager">
+                <button type="button" class="tab-btn active" role="tab" id="install-pnpm-tab" aria-selected="true" aria-controls="install-pnpm" data-tab="install-pnpm">pnpm</button>
+                <button type="button" class="tab-btn" role="tab" id="install-npm-tab" aria-selected="false" aria-controls="install-npm" data-tab="install-npm">npm</button>
+                <button type="button" class="tab-btn" role="tab" id="install-yarn-tab" aria-selected="false" aria-controls="install-yarn" data-tab="install-yarn">yarn</button>
+                <button type="button" class="tab-btn" role="tab" id="install-cdn-tab" aria-selected="false" aria-controls="install-cdn" data-tab="install-cdn">CDN (ESM)</button>
               </div>
               <div class="tab-panels">
-                <pre><code>pnpm add sparkline-mini-charts</code></pre>
+                <div id="install-pnpm" class="tab-content" role="tabpanel" aria-labelledby="install-pnpm-tab">
+                  <pre tabindex="0"><code>pnpm add sparkline-mini-charts</code></pre>
+                </div>
+                <div id="install-npm" class="tab-content" role="tabpanel" aria-labelledby="install-npm-tab" hidden>
+                  <pre tabindex="0"><code>npm install sparkline-mini-charts</code></pre>
+                </div>
+                <div id="install-yarn" class="tab-content" role="tabpanel" aria-labelledby="install-yarn-tab" hidden>
+                  <pre tabindex="0"><code>yarn add sparkline-mini-charts</code></pre>
+                </div>
+                <div id="install-cdn" class="tab-content" role="tabpanel" aria-labelledby="install-cdn-tab" hidden>
+                  <pre tabindex="0"><code>&lt;script type="module" src="https://cdn.jsdelivr.net/npm/sparkline-mini-charts@1/dist/register.js"&gt;&lt;/script&gt;</code></pre>
+                </div>
               </div>
             </div>
           </section>
@@ -1556,10 +1714,10 @@
           <section class="stream-dashboard">
             <div class="stream-header">
               <div>
-                <div class="live-indicator">
-                  <span class="live-pulse"></span>
-                  <span style="letter-spacing: 0.05em"
-                    >LIVE WEBSOCKET / POLLING STREAMING TICKER</span
+                <div id="stream-status" class="live-indicator">
+                  <span class="live-pulse" aria-hidden="true"></span>
+                  <span id="stream-status-text" style="letter-spacing: 0.05em"
+                    >LIVE · simulated data</span
                   >
                 </div>
                 <h2 data-i18n="streamTitle" style="margin-block-start: 0.3rem">
@@ -1576,7 +1734,6 @@
                 <button
                   id="stream-toggle-btn"
                   class="btn btn-secondary btn-sm"
-                  data-i18n="btnPause"
                 >
                   ⏸ Pause Stream
                 </button>
@@ -2030,6 +2187,19 @@
           </div>
         </div>
 
+        <!-- ================= UNKNOWN CHART ROUTE ================= -->
+        <div id="view-not-found" class="page-view">
+          <div>
+            <h1>Chart not found</h1>
+            <p style="margin-block: 0.75rem 1.25rem">
+              There is no chart called <code id="not-found-tag"></code>.
+            </p>
+            <a href="#/components" class="btn btn-primary"
+              >Browse all 17 charts</a
+            >
+          </div>
+        </div>
+
         <!-- ================= PAGE 4: DEDICATED COMPONENT DETAIL VIEW ================= -->
         <div id="view-component-detail" class="page-view">
           <div class="detail-header">
@@ -2044,11 +2214,11 @@
               <code
                 id="detail-tag"
                 style="color: var(--primary); font-size: 1rem"
-                >&lt;mini-chart&gt;</code
+                >&lt;mini-line-chart&gt;</code
               >
               <p
                 id="detail-desc"
-                style="margin-block-top: 0.5rem; font-size: 1.05rem"
+                style="margin-block-start: 0.5rem; font-size: 1.05rem"
               ></p>
             </div>
             <div class="badge" id="detail-cat-badge">Category</div>
@@ -2074,13 +2244,18 @@
           </div>
 
           <div class="tabs-container">
-            <div class="tab-list">
-              <button class="tab-btn active" data-detail-tab="html">
+            <div
+              id="detail-snippet-tabs"
+              class="tab-list"
+              role="group"
+              aria-label="Snippet language"
+            >
+              <button type="button" class="tab-btn active" aria-pressed="true" data-detail-tab="html">
                 HTML
               </button>
-              <button class="tab-btn" data-detail-tab="react">React</button>
-              <button class="tab-btn" data-detail-tab="vue">Vue 3</button>
-              <button class="tab-btn" data-detail-tab="angular">Angular</button>
+              <button type="button" class="tab-btn" aria-pressed="false" data-detail-tab="react">React</button>
+              <button type="button" class="tab-btn" aria-pressed="false" data-detail-tab="vue">Vue 3</button>
+              <button type="button" class="tab-btn" aria-pressed="false" data-detail-tab="angular">Angular</button>
             </div>
             <div class="tab-panels">
               <div
@@ -2098,7 +2273,7 @@
                   📋 Copy Code
                 </button>
               </div>
-              <pre><code id="detail-code-output"></code></pre>
+              <pre tabindex="0"><code id="detail-code-output"></code></pre>
             </div>
           </div>
         </div>
@@ -2185,7 +2360,14 @@
                     id="pg-chart-data"
                     class="form-control"
                     spellcheck="false"
+                    aria-describedby="pg-data-error"
                   ></textarea>
+                  <p
+                    id="pg-data-error"
+                    class="form-error"
+                    aria-live="polite"
+                    hidden
+                  ></p>
                 </div>
 
                 <div class="form-group">
@@ -2237,7 +2419,7 @@
                     📋 Copy Markup
                   </button>
                 </div>
-                <pre><code id="pg-code-output"></code></pre>
+                <pre tabindex="0"><code id="pg-code-output"></code></pre>
               </div>
             </div>
           </div>
@@ -2286,41 +2468,39 @@
               </div>
 
               <!-- Presets -->
-              <div class="theming-presets">
-                <button class="preset-pill active" data-preset="ocean">
+              <div
+                id="theme-presets-bar"
+                class="theming-presets"
+                role="group"
+                aria-label="Theme presets"
+              >
+                <button type="button" class="preset-pill active" aria-pressed="true" data-preset="ocean">
                   <span
                     class="preset-swatch"
                     style="background: #0284c7"
                   ></span>
                   Ocean Tech
                 </button>
-                <button class="preset-pill" data-preset="emerald">
+                <button type="button" class="preset-pill" aria-pressed="false" data-preset="emerald">
                   <span
                     class="preset-swatch"
                     style="background: #059669"
                   ></span>
                   Emerald Fintech
                 </button>
-                <button class="preset-pill" data-preset="cyberpunk">
-                  <span
-                    class="preset-swatch"
-                    style="background: #00f0ff"
-                  ></span>
-                  Cyberpunk Neon
-                </button>
-                <button class="preset-pill" data-preset="sunset">
-                  <span
-                    class="preset-swatch"
-                    style="background: #f97316"
-                  ></span>
-                  Sunset Horizon
-                </button>
-                <button class="preset-pill" data-preset="monochrome">
+                <button type="button" class="preset-pill" aria-pressed="false" data-preset="monochrome">
                   <span
                     class="preset-swatch"
                     style="background: #8b5cf6"
                   ></span>
                   Luxury Velvet
+                </button>
+                <button type="button" class="preset-pill" aria-pressed="false" data-preset="default">
+                  <span
+                    class="preset-swatch"
+                    style="border: 1px dashed currentColor"
+                  ></span>
+                  Default (no theme)
                 </button>
               </div>
             </div>
@@ -2328,87 +2508,35 @@
             <!-- Custom Token Sliders & Pickers -->
             <div class="theming-controls-grid">
               <div class="theme-ctrl">
-                <label>--mini-chart-color</label>
+                <label for="theme-token-primary">--mini-chart-color</label>
                 <div class="theme-ctrl-input-wrapper">
-                  <input
-                    type="color"
-                    id="theme-token-primary"
-                    value="#0ea5e9"
-                  />
-                  <input
-                    type="text"
-                    id="theme-token-primary-text"
-                    value="#0ea5e9"
-                    readonly
-                  />
+                  <input type="color" id="theme-token-primary" value="#0284c7" />
+                  <output id="theme-token-primary-text" for="theme-token-primary">#0284c7</output>
                 </div>
               </div>
               <div class="theme-ctrl">
-                <label>--mini-chart-point-fill</label>
+                <label for="theme-token-point">--mini-chart-point-fill</label>
                 <div class="theme-ctrl-input-wrapper">
                   <input type="color" id="theme-token-point" value="#38bdf8" />
-                  <input
-                    type="text"
-                    id="theme-token-point-text"
-                    value="#38bdf8"
-                    readonly
-                  />
+                  <output id="theme-token-point-text" for="theme-token-point">#38bdf8</output>
                 </div>
               </div>
               <div class="theme-ctrl">
-                <label>--mini-chart-bullish-color</label>
+                <label for="theme-token-bullish">--mini-chart-bullish-color</label>
                 <div class="theme-ctrl-input-wrapper">
-                  <input
-                    type="color"
-                    id="theme-token-bullish"
-                    value="#10b981"
-                  />
-                  <input
-                    type="text"
-                    id="theme-token-bullish-text"
-                    value="#10b981"
-                    readonly
-                  />
+                  <input type="color" id="theme-token-bullish" value="#10b981" />
+                  <output id="theme-token-bullish-text" for="theme-token-bullish">#10b981</output>
                 </div>
               </div>
               <div class="theme-ctrl">
-                <label>--mini-chart-bearish-color</label>
+                <label for="theme-token-bearish">--mini-chart-bearish-color</label>
                 <div class="theme-ctrl-input-wrapper">
-                  <input
-                    type="color"
-                    id="theme-token-bearish"
-                    value="#ef4444"
-                  />
-                  <input
-                    type="text"
-                    id="theme-token-bearish-text"
-                    value="#ef4444"
-                    readonly
-                  />
+                  <input type="color" id="theme-token-bearish" value="#f43f5e" />
+                  <output id="theme-token-bearish-text" for="theme-token-bearish">#f43f5e</output>
                 </div>
               </div>
               <div class="theme-ctrl">
-                <label>--mini-chart-stroke-width</label>
-                <input
-                  type="range"
-                  id="theme-token-stroke"
-                  min="1"
-                  max="4"
-                  step="0.5"
-                  value="2"
-                />
-                <span
-                  id="theme-token-stroke-val"
-                  style="
-                    font-size: 0.75rem;
-                    color: var(--text-muted);
-                    font-family: var(--font-mono);
-                  "
-                  >2px</span
-                >
-              </div>
-              <div class="theme-ctrl">
-                <label>--mini-chart-inactive-opacity</label>
+                <label for="theme-token-opacity">--mini-chart-bar-opacity-inactive</label>
                 <input
                   type="range"
                   id="theme-token-opacity"
@@ -2417,14 +2545,11 @@
                   step="0.05"
                   value="0.45"
                 />
-                <span
+                <output
                   id="theme-token-opacity-val"
-                  style="
-                    font-size: 0.75rem;
-                    color: var(--text-muted);
-                    font-family: var(--font-mono);
-                  "
-                  >0.45</span
+                  class="range-value"
+                  for="theme-token-opacity"
+                  >0.45</output
                 >
               </div>
             </div>
@@ -2444,7 +2569,7 @@
                   <mini-line-chart
                     data="[12, 19, 15, 27, 24, 38, 45]"
                     curve="smooth"
-                    endpoint="last"
+                    points="last"
                     label="Themed trend line"
                   ></mini-line-chart>
                 </div>
@@ -2498,6 +2623,7 @@
                 <div class="theming-preview-card-stage">
                   <mini-candlestick-chart
                     data="[[20,28,18,25],[25,32,22,23],[23,30,21,29],[29,35,27,34],[34,36,28,30],[30,38,29,36],[36,42,34,40]]"
+                    hollow-bullish
                     label="Themed candlestick"
                   ></mini-candlestick-chart>
                 </div>
@@ -2565,7 +2691,7 @@
                   📋 Copy CSS
                 </button>
               </div>
-              <pre><code id="theming-css-output"></code></pre>
+              <pre tabindex="0"><code id="theming-css-output"></code></pre>
             </div>
           </div>
 
@@ -2635,7 +2761,7 @@
                 >
                   📋 Copy All Tokens
                 </button>
-                <pre><code id="master-tokens-code">/* ==========================================================================
+                <pre tabindex="0"><code id="master-tokens-code">/* ==========================================================================
    Sparkline Mini Charts — Master Design Tokens & Theming Configuration
    Drop this into :root or any container class (e.g. .theme-dark, .my-dashboard)
    ========================================================================== */
@@ -2646,13 +2772,13 @@
      ------------------------------------------------------------------------ */
   --mini-chart-color: var(--brand-primary, #0ea5e9);            /* Main curve, bar fill, and accent */
   --mini-chart-point-fill: var(--brand-accent, #38bdf8);          /* Line endpoint & scatter dots */
-  --mini-chart-point-stroke: #ffffff;                             /* Border on active/highlight dots */
+  --mini-chart-point-stroke: #ffffff;                             /* Scatter point outline */
   --mini-chart-aspect-ratio: auto;                                /* Override default 10/3 aspect ratio */
 
   /* ------------------------------------------------------------------------
-     2. Multi-Series & Categorical Palette (Pie, Half-Pie, Stream, Stacked)
-     Used sequentially for multi-layer data (1st slice, 2nd slice, etc.)
-     Supports 1 to 8+ elements (wraps around automatically if > 8 items)
+     2. Multi-Series & Categorical Palette (Pie, Half-Pie, Stream, Stacked, Radial Bar)
+     --mini-chart-color-N colors the Nth slice, layer or ring. Any N you do not
+     set falls back to the built-in 16-color palette.
      ------------------------------------------------------------------------ */
   --mini-chart-color-1: var(--palette-1, #0ea5e9);              /* 1st slice / top stream layer */
   --mini-chart-color-2: var(--palette-2, #6366f1);              /* 2nd slice / layer */
@@ -2675,7 +2801,10 @@
   /* ------------------------------------------------------------------------
      4. Gauges, Progress & Benchmark KPIs (Gauge, Progress, Bullet)
      ------------------------------------------------------------------------ */
-  --mini-chart-track-color: rgba(128, 128, 128, 0.15);          /* Background guide arc / track */
+  --mini-chart-track-color: rgba(128, 128, 128, 0.15);          /* Progress and radial bar track */
+  --mini-chart-safe-color: var(--brand-success, #10b981);       /* Gauge default zone 1 */
+  --mini-chart-warn-color: var(--brand-warning, #f59e0b);       /* Gauge default zone 2 */
+  --mini-chart-danger-color: var(--brand-danger, #ef4444);      /* Gauge default zone 3 */
   --mini-chart-measure-color: var(--brand-primary, #0ea5e9);    /* Bullet actual performance bar */
   --mini-chart-target-color: var(--brand-danger, #ef4444);      /* Bullet KPI benchmark target line */
   --mini-chart-target-width: 2.5px;                             /* Bullet target marker width */
@@ -2684,14 +2813,11 @@
   --mini-chart-range-3: rgba(128, 128, 128, 0.26);             /* Bullet good / optimal range band */
 
   /* ------------------------------------------------------------------------
-     5. Interactivity, Dimming & Transitions (All Charts)
+     5. Strokes, Corners & Hover Dimming
      ------------------------------------------------------------------------ */
-  --mini-chart-inactive-opacity: 0.45;                          /* Non-hovered items dimming factor */
-  --mini-chart-hover-brightness: 1.18;                          /* Active item highlight boost */
-  --mini-chart-transition-duration: 0.4s;                       /* Path morphing & value change speed */
-  --mini-chart-hover-duration: 0.2s;                            /* Pointer feedback transition speed */
-  --mini-chart-stroke-width: 2px;                               /* Primary SVG stroke width */
-  --mini-chart-bar-radius: 2px;                                 /* Rounded corners for bars */
+  --mini-chart-bar-opacity-inactive: 0.45;                      /* Bar chart: non-hovered bars (interactive) */
+  --mini-chart-stroke-width: 2px;                               /* Line/area/combo stroke (also gauge & progress arc width) */
+  --mini-chart-bar-radius: 2px;                                 /* Range bar and win/loss corner radius */
 }</code></pre>
               </div>
             </details>
@@ -2703,7 +2829,7 @@
               display: flex;
               flex-direction: column;
               gap: 1.5rem;
-              margin-block-top: 2.5rem;
+              margin-block-start: 2.5rem;
             "
           >
             <h3 data-i18n="themingStrategiesTitle">
@@ -2712,7 +2838,7 @@
 
             <div class="grid grid-2">
               <div class="card" style="padding: 1.5rem">
-                <h4>1. Zero-Config (`currentColor`)</h4>
+                <h4>1. One Brand Token (`--mini-chart-color`)</h4>
                 <p
                   style="
                     font-size: 0.875rem;
@@ -2720,12 +2846,14 @@
                     margin-block: 0.5rem;
                   "
                 >
-                  All single-series charts inherit their primary color from CSS
-                  <code>color</code>. When your theme switches or changes text
-                  color, the sparklines update automatically.
+                  Single-series charts take their primary color from
+                  <code>--mini-chart-color</code> (default
+                  <code>#2563eb</code>), not from the inherited CSS
+                  <code>color</code>. Set it once on a container and every
+                  chart inside follows.
                 </p>
-                <pre><code>.metric-card.success {
-  color: var(--brand-success); /* Chart inherits automatically! */
+                <pre tabindex="0"><code>.metric-card.success {
+  --mini-chart-color: var(--brand-success);
 }</code></pre>
               </div>
 
@@ -2741,7 +2869,7 @@
                   Map your Design System tokens directly to our standardized CSS
                   properties at the root or container level.
                 </p>
-                <pre><code>:root {
+                <pre tabindex="0"><code>:root {
   --mini-chart-color: var(--color-primary-500);
   --mini-chart-bullish-color: var(--color-emerald-500);
   --mini-chart-bearish-color: var(--color-rose-500);
@@ -2761,7 +2889,7 @@
                   <code>::part(line)</code>, <code>::part(point-last)</code>, or
                   <code>::part(wick)</code> for advanced design control.
                 </p>
-                <pre><code>mini-line-chart::part(point-last) {
+                <pre tabindex="0"><code>mini-line-chart::part(point-last) {
   fill: var(--color-accent);
   stroke: #ffffff;
   stroke-width: 2px;
@@ -2769,7 +2897,7 @@
               </div>
 
               <div class="card" style="padding: 1.5rem">
-                <h4>4. Motion & Performance Tuning</h4>
+                <h4>4. Reduced Motion</h4>
                 <p
                   style="
                     font-size: 0.875rem;
@@ -2777,22 +2905,25 @@
                     margin-block: 0.5rem;
                   "
                 >
-                  Control or disable transitions across entire dashboards for
-                  high-frequency streaming or accessibility compliance.
+                  Charts follow the user's
+                  <code>prefers-reduced-motion</code> setting on their own:
+                  entrance and update transitions become instant, and the
+                  plotted values stay exactly the same. There are no motion
+                  tokens to set.
                 </p>
-                <pre><code>/* Instant high-frequency real-time update mode */
-.high-frequency-table {
-  --mini-chart-transition-duration: 0s;
-  --mini-chart-hover-duration: 0.05s;
+                <pre tabindex="0"><code>/* Nothing to add: inside every chart's shadow root */
+@media (prefers-reduced-motion: reduce) {
+  /* transitions and animations run in ~0 ms */
 }</code></pre>
               </div>
             </div>
 
             <!-- Design Tokens Reference Table -->
-            <div class="card" style="padding: 1.5rem; margin-block-top: 1rem">
+            <div class="card" style="padding: 1.5rem; margin-block-start: 1rem">
               <h4 data-i18n="themingTableTitle">
                 Complete Design Tokens Reference
               </h4>
+              <div class="table-scroll" tabindex="0" role="region" aria-label="Design tokens reference">
               <table class="token-table">
                 <thead>
                   <tr>
@@ -2806,23 +2937,23 @@
                   <tr>
                     <td><code>--mini-chart-color</code></td>
                     <td><code>#2563eb</code></td>
-                    <td>Line, Bar, Area, Combo, Progress, Scatter</td>
+                    <td>All single-series charts (the host's color)</td>
                     <td>
                       Primary brand tone for paths, bars, and single-value
                       fills.
                     </td>
                   </tr>
                   <tr>
-                    <td><code>--mini-chart-color-1..8</code></td>
-                    <td>Built-in 8-Color Palette</td>
-                    <td>Stream, Stacked Area, Pie, Radial Bar</td>
-                    <td>Sequential palette for multi-layer/radial segments.</td>
+                    <td><code>--mini-chart-color-N</code></td>
+                    <td>Built-in 16-color palette</td>
+                    <td>Stream, Stacked Area, Pie, Half Pie, Radial Bar</td>
+                    <td>Color of the Nth layer, slice or ring (N starts at 1).</td>
                   </tr>
                   <tr>
                     <td><code>--mini-chart-point-fill</code></td>
                     <td><code>currentColor</code></td>
-                    <td>Line, Scatter</td>
-                    <td>Fill color for data endpoints and scatter points.</td>
+                    <td>Line, Area, Combo</td>
+                    <td>Fill color for point markers and the hover point.</td>
                   </tr>
                   <tr>
                     <td><code>--mini-chart-bullish-color</code></td>
@@ -2842,8 +2973,8 @@
                   </tr>
                   <tr>
                     <td><code>--mini-chart-track-color</code></td>
-                    <td><code>rgba(128, 128, 128, 0.15)</code></td>
-                    <td>Progress, Gauge, Radial Bar</td>
+                    <td><code>rgba(128, 128, 128, 0.15)</code> (radial bar), <code>0.18</code> (progress)</td>
+                    <td>Progress, Radial Bar</td>
                     <td>Background track arc color for circular meters.</td>
                   </tr>
                   <tr>
@@ -2853,21 +2984,16 @@
                     <td>Stroke width for lines and needle indicators.</td>
                   </tr>
                   <tr>
-                    <td><code>--mini-chart-inactive-opacity</code></td>
+                    <td><code>--mini-chart-bar-opacity-inactive</code></td>
                     <td><code>0.45</code></td>
-                    <td>All interactive charts</td>
+                    <td>Bar (with <code>interactive</code>)</td>
                     <td>
-                      Opacity applied to non-hovered items during hover focus.
+                      Opacity of the bars that are not hovered.
                     </td>
-                  </tr>
-                  <tr>
-                    <td><code>--mini-chart-transition-duration</code></td>
-                    <td><code>0.4s</code></td>
-                    <td>All charts</td>
-                    <td>Duration of path morphing and value transitions.</td>
                   </tr>
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </div>
@@ -2886,7 +3012,7 @@
               <h2 style="margin: 0" data-i18n="gradientsTitle">
                 Gradients Studio & Multi-Stop Colors
               </h2>
-              <span class="badge badge-accent" style="font-size: 0.75rem">v1.4.0 New Feature</span>
+              <span class="badge" style="font-size: 0.75rem">New in v1.4.0</span>
             </div>
             <p data-i18n="gradientsSubtitle">
               Explore hardware-accelerated continuous SVG gradients and multi-stop chromatic transitions across Gauge, Progress, Radial Rings, Bullet, and Area sparklines.
@@ -2912,24 +3038,29 @@
             </div>
 
             <!-- Gradient Preset Pills -->
-            <div class="theming-presets" id="gradient-presets-bar">
-              <button class="preset-pill active" data-grad-preset="thermal">
+            <div
+              class="theming-presets"
+              id="gradient-presets-bar"
+              role="group"
+              aria-label="Gradient presets"
+            >
+              <button type="button" class="preset-pill active" aria-pressed="true" data-grad-preset="thermal">
                 <span class="preset-swatch" style="background: linear-gradient(135deg, #10b981, #f59e0b, #ef4444)"></span>
                 🔥 Thermal Gauge (6 Stops)
               </button>
-              <button class="preset-pill" data-grad-preset="cyber">
+              <button type="button" class="preset-pill" aria-pressed="false" data-grad-preset="cyber">
                 <span class="preset-swatch" style="background: linear-gradient(135deg, #06b6d4, #10b981)"></span>
                 ⚡ Cyber Cyan & Lime
               </button>
-              <button class="preset-pill" data-grad-preset="sunset">
+              <button type="button" class="preset-pill" aria-pressed="false" data-grad-preset="sunset">
                 <span class="preset-swatch" style="background: linear-gradient(135deg, #f59e0b, #f43f5e, #8b5cf6)"></span>
                 🌅 Sunset Horizon
               </button>
-              <button class="preset-pill" data-grad-preset="aurora">
+              <button type="button" class="preset-pill" aria-pressed="false" data-grad-preset="aurora">
                 <span class="preset-swatch" style="background: linear-gradient(135deg, #10b981, #06b6d4, #8b5cf6)"></span>
                 🌌 Aurora Borealis
               </button>
-              <button class="preset-pill" data-grad-preset="neon">
+              <button type="button" class="preset-pill" aria-pressed="false" data-grad-preset="neon">
                 <span class="preset-swatch" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)"></span>
                 💜 Neon Violet & Fuchsia
               </button>
@@ -3024,7 +3155,7 @@
               </div>
 
               <!-- Card 5: Fintech Area Trend -->
-              <div class="theming-preview-card" style="grid-column: span 2">
+              <div class="theming-preview-card span-full">
                 <div class="theming-preview-card-header">
                   <span class="theming-preview-card-title">Fintech Multi-Hue Area Trend</span>
                   <span class="theming-preview-card-tag">&lt;mini-area-chart&gt;</span>
@@ -3048,7 +3179,7 @@
             </div>
 
             <!-- Code Generation Box -->
-            <div style="margin-block-top: 1.5rem">
+            <div style="margin-block-start: 1.5rem">
               <div
                 style="
                   display: flex;
@@ -3069,18 +3200,19 @@
                 <button
                   id="copy-grad-code-btn"
                   class="btn btn-secondary btn-sm"
-                  data-i18n="btnCopyCode"
+                  data-i18n="btnCopyGradCode"
                 >
                   📋 Copy Code
                 </button>
               </div>
-              <pre><code id="gradients-code-output"></code></pre>
+              <pre tabindex="0"><code id="gradients-code-output"></code></pre>
             </div>
           </div>
 
           <!-- Documentation on Gradient Specifications -->
           <div class="card" style="padding: 1.5rem; margin-block: 1.5rem">
             <h3 style="margin-block-end: 1rem">📚 Gradient Attributes Reference</h3>
+            <div class="table-scroll" tabindex="0" role="region" aria-label="Gradient attributes reference">
             <table class="token-table">
               <thead>
                 <tr>
@@ -3123,6 +3255,7 @@
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
         </div>
 
@@ -3137,42 +3270,62 @@
           </div>
 
           <div class="tabs-container">
-            <div class="tab-list" role="tablist">
+            <div class="tab-list" role="tablist" aria-label="Framework">
               <button
+                type="button"
                 class="tab-btn active"
                 role="tab"
+                id="tab-html-btn"
+                aria-selected="true"
+                aria-controls="tab-html"
                 data-tab="tab-html"
                 data-i18n="tabVanilla"
               >
                 Vanilla / HTML
               </button>
               <button
+                type="button"
                 class="tab-btn"
                 role="tab"
+                id="tab-react-btn"
+                aria-selected="false"
+                aria-controls="tab-react"
                 data-tab="tab-react"
                 data-i18n="tabReact"
               >
                 React 18 / 19+
               </button>
               <button
+                type="button"
                 class="tab-btn"
                 role="tab"
+                id="tab-vue-btn"
+                aria-selected="false"
+                aria-controls="tab-vue"
                 data-tab="tab-vue"
                 data-i18n="tabVue"
               >
                 Vue 3 (SFC)
               </button>
               <button
+                type="button"
                 class="tab-btn"
                 role="tab"
+                id="tab-angular-btn"
+                aria-selected="false"
+                aria-controls="tab-angular"
                 data-tab="tab-angular"
                 data-i18n="tabAngular"
               >
                 Angular 20+
               </button>
               <button
+                type="button"
                 class="tab-btn"
                 role="tab"
+                id="tab-svelte-btn"
+                aria-selected="false"
+                aria-controls="tab-svelte"
                 data-tab="tab-svelte"
                 data-i18n="tabSvelte"
               >
@@ -3182,13 +3335,13 @@
 
             <div class="tab-panels">
               <!-- Vanilla HTML -->
-              <div id="tab-html" class="tab-content active">
+              <div id="tab-html" class="tab-content" role="tabpanel" aria-labelledby="tab-html-btn">
                 <p style="margin-block-end: 0.75rem">
                   Import the registration script once and use standard Custom
                   Elements in your HTML.
                 </p>
-                <pre><code>&lt;!-- Include registration bundle --&gt;
-&lt;script type="module" src="https://cdn.jsdelivr.net/npm/sparkline-mini-charts/register"&gt;&lt;/script&gt;
+                <pre tabindex="0"><code>&lt;!-- Include registration bundle --&gt;
+&lt;script type="module" src="https://cdn.jsdelivr.net/npm/sparkline-mini-charts@1/dist/register.js"&gt;&lt;/script&gt;
 
 &lt;!-- Use sparklines anywhere --&gt;
 &lt;mini-line-chart 
@@ -3200,11 +3353,11 @@
               </div>
 
               <!-- React -->
-              <div id="tab-react" class="tab-content" style="display: none">
+              <div id="tab-react" class="tab-content" role="tabpanel" aria-labelledby="tab-react-btn" hidden>
                 <p style="margin-block-end: 0.75rem">
                   First-class React components with full TypeScript prop typings and event listeners.
                 </p>
-                <pre><code>import { MiniLineChart, MiniGaugeChart } from 'sparkline-mini-charts/react';
+                <pre tabindex="0"><code>import { MiniLineChart, MiniGaugeChart } from 'sparkline-mini-charts/react';
 
 export function MetricsWidget() {
   const weeklyData = [18, 23, 20, 31, 27, 38, 44];
@@ -3233,11 +3386,11 @@ export function MetricsWidget() {
               </div>
 
               <!-- Vue 3 -->
-              <div id="tab-vue" class="tab-content" style="display: none">
+              <div id="tab-vue" class="tab-content" role="tabpanel" aria-labelledby="tab-vue-btn" hidden>
                 <p style="margin-block-end: 0.75rem">
                   Typed Vue 3 Composition API components with full attribute forwarding and `@sparkline-hover` events.
                 </p>
-                <pre><code>&lt;script setup lang="ts"&gt;
+                <pre tabindex="0"><code>&lt;script setup lang="ts"&gt;
 import { MiniLineChart, MiniProgressChart } from 'sparkline-mini-charts/vue';
 
 const revenueData = [18, 23, 20, 31, 27, 38, 44];
@@ -3270,14 +3423,14 @@ const onHover = (event: CustomEvent) =&gt; {
               </div>
 
               <!-- Angular -->
-              <div id="tab-angular" class="tab-content" style="display: none">
+              <div id="tab-angular" class="tab-content" role="tabpanel" aria-labelledby="tab-angular-btn" hidden>
                 <p style="margin-block-end: 0.75rem">
                   AOT-safe recipe: register the elements once, allow custom
                   elements with <code>CUSTOM_ELEMENTS_SCHEMA</code>, and bind
                   <code>[data]</code> as a property on the raw tags. Events are
                   plain DOM events, bound by their kebab-case name.
                 </p>
-                <pre><code>import 'sparkline-mini-charts/register';
+                <pre tabindex="0"><code>import 'sparkline-mini-charts/register';
 import { CUSTOM_ELEMENTS_SCHEMA, Component, signal } from '@angular/core';
 
 @Component({
@@ -3319,13 +3472,13 @@ export class MetricCardComponent {
               </div>
 
               <!-- Svelte -->
-              <div id="tab-svelte" class="tab-content" style="display: none">
+              <div id="tab-svelte" class="tab-content" role="tabpanel" aria-labelledby="tab-svelte-btn" hidden>
                 <p style="margin-block-end: 0.75rem">
                   Works in Svelte via custom elements, with no wrapper. Svelte
                   assigns <code>data={…}</code> to the element's
                   <code>data</code> property, so pass the array as it is.
                 </p>
-                <pre><code>&lt;script&gt;
+                <pre tabindex="0"><code>&lt;script&gt;
   import 'sparkline-mini-charts/register';
   let data = [18, 23, 20, 31, 27, 38, 44];
 &lt;/script&gt;
@@ -3344,7 +3497,7 @@ export class MetricCardComponent {
           style="
             border-top: 1px solid var(--border);
             padding-block: 2.5rem;
-            margin-block-top: 3rem;
+            margin-block-start: 3rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -3362,7 +3515,7 @@ export class MetricCardComponent {
               style="
                 color: var(--text-muted);
                 font-size: 0.85rem;
-                margin-block-top: 0.25rem;
+                margin-block-start: 0.25rem;
               "
             >
               Crafted with precision &amp; vibe coding by
@@ -3378,10 +3531,7 @@ export class MetricCardComponent {
           </div>
           <div style="display: flex; align-items: center; gap: 1rem">
             <a href="https://sparkline-mini-charts.erlonrru.com">Live Demo</a>
-            <a
-              href="https://github.com/ErlonRru/sparkline-mini-charts"
-              target="_blank"
-              rel="noreferrer"
+            <a href="%SMC_GITHUB_URL%" target="_blank" rel="noreferrer"
               >GitHub</a
             >
             <a
@@ -3399,9 +3549,9 @@ export class MetricCardComponent {
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="toast">
-      <span>✓</span>
-      <span id="toast-msg">Copied to clipboard!</span>
+    <div id="toast" class="toast" role="status">
+      <span id="toast-icon" aria-hidden="true">✓</span>
+      <span id="toast-msg"></span>
     </div>
   </body>
 </html>

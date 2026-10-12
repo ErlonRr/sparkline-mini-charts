@@ -2,7 +2,7 @@
 
 import { createScatterLayout } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
-import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
+import { createSvgElement, createChartSvg, chartStyles, entranceDelay } from "../core/svg.js";
 
 /**
  * @typedef {Object} ScatterCache
@@ -26,6 +26,9 @@ export class MiniScatterChart extends MiniChartElement {
     "max-y",
     "interactive",
   ];
+
+  /** Whether the interaction listeners are attached to the current shadow nodes. */
+  #listenersAttached = false;
 
   /** @type {boolean} */
   #initialized = false;
@@ -52,7 +55,8 @@ export class MiniScatterChart extends MiniChartElement {
   }
 
   /**
-   * Cleans up pending timers and interaction listeners on disconnection.
+   * Cancels pending timers and animation frames on disconnection. Interaction
+   * listeners stay attached, so a moved element keeps emitting events.
    * @override
    */
   cleanup() {
@@ -60,7 +64,6 @@ export class MiniScatterChart extends MiniChartElement {
       clearTimeout(this.#timerId);
       this.#timerId = null;
     }
-    this.#detachInteractionListeners();
   }
 
   /**
@@ -107,14 +110,14 @@ export class MiniScatterChart extends MiniChartElement {
     style.textContent = `${chartStyles}
 :host { --mini-chart-default-aspect-ratio: ${this.chartAspectRatio}; }
 [part="trend-line"] {
-  stroke: var(--mini-chart-trend-color, color-mix(in srgb, var(--primary, #3b82f6) 40%, transparent));
+  stroke: var(--mini-chart-trend-color, color-mix(in srgb, var(--mini-chart-color, #3b82f6) 40%, transparent));
   stroke-width: var(--mini-chart-trend-width, 1.5px);
   stroke-dasharray: 3 3;
   transition: all 0.4s ease-out;
 }
 [part~="point"] {
   fill: var(--mini-chart-point-color, var(--mini-chart-color, #3b82f6));
-  stroke: var(--mini-chart-point-stroke, var(--surface, #ffffff));
+  stroke: var(--mini-chart-point-stroke, #ffffff);
   stroke-width: 1px;
   transition: opacity 0.2s ease, filter 0.2s ease, stroke-width 0.2s ease;
   cursor: default;
@@ -165,14 +168,16 @@ export class MiniScatterChart extends MiniChartElement {
     }));
   };
 
+  /**
+   * Attaches the interaction listeners once. They sit on nodes of the element's
+   * own shadow tree, so they cannot leak and stay attached when the element is
+   * disconnected and reconnected (moved, reordered, teleported).
+   */
   #setupInteractionListeners() {
+    if (this.#listenersAttached) return;
+    this.#listenersAttached = true;
     this.#pointsContainer?.addEventListener("pointerover", this.#onPointerMove);
     this.#svg?.addEventListener("pointerleave", this.#onPointerLeave);
-  }
-
-  #detachInteractionListeners() {
-    this.#pointsContainer?.removeEventListener("pointerover", this.#onPointerMove);
-    this.#svg?.removeEventListener("pointerleave", this.#onPointerLeave);
   }
 
   /**
@@ -252,15 +257,16 @@ export class MiniScatterChart extends MiniChartElement {
       // Step 2: Reflow
       this.#svg.getBoundingClientRect();
 
-      // Step 3: Staggered reveal
+      // Step 3: Staggered reveal; the whole stagger is capped, however many points there are.
       points.forEach((item, index) => {
         const cache = this.#points[index];
-        cache.circle.style.transition = `r 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.02}s, opacity 0.3s ease ${index * 0.02}s`;
+        const delay = entranceDelay(index, points.length, 20);
+        cache.circle.style.transition = `r 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}ms, opacity 0.3s ease ${delay}ms`;
         cache.circle.setAttribute("r", String(item.r));
         cache.circle.style.opacity = "1";
       });
 
-      const maxDuration = 350 + points.length * 20 + 50;
+      const maxDuration = 350 + entranceDelay(points.length - 1, points.length, 20) + 50;
       this.#timerId = setTimeout(() => {
         if (this.isConnected) {
           this.#points.forEach((p) => {

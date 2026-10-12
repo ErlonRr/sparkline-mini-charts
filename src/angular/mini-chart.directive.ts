@@ -50,6 +50,16 @@ function syncAttr(el: HTMLElement, name: string, value: any) {
   }
 }
 
+/**
+ * Synchronizes a boolean attribute that the chart treats as on when it is
+ * absent (`hollow-bullish`, `round-caps`, `shared-domain`). Turning one off
+ * takes the explicit value `"false"`, as the React and Vue wrappers write it;
+ * removing the attribute would leave the option on.
+ */
+function syncDefaultTrueAttr(el: HTMLElement, name: string, value: boolean) {
+  el.setAttribute(name, value ? "" : "false");
+}
+
 /** Synchronizes an attribute containing JSON or raw primitive value. */
 function syncJsonAttr(el: HTMLElement, name: string, value: any) {
   if (value === undefined || value === null) {
@@ -431,7 +441,8 @@ export class MiniRadialBarChartDirective {
   readonly data = input<any>();
   readonly label = input<string | undefined>();
   readonly sweep = input<number | undefined, number | string | undefined>(undefined, { transform: numberAttribute });
-  readonly roundCaps = input<boolean, boolean | string | undefined>(false, { alias: "round-caps", transform: booleanAttribute });
+  // On by default, like the chart: `false` writes `round-caps="false"`.
+  readonly roundCaps = input<boolean, boolean | string | undefined>(true, { alias: "round-caps", transform: booleanAttribute });
   readonly min = input<number | undefined, number | string | undefined>(undefined, { transform: numberAttribute });
   readonly max = input<number | undefined, number | string | undefined>(undefined, { transform: numberAttribute });
   readonly gradient = input<any>();
@@ -451,7 +462,7 @@ export class MiniRadialBarChartDirective {
 
     effect(() => syncAttr(el, "label", this.label()));
     effect(() => syncAttr(el, "sweep", this.sweep()));
-    effect(() => syncAttr(el, "round-caps", this.roundCaps() ? "" : undefined));
+    effect(() => syncDefaultTrueAttr(el, "round-caps", this.roundCaps()));
     effect(() => syncAttr(el, "min", this.min()));
     effect(() => syncAttr(el, "max", this.max()));
     effect(() => syncJsonAttr(el, "gradient", this.gradient()));
@@ -580,7 +591,8 @@ export class MiniCandlestickChartDirective {
 
   readonly data = input<any>();
   readonly label = input<string | undefined>();
-  readonly hollowBullish = input<boolean, boolean | string | undefined>(false, { alias: "hollow-bullish", transform: booleanAttribute });
+  // On by default, like the chart: `false` writes `hollow-bullish="false"`.
+  readonly hollowBullish = input<boolean, boolean | string | undefined>(true, { alias: "hollow-bullish", transform: booleanAttribute });
   readonly wickWidth = input<number | undefined, number | string | undefined>(undefined, { alias: "wick-width", transform: numberAttribute });
   readonly gap = input<number | undefined, number | string | undefined>(undefined, { transform: numberAttribute });
   readonly min = input<number | undefined, number | string | undefined>(undefined, { transform: numberAttribute });
@@ -600,7 +612,7 @@ export class MiniCandlestickChartDirective {
     });
 
     effect(() => syncAttr(el, "label", this.label()));
-    effect(() => syncAttr(el, "hollow-bullish", this.hollowBullish() ? "" : undefined));
+    effect(() => syncDefaultTrueAttr(el, "hollow-bullish", this.hollowBullish()));
     effect(() => syncAttr(el, "wick-width", this.wickWidth()));
     effect(() => syncAttr(el, "gap", this.gap()));
     effect(() => syncAttr(el, "min", this.min()));
@@ -676,7 +688,8 @@ export class MiniComboChartDirective {
 
   readonly data = input<any>();
   readonly label = input<string | undefined>();
-  readonly sharedDomain = input<boolean, boolean | string | undefined>(false, { alias: "shared-domain", transform: booleanAttribute });
+  // On by default, like the chart: `false` writes `shared-domain="false"`.
+  readonly sharedDomain = input<boolean, boolean | string | undefined>(true, { alias: "shared-domain", transform: booleanAttribute });
   readonly curve = input<string | undefined>();
   readonly barGap = input<number | undefined, number | string | undefined>(undefined, { alias: "bar-gap", transform: numberAttribute });
   readonly interactive = input<boolean, boolean | string | undefined>(false, { transform: booleanAttribute });
@@ -694,7 +707,7 @@ export class MiniComboChartDirective {
     });
 
     effect(() => syncAttr(el, "label", this.label()));
-    effect(() => syncAttr(el, "shared-domain", this.sharedDomain() ? "" : undefined));
+    effect(() => syncDefaultTrueAttr(el, "shared-domain", this.sharedDomain()));
     effect(() => syncAttr(el, "curve", this.curve()));
     effect(() => syncAttr(el, "bar-gap", this.barGap()));
     effect(() => syncAttr(el, "interactive", this.interactive() ? "" : undefined));
