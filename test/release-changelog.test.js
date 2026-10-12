@@ -158,6 +158,19 @@ describe("releaseChangelog", () => {
       const summary = (await readFile(resolve(changesetDir, file), "utf8")).replace(/^---\n[\s\S]*?\n---\n/, "");
       releaseLines.push(await changelogFunctions.getReleaseLine({ summary }));
     }
+    const unreleased = changelog.slice(changelog.indexOf("## [Unreleased]") + "## [Unreleased]".length, changelog.indexOf("\n## [", changelog.indexOf("## [Unreleased]") + 1));
+    if (releaseLines.length === 0 && unreleased.trim() === "") {
+      // Right after a release nothing is pending: releasing must refuse, and the
+      // latest released section must keep one heading per Keep-a-Changelog section.
+      assert.throws(() => releaseChangelog(changelog, { version: "9.9.9", date: "2026-10-12" }), /Nothing to release/);
+      const start = changelog.indexOf("\n## [", changelog.indexOf("## [Unreleased]") + 1);
+      const latest = changelog.slice(start, changelog.indexOf("\n## [", start + 1));
+      assert.match(latest, /^\n## \[\d+\.\d+\.\d+\] - \d{4}-\d{2}-\d{2}\n/);
+      for (const name of ["Added", "Changed", "Fixed"]) {
+        assert.ok((latest.match(new RegExp(`^### ${name}$`, "gm")) ?? []).length <= 1, name);
+      }
+      return;
+    }
     const entry = ["", "## 9.9.9", "", "### Patch Changes", ...releaseLines.join("").split("\n"), ""];
     const result = releaseChangelog(insertEntry(changelog, entry), { version: "9.9.9", date: "2026-10-12" });
 
