@@ -63,12 +63,14 @@ export class MiniCandlestickChart extends MiniChartElement {
   }
 
   /**
-   * Overrides default data parser to support 2D arrays for OHLC.
+   * Overrides the default data parser to support 2D arrays for OHLC.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
    * @returns {number[][]}
    */
-  get data() {
+  parseData(raw) {
     try {
-      const parsed = JSON.parse(this.getAttribute("data") || "[]");
+      const parsed = JSON.parse(raw || "[]");
       if (!Array.isArray(parsed)) return [];
       return parsed.filter(
         (item) => Array.isArray(item) && item.length >= 4 && item.slice(0, 4).every(Number.isFinite)

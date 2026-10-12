@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178c6.svg?style=flat-square)](tsconfig.json)
 [![Demo](https://img.shields.io/badge/Live-Showcase-7c3aed.svg?style=flat-square)](https://sparkline-mini-charts.erlonrru.com)
 
-**Zero-dependency SVG sparkline Web Components with Shadow DOM, CSS theme tokens, responsive scaling, and native framework bindings (Angular, React, Vue, Svelte).**
+**Zero-dependency SVG sparkline Web Components with Shadow DOM, CSS theme tokens, responsive scaling, and typed adapters for React, Vue and Angular. Works in Svelte via custom elements.**
 
 Use them in any modern frontend application without Canvas, heavy charting runtimes, or external stylesheets.
 
@@ -159,7 +159,7 @@ mini-pie-chart {
 
 ## 🧩 Framework Integrations
 
-Native Web Components work seamlessly in any ecosystem with first-class typed adapters:
+Native Web Components work seamlessly in any ecosystem with first-class typed adapters. The adapters are optional peer dependencies and support React `^18.3 || ^19`, Vue `^3.5` and Angular `^20 || ^21 || ^22`:
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/ErlonRr/sparkline-mini-charts/refs/heads/main/assets/img/framework-integrations.png" alt="Framework Integrations for React, Vue, Angular, Svelte" width="100%" />
@@ -167,13 +167,15 @@ Native Web Components work seamlessly in any ecosystem with first-class typed ad
 
 ### Angular
 
+Angular CLI apps compile ahead of time (AOT). Register the elements once and bind `[data]` straight to the raw tags:
+
 ```ts
-import { Component } from "@angular/core";
-import { MiniChartDirective } from "sparkline-mini-charts/angular";
+import "sparkline-mini-charts/register";
+import { CUSTOM_ELEMENTS_SCHEMA, Component } from "@angular/core";
 
 @Component({
-  standalone: true,
-  imports: [MiniChartDirective],
+  selector: "app-revenue-card",
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `<mini-line-chart
     [data]="revenue"
     label="Weekly revenue"
@@ -183,6 +185,14 @@ export class RevenueCard {
   revenue = [12, 18, 15, 27];
 }
 ```
+
+`[data]` sets the element's `data` property, so arrays and objects need no `JSON.stringify`. Bind other options as attributes (`curve="smooth"`, `[attr.zones]="zonesJson"`) and listen to the DOM events by name (`(sparkline-hover)="onHover($event)"`).
+
+> [!WARNING]
+> **Known limitation in 1.4.x.** `sparkline-mini-charts/angular` is not compiled by the Angular compiler, so:
+>
+> - The 17 per-chart signal directives (`MiniLineChartDirective`, …, `SPARKLINE_DIRECTIVES`) do not work from `node_modules`, in AOT or JIT builds. They remain exported only so 1.4.0 code keeps compiling. They will work from the dedicated `@sparkline-mini-charts/angular` package, planned for 1.5.
+> - `MiniChartDirective` works in **JIT** apps only (no `CUSTOM_ELEMENTS_SCHEMA` needed). It registers all 17 tags and has the inputs `data`, `label`, `curve`, `points`, `min`, `max`, `gradient` and `interactive`, plus the outputs `sparklineHover`, `sparklineLeave`, `sparklineSelect`, `zoneChange` and `progressComplete`. Do not combine it with `SPARKLINE_DIRECTIVES`. AOT builds reject it with NG2012; use the recipe above instead.
 
 ### React
 
@@ -210,10 +220,23 @@ const revenue = [12, 18, 15, 27];
 </template>
 ```
 
-### Svelte & Vanilla HTML
+### Svelte
+
+Works in Svelte via custom elements, with no wrapper. Svelte assigns `data={…}` to the element's `data` property, so pass arrays and objects as they are:
+
+```svelte
+<script>
+  import "sparkline-mini-charts/register";
+  let revenue = [12, 18, 15, 27];
+</script>
+
+<mini-line-chart data={revenue} label="Weekly revenue"></mini-line-chart>
+```
+
+### Vanilla HTML
 
 ```html
-<script>
+<script type="module">
   import "sparkline-mini-charts/register";
 </script>
 
@@ -231,38 +254,9 @@ Every component renders semantic SVG elements with `role="img"` (or `role="meter
 
 ---
 
-## 🕒 Recent Releases
+## 🕒 Releases
 
-<details>
-<summary><b>Click to view recent releases (Last 3)</b></summary>
-
-<br/>
-
-### [v1.4.0] - 2026-08-17
-
-- **Modern Angular 22+ Signals Architecture**: 17 dedicated standalone signal directives (`MiniLineChartDirective`, `MiniGaugeChartDirective`, etc.) with native `input()`, `output()`, and `effect()`, plus `SPARKLINE_DIRECTIVES` array.
-- **Dedicated React 19+ Interfaces**: Per-component TypeScript interfaces with automatic camelCase prop normalization and event callbacks.
-- **Gradients Studio**: Dedicated interactive lab (`#/gradients`) for multi-stop SVG linear gradients.
-- **Single-Quote JSON Parsing**: Fixed `gradient` attribute parsing across all supported charts.
-
-### [v1.3.1] - 2026-08-17
-
-- **Multi-Stop Gradients**: Added native multi-color `<linearGradient>` support to Gauge, Progress, Radial Bar, Bullet, and Area charts.
-- **Universal Interactive Coverage**: 100% of the 17 sparkline components now support `interactive` with `sparkline-hover` and `sparkline-leave` events.
-- **Showcase Link Fix**: Corrected live showcase homepage URL to `https://sparkline-mini-charts.erlonrru.com`.
-
-### [v1.3.0] - 2026-08-15
-
-- **Theming & Tokens Studio**: Added dedicated Theming & Design Tokens Guide (`#/theming`) with real-time interactive cascading theme lab.
-- **Master Design Tokens Template**: Drop-in CSS variables accordion for seamless design system integration.
-- **Harmonious Multi-Hue Themes**: Real gradient spectrum synergy across Ocean Tech, Emerald Fintech, Cyberpunk Neon, Sunset Horizon, and Luxury Velvet.
-- **Sparkline Centering & Sizing**: Symmetrical stage centering and standardized compact donut/pie proportions.
-
----
-
-👉 _For older releases and full details, see the [Full CHANGELOG](CHANGELOG.md)._
-
-</details>
+Release notes for every version live in the [CHANGELOG](CHANGELOG.md), including the upgrade notes for the breaking changes that shipped in 1.4.0.
 
 ---
 
@@ -270,11 +264,15 @@ Every component renders semantic SVG elements with `role="img"` (or `role="meter
 
 ```sh
 pnpm install
-pnpm test          # Run Vitest/Node test runner
 pnpm typecheck     # Validate TypeScript definitions
+pnpm test:unit     # Unit tests on src/ with the Node test runner (`pnpm test` is an alias)
 pnpm build         # Build typed ESM/CJS bundles in dist/
+pnpm lint:package  # publint + attw on the packed tarball
+pnpm test:package  # Test the built dist/ entry points (run after build)
 pnpm dev           # Launch interactive showcase dev server
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full check sequence and the pull request workflow.
 
 ---
 

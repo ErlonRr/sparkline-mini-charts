@@ -73,12 +73,14 @@ export class MiniComboChart extends MiniChartElement {
   }
 
   /**
-   * Overrides data getter to parse array of `{bar, line}`.
+   * Overrides the default data parser to accept an array of `{bar, line}`.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
    * @returns {ComboDataPoint[]}
    */
-  get data() {
+  parseData(raw) {
     try {
-      const parsed = JSON.parse(this.getAttribute("data") || "[]");
+      const parsed = JSON.parse(raw || "[]");
       if (!Array.isArray(parsed)) return [];
       return parsed.filter(
         (item) =>

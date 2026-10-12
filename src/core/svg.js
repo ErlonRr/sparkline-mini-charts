@@ -13,6 +13,10 @@ export const chartStyles = `
     -webkit-user-select: none;
   }
 
+  :host([hidden]) {
+    display: none;
+  }
+
   svg {
     block-size: 100%;
     display: block;
@@ -52,12 +56,14 @@ export const chartStyles = `
     pointer-events: none;
   }
 
+  /* Timing only: never override geometry (stroke-dashoffset, d, width, height, r), which encodes the data. */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
+      animation-delay: 0s !important;
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
+      transition-delay: 0s !important;
       transition-duration: 0.01ms !important;
-      stroke-dashoffset: 0 !important;
     }
   }
 `;

@@ -1,5 +1,6 @@
 // mini-pie-chart.js — Responsive SVG pie/donut sparkline Custom Element.
 
+import { parsePositionalData } from "../core/data.js";
 import { createRadialLayout, describePieSector } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
 import { getSegmentColor } from "../core/palette.js";
@@ -52,6 +53,17 @@ export class MiniPieChart extends MiniChartElement {
       this.#timerId = null;
     }
     this.#detachInteractionListeners();
+  }
+
+  /**
+   * Overrides the default data parser: an invalid entry such as `null` becomes
+   * a zero-sized slice in its slot, so slice `n` keeps color `n`.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
+   * @returns {number[]}
+   */
+  parseData(raw) {
+    return parsePositionalData(raw).map((value) => value ?? 0);
   }
 
   /** Renders the element's complete Shadow DOM tree, preserving SVG for animations. */

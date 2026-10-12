@@ -1,5 +1,6 @@
 // mini-gauge-chart.js — Responsive SVG gauge sparkline Custom Element.
 
+import { parsePositionalData } from "../core/data.js";
 import { describeArc } from "../core/geometry.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
 import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
@@ -99,6 +100,28 @@ export class MiniGaugeChart extends MiniChartElement {
       this.#rafId = null;
     }
     this.#detachInteractionListeners();
+  }
+
+  /**
+   * Overrides the default data parser: `[value, min, max]` is positional, so an
+   * invalid entry becomes `null` in its slot instead of shifting the others.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
+   * @returns {(number | null)[]}
+   */
+  parseData(raw) {
+    return parsePositionalData(raw);
+  }
+
+  /**
+   * A null value is no reading, so the chart is labelled empty, as it was
+   * before null entries kept their slot.
+   * @override
+   * @param {(number | null)[]} data Parsed chart values.
+   * @returns {string} Accessible chart label.
+   */
+  createDefaultLabel(data) {
+    return super.createDefaultLabel(data[0] === null ? [] : data);
   }
 
   render() {
@@ -279,7 +302,7 @@ export class MiniGaugeChart extends MiniChartElement {
   }
 
   /**
-   * @param {number[]} data 
+   * @param {(number | null)[]} data 
    */
   #updateChart(data) {
     if (!this.#needle || !this.#zonesGroup || !this.#svg || !this.#valueText || !this.#gradient) return;
@@ -290,19 +313,33 @@ export class MiniGaugeChart extends MiniChartElement {
 
     if (data.length === 0) {
       this.#needle.style.opacity = "0";
+      this.#valueText.style.display = "none";
       this.removeAttribute("aria-valuenow");
+      this.#svg.removeAttribute("aria-valuenow");
       return;
     }
-    this.#needle.style.opacity = "1";
 
     const minAttr = parseFloat(this.getAttribute("min") || "");
     const maxAttr = parseFloat(this.getAttribute("max") || "");
     
-    let value = data[0];
-    let min = !isNaN(minAttr) ? minAttr : (data.length > 1 ? data[1] : 0);
-    let max = !isNaN(maxAttr) ? maxAttr : (data.length > 2 ? data[2] : 100);
+    // A null min or max falls back to the attribute or the default, never to the next value.
+    let min = !isNaN(minAttr) ? minAttr : (data[1] ?? 0);
+    let max = !isNaN(maxAttr) ? maxAttr : (data[2] ?? 100);
 
     if (min >= max) max = min + 1;
+    this.#svg.setAttribute("aria-valuemin", String(min));
+    this.#svg.setAttribute("aria-valuemax", String(max));
+
+    // A null value is no reading: hide the needle instead of reporting a false 0.
+    const value = data[0];
+    if (value === null) {
+      this.#needle.style.opacity = "0";
+      this.#valueText.style.display = "none";
+      this.#svg.removeAttribute("aria-valuenow");
+      return;
+    }
+    this.#needle.style.opacity = "1";
+
     const clampedVal = Math.max(min, Math.min(max, value));
     const range = max - min || 1;
     const progress = (clampedVal - min) / range;
@@ -313,8 +350,6 @@ export class MiniGaugeChart extends MiniChartElement {
     const angleDeg = -90 + progress * 180;
 
     this.#svg.setAttribute("aria-valuenow", String(clampedVal));
-    this.#svg.setAttribute("aria-valuemin", String(min));
-    this.#svg.setAttribute("aria-valuemax", String(max));
 
     if (this.hasAttribute("show-value")) {
       this.#valueText.textContent = String(Math.round(clampedVal));

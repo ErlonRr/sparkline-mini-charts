@@ -1,8 +1,18 @@
-// mini-chart.directive.ts — Modern Signal-based Angular 22+ directives for Sparkline Mini Charts.
+// mini-chart.directive.ts — Angular directives for Sparkline Mini Charts: 17 signal-based per-chart directives and the decorator-based catch-all.
+
+// The package is built by Vite, not by the Angular compiler, so it ships no
+// Angular metadata (ɵdir, ɵfac). The signal-based per-chart directives below
+// therefore do not work from node_modules, under AOT or JIT, until the
+// dedicated @sparkline-mini-charts/angular package (planned for 1.5).
+// MiniChartDirective (decorators) works under JIT only; the AOT-safe path is
+// the raw custom elements with CUSTOM_ELEMENTS_SCHEMA, as README.md describes.
 
 import {
   Directive,
   ElementRef,
+  EventEmitter,
+  Input,
+  Output,
   booleanAttribute,
   effect,
   inject,
@@ -29,6 +39,7 @@ import { MiniStackedAreaChart } from "../components/mini-stacked-area-chart.js";
 import { MiniStreamChart } from "../components/mini-stream-chart.js";
 import { MiniWinLossChart } from "../components/mini-win-loss-chart.js";
 import { defineMiniChart } from "../core/registration.js";
+import { defineMiniCharts } from "../define.js";
 
 /** Synchronizes an HTML attribute with an Angular signal value. */
 function syncAttr(el: HTMLElement, name: string, value: any) {
@@ -75,6 +86,12 @@ function bindChartEvents(
 // ---------------------------------------------------------------------------
 // 1. Line Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-line-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-line-chart",
   standalone: true,
@@ -120,6 +137,12 @@ export class MiniLineChartDirective {
 // ---------------------------------------------------------------------------
 // 2. Bar Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-bar-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-bar-chart",
   standalone: true,
@@ -163,6 +186,12 @@ export class MiniBarChartDirective {
 // ---------------------------------------------------------------------------
 // 3. Area Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-area-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-area-chart",
   standalone: true,
@@ -210,6 +239,12 @@ export class MiniAreaChartDirective {
 // ---------------------------------------------------------------------------
 // 4. Stacked Area Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-stacked-area-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-stacked-area-chart",
   standalone: true,
@@ -247,6 +282,12 @@ export class MiniStackedAreaChartDirective {
 // ---------------------------------------------------------------------------
 // 5. Stream Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-stream-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-stream-chart",
   standalone: true,
@@ -282,6 +323,12 @@ export class MiniStreamChartDirective {
 // ---------------------------------------------------------------------------
 // 6. Pie Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-pie-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-pie-chart",
   standalone: true,
@@ -324,6 +371,12 @@ export class MiniPieChartDirective {
 // ---------------------------------------------------------------------------
 // 7. Half-Pie Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-half-pie-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-half-pie-chart",
   standalone: true,
@@ -362,6 +415,12 @@ export class MiniHalfPieChartDirective {
 // ---------------------------------------------------------------------------
 // 8. Radial Bar Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-radial-bar-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-radial-bar-chart",
   standalone: true,
@@ -405,6 +464,12 @@ export class MiniRadialBarChartDirective {
 // ---------------------------------------------------------------------------
 // 9. Progress Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-progress-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-progress-chart",
   standalone: true,
@@ -448,6 +513,12 @@ export class MiniProgressChartDirective {
 // ---------------------------------------------------------------------------
 // 10. Gauge Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-gauge-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-gauge-chart",
   standalone: true,
@@ -494,6 +565,12 @@ export class MiniGaugeChartDirective {
 // ---------------------------------------------------------------------------
 // 11. Candlestick Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-candlestick-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-candlestick-chart",
   standalone: true,
@@ -537,6 +614,12 @@ export class MiniCandlestickChartDirective {
 // ---------------------------------------------------------------------------
 // 12. OHLC Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-ohlc-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-ohlc-chart",
   standalone: true,
@@ -578,6 +661,12 @@ export class MiniOhlcChartDirective {
 // ---------------------------------------------------------------------------
 // 13. Combo Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-combo-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-combo-chart",
   standalone: true,
@@ -617,6 +706,12 @@ export class MiniComboChartDirective {
 // ---------------------------------------------------------------------------
 // 14. Bullet Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-bullet-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-bullet-chart",
   standalone: true,
@@ -660,6 +755,12 @@ export class MiniBulletChartDirective {
 // ---------------------------------------------------------------------------
 // 15. Win/Loss Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-win-loss-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-win-loss-chart",
   standalone: true,
@@ -705,6 +806,12 @@ export class MiniWinLossChartDirective {
 // ---------------------------------------------------------------------------
 // 16. Range Bar Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-range-bar-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-range-bar-chart",
   standalone: true,
@@ -746,6 +853,12 @@ export class MiniRangeBarChartDirective {
 // ---------------------------------------------------------------------------
 // 17. Scatter Chart Directive
 // ---------------------------------------------------------------------------
+/**
+ * Signal-based directive for `<mini-scatter-chart>`.
+ *
+ * Needs the Angular compiler to process this package, which does not happen
+ * from node_modules: see {@link SPARKLINE_DIRECTIVES}.
+ */
 @Directive({
   selector: "mini-scatter-chart",
   standalone: true,
@@ -793,7 +906,21 @@ export class MiniScatterChartDirective {
 // ---------------------------------------------------------------------------
 
 /**
- * All 17 standalone Sparkline Mini Charts directives ready for Angular imports.
+ * All 17 signal-based per-chart directives, for Angular `imports`.
+ *
+ * Known limitation in 1.4.x: these directives use `input()`, `output()` and
+ * `effect()`, which only work when the Angular compiler processes the code.
+ * This package is not compiled by it, so imported from node_modules they do
+ * not work in AOT builds (the compiler rejects them with NG2012: no compiled
+ * directive metadata) nor in JIT (the runtime compiler sees no inputs or
+ * outputs on them, so only `[data]` reaches the element). They stay exported
+ * so 1.4.0 code keeps compiling, and will work from the dedicated
+ * `@sparkline-mini-charts/angular` package, planned for 1.5.
+ *
+ * Until then, in AOT builds use the raw elements:
+ * `import "sparkline-mini-charts/register"`, `schemas: [CUSTOM_ELEMENTS_SCHEMA]`
+ * and `[data]="values"` on the tags. In JIT builds, {@link MiniChartDirective}
+ * also works. Do not combine this array with MiniChartDirective.
  */
 export const SPARKLINE_DIRECTIVES = [
   MiniLineChartDirective,
@@ -816,7 +943,25 @@ export const SPARKLINE_DIRECTIVES = [
 ] as const;
 
 /**
- * Multi-tag convenience directive for backwards compatibility.
+ * Catch-all directive for the 17 chart tags, written with decorators.
+ *
+ * This is the 1.3.0 directive with the 1.4.0 inputs and outputs. It is the
+ * only directive in this file that works when the package comes from
+ * node_modules in a JIT-compiled app: Angular reads its `@Input()` and
+ * `@Output()` metadata at runtime, so no Angular compiler pass over the
+ * package is needed. Creating it registers every chart tag, so no separate
+ * `sparkline-mini-charts/register` import is needed either.
+ *
+ * Other chart attributes (`zones`, `ranges`, `gap`…) are not inputs here:
+ * bind them with `[attr.zones]="zonesJson"`. Do not import this directive
+ * together with {@link SPARKLINE_DIRECTIVES}: two directives would then match
+ * one element and every output would fire twice.
+ *
+ * It does not work in AOT builds (the Angular CLI default): the AOT compiler
+ * rejects it with NG2012 because the package ships no compiled Angular
+ * metadata. There, use the raw elements instead (see README.md):
+ * `import "sparkline-mini-charts/register"`, `schemas: [CUSTOM_ELEMENTS_SCHEMA]`
+ * and `[data]="values"` on the tags.
  */
 @Directive({
   selector: "mini-line-chart, mini-bar-chart, mini-area-chart, mini-stacked-area-chart, mini-stream-chart, mini-pie-chart, mini-half-pie-chart, mini-radial-bar-chart, mini-progress-chart, mini-gauge-chart, mini-candlestick-chart, mini-ohlc-chart, mini-combo-chart, mini-bullet-chart, mini-win-loss-chart, mini-range-bar-chart, mini-scatter-chart",
@@ -825,36 +970,85 @@ export const SPARKLINE_DIRECTIVES = [
 export class MiniChartDirective {
   readonly #element = inject<ElementRef<HTMLElement & { data: any }>>(ElementRef);
 
-  readonly data = input<any>();
-  readonly label = input<string | undefined>();
-  readonly curve = input<string | undefined>();
-  readonly points = input<string | undefined>();
-  readonly min = input<number | undefined, number | string | undefined>(undefined, { transform: numberAttribute });
-  readonly max = input<number | undefined, number | string | undefined>(undefined, { transform: numberAttribute });
-  readonly gradient = input<any>();
-  readonly interactive = input<boolean, boolean | string | undefined>(false, { transform: booleanAttribute });
-
-  readonly sparklineHover = output<CustomEvent>();
-  readonly sparklineLeave = output<CustomEvent>();
-  readonly sliceSelect = output<CustomEvent>();
-  readonly zoneChange = output<CustomEvent>();
+  /** Emits the `sparkline-hover` event of the chart. */
+  @Output() readonly sparklineHover = new EventEmitter<CustomEvent>();
+  /** Emits the `sparkline-leave` event of the chart. */
+  @Output() readonly sparklineLeave = new EventEmitter<CustomEvent>();
+  /** Emits the `sparkline-select` event (candlestick chart). */
+  @Output() readonly sparklineSelect = new EventEmitter<CustomEvent>();
+  /** Kept for compatibility with 1.4.0: no chart dispatches `slice-select`, so this never emits. */
+  @Output() readonly sliceSelect = new EventEmitter<CustomEvent>();
+  /** Emits the `zone-change` event (gauge chart). */
+  @Output() readonly zoneChange = new EventEmitter<CustomEvent>();
+  /** Emits the `progress-complete` event (progress chart). */
+  @Output() readonly progressComplete = new EventEmitter<CustomEvent>();
 
   constructor() {
     const el = this.#element.nativeElement;
 
-    effect(() => {
-      const d = this.data();
-      if (d !== undefined) el.data = d;
-    });
+    // Register every tag, then upgrade this element now if Angular created it
+    // before the definitions existed, so inputs go through the chart accessors.
+    defineMiniCharts();
+    globalThis.customElements?.upgrade(el);
 
-    effect(() => syncAttr(el, "label", this.label()));
-    effect(() => syncAttr(el, "curve", this.curve()));
-    effect(() => syncAttr(el, "points", this.points()));
-    effect(() => syncAttr(el, "min", this.min()));
-    effect(() => syncAttr(el, "max", this.max()));
-    effect(() => syncJsonAttr(el, "gradient", this.gradient()));
-    effect(() => syncAttr(el, "interactive", this.interactive() ? "" : undefined));
+    const outputs: [string, EventEmitter<CustomEvent>][] = [
+      ["sparkline-hover", this.sparklineHover],
+      ["sparkline-leave", this.sparklineLeave],
+      ["sparkline-select", this.sparklineSelect],
+      ["slice-select", this.sliceSelect],
+      ["zone-change", this.zoneChange],
+      ["progress-complete", this.progressComplete],
+    ];
+    for (const [type, emitter] of outputs) {
+      el.addEventListener(type, (e: Event) => emitter.emit(e as CustomEvent));
+    }
+  }
 
-    bindChartEvents(el, this.sparklineHover, this.sparklineLeave, this.sliceSelect, this.zoneChange);
+  /** @param {any} values Chart values; arrays and objects are stored as JSON, strings unchanged. */
+  @Input()
+  set data(values: any) {
+    this.#element.nativeElement.data = values;
+  }
+
+  /** @param {string | undefined} value Accessible chart label. */
+  @Input()
+  set label(value: string | undefined) {
+    syncAttr(this.#element.nativeElement, "label", value);
+  }
+
+  /** @param {string | undefined} value Curve type of line-based charts. */
+  @Input()
+  set curve(value: string | undefined) {
+    syncAttr(this.#element.nativeElement, "curve", value);
+  }
+
+  /** @param {string | undefined} value Point markers of the line and area charts. */
+  @Input()
+  set points(value: string | undefined) {
+    syncAttr(this.#element.nativeElement, "points", value);
+  }
+
+  /** @param {number | string | undefined} value Lower bound of the value domain. */
+  @Input()
+  set min(value: number | string | undefined) {
+    syncAttr(this.#element.nativeElement, "min", value);
+  }
+
+  /** @param {number | string | undefined} value Upper bound of the value domain. */
+  @Input()
+  set max(value: number | string | undefined) {
+    syncAttr(this.#element.nativeElement, "max", value);
+  }
+
+  /** @param {any} value Gradient colors, as an array or as the attribute string. */
+  @Input()
+  set gradient(value: any) {
+    syncJsonAttr(this.#element.nativeElement, "gradient", value);
+  }
+
+  /** @param {boolean | string | undefined} value Enables pointer interaction; `""` (the bare attribute) counts as true. */
+  @Input()
+  set interactive(value: boolean | string | undefined) {
+    syncAttr(this.#element.nativeElement, "interactive", booleanAttribute(value) ? "" : undefined);
   }
 }

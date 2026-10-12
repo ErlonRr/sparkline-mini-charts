@@ -3168,7 +3168,7 @@
                 data-tab="tab-angular"
                 data-i18n="tabAngular"
               >
-                Angular 18 / 19 / 20+
+                Angular 20+
               </button>
               <button
                 class="tab-btn"
@@ -3204,7 +3204,7 @@
                 <p style="margin-block-end: 0.75rem">
                   First-class React components with full TypeScript prop typings and event listeners.
                 </p>
-                <pre><code>import { MiniLineChart, MiniGaugeChart, MiniProgressChart } from 'sparkline-mini-charts/react';
+                <pre><code>import { MiniLineChart, MiniGaugeChart } from 'sparkline-mini-charts/react';
 
 export function MetricsWidget() {
   const weeklyData = [18, 23, 20, 31, 27, 38, 44];
@@ -3212,16 +3212,16 @@ export function MetricsWidget() {
   return (
     &lt;div className="metric-card"&gt;
       &lt;span&gt;Revenue Trend&lt;/span&gt;
-      &lt;MiniLineChart 
-        data={weeklyData} 
-        curve="smooth" 
-        trend-color="auto" 
+      &lt;MiniLineChart
+        data={weeklyData}
+        curve="smooth"
+        trendColor="auto"
         interactive
-        onPointerEnter={(e) =&gt; console.log('Hovering line chart', e)}
-        label="Revenue trend" 
+        onSparklineHover={(e) =&gt; console.log('Hovered point', e.detail)}
+        label="Revenue trend"
       /&gt;
 
-      &lt;!-- Gauge with Continuous Multi-Stop Gradient --&gt;
+      {/* Gauge with Continuous Multi-Stop Gradient */}
       &lt;MiniGaugeChart
         data={[72, 0, 100]}
         gradient={['#10b981', '#f59e0b', '#ef4444']}
@@ -3272,45 +3272,48 @@ const onHover = (event: CustomEvent) =&gt; {
               <!-- Angular -->
               <div id="tab-angular" class="tab-content" style="display: none">
                 <p style="margin-block-end: 0.75rem">
-                  Modern Angular 22+ standalone Signal directives from
-                  <code>sparkline-mini-charts/angular</code> (100% zoneless-ready, native <code>input()</code> & <code>output()</code>).
+                  AOT-safe recipe: register the elements once, allow custom
+                  elements with <code>CUSTOM_ELEMENTS_SCHEMA</code>, and bind
+                  <code>[data]</code> as a property on the raw tags. Events are
+                  plain DOM events, bound by their kebab-case name.
                 </p>
-                <pre><code>import { Component, signal } from '@angular/core';
-import { MiniLineChartDirective, MiniGaugeChartDirective, SPARKLINE_DIRECTIVES } from 'sparkline-mini-charts/angular';
+                <pre><code>import 'sparkline-mini-charts/register';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, signal } from '@angular/core';
 
 @Component({
   selector: 'app-metric-card',
-  standalone: true,
-  imports: [MiniLineChartDirective, MiniGaugeChartDirective], // or imports: [SPARKLINE_DIRECTIVES]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
-    &lt;mini-line-chart 
-      [data]="data()" 
-      curve="smooth" 
-      trend-color="auto" 
+    &lt;mini-line-chart
+      [data]="data()"
+      curve="smooth"
+      trend-color="auto"
       interactive
-      (sparklineHover)="onHover($event)"
+      (sparkline-hover)="onHover($event)"
       label="Revenue trend"&gt;
     &lt;/mini-line-chart&gt;
 
-    &lt;!-- Gauge with Reactive Signal Gradient & Zone Change Output --&gt;
+    &lt;!-- Gauge with a multi-stop gradient and zone-change events --&gt;
     &lt;mini-gauge-chart
       [data]="gaugeValue()"
-      [gradient]="['#10b981', '#f59e0b', '#ef4444']"
+      [attr.gradient]="gaugeGradient"
       interactive
-      (zoneChange)="onZoneChange($event)"&gt;
+      (zone-change)="onZoneChange($event)"&gt;
     &lt;/mini-gauge-chart&gt;
   `
 })
 export class MetricCardComponent {
   readonly data = signal([18, 23, 20, 31, 27, 38, 44]);
   readonly gaugeValue = signal([75, 0, 100]);
+  // Attribute options take JSON text.
+  readonly gaugeGradient = '["#10b981", "#f59e0b", "#ef4444"]';
 
-  onHover(event: CustomEvent) {
-    console.log('Hover point:', event.detail);
+  onHover(event: Event) {
+    console.log('Hover point:', (event as CustomEvent).detail);
   }
 
-  onZoneChange(event: CustomEvent) {
-    console.log('Zone changed:', event.detail);
+  onZoneChange(event: Event) {
+    console.log('Zone changed:', (event as CustomEvent).detail);
   }
 }</code></pre>
               </div>
@@ -3318,15 +3321,17 @@ export class MetricCardComponent {
               <!-- Svelte -->
               <div id="tab-svelte" class="tab-content" style="display: none">
                 <p style="margin-block-end: 0.75rem">
-                  Direct Custom Element usage in Svelte without wrappers.
+                  Works in Svelte via custom elements, with no wrapper. Svelte
+                  assigns <code>data={…}</code> to the element's
+                  <code>data</code> property, so pass the array as it is.
                 </p>
                 <pre><code>&lt;script&gt;
   import 'sparkline-mini-charts/register';
   let data = [18, 23, 20, 31, 27, 38, 44];
 &lt;/script&gt;
 
-&lt;mini-line-chart 
-  data={JSON.stringify(data)} 
+&lt;mini-line-chart
+  data={data}
   label="Weekly Revenue"&gt;
 &lt;/mini-line-chart&gt;</code></pre>
               </div>

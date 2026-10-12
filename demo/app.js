@@ -161,7 +161,7 @@ export const translations = {
     tabVanilla: "Vanilla / HTML",
     tabReact: "React 18 / 19+",
     tabVue: "Vue 3 (SFC)",
-    tabAngular: "Angular 18 / 19 / 20+",
+    tabAngular: "Angular 20+",
     tabSvelte: "Svelte",
   },
   it: {
@@ -293,7 +293,7 @@ export const translations = {
     tabVanilla: "Vanilla / HTML",
     tabReact: "React 18 / 19+",
     tabVue: "Vue 3 (SFC)",
-    tabAngular: "Angular 18 / 19 / 20+",
+    tabAngular: "Angular 20+",
     tabSvelte: "Svelte",
   }
 };
@@ -601,7 +601,7 @@ export function renderGallery() {
       const htmlSnippet = `<${item.tag}\n  data='${JSON.stringify(item.data)}'\n  ${item.attrs}\n></${item.tag}>`;
       const reactSnippet = `import { ${pascalName} } from 'sparkline-mini-charts/react';\n\n<${pascalName}\n  ${item.reactProps}\n/>`;
       const vueSnippet = `<script setup lang="ts">\nimport { ${pascalName} } from 'sparkline-mini-charts/vue';\n</script>\n\n<template>\n  <${pascalName} ${item.vueProps} />\n</template>`;
-      const angularSnippet = `import { MiniChartDirective } from 'sparkline-mini-charts/angular';\n\n<${item.tag}\n  ${item.angularProps}\n></${item.tag}>`;
+      const angularSnippet = `import 'sparkline-mini-charts/register';\n// In the component: schemas: [CUSTOM_ELEMENTS_SCHEMA]\n\n<${item.tag}\n  ${item.angularProps}\n></${item.tag}>`;
 
       card.innerHTML = `
         <div class="gallery-card-top">
@@ -712,7 +712,7 @@ export function renderComponentDetail(tag) {
   const htmlSnippet = `<${item.tag}\n  data='${JSON.stringify(item.data, null, 2)}'\n  ${item.attrs}\n></${item.tag}>`;
   const reactSnippet = `import { ${pascalName} } from 'sparkline-mini-charts/react';\n\nexport function ChartCard() {\n  return (\n    <${pascalName}\n      ${item.reactProps}\n    />\n  );\n}`;
   const vueSnippet = `<script setup lang="ts">\nimport { ${pascalName} } from 'sparkline-mini-charts/vue';\n</script>\n\n<template>\n  <${pascalName} ${item.vueProps} />\n</template>`;
-  const angularSnippet = `import { Component } from '@angular/core';\nimport { MiniChartDirective } from 'sparkline-mini-charts/angular';\n\n@Component({\n  standalone: true,\n  imports: [MiniChartDirective],\n  template: \`\n    <${item.tag} ${item.angularProps}></${item.tag}>\n  \`\n})\nexport class ChartCardComponent {}`;
+  const angularSnippet = `import 'sparkline-mini-charts/register';\nimport { CUSTOM_ELEMENTS_SCHEMA, Component } from '@angular/core';\n\n@Component({\n  selector: 'app-chart-card',\n  schemas: [CUSTOM_ELEMENTS_SCHEMA],\n  template: \`\n    <${item.tag} ${item.angularProps}></${item.tag}>\n  \`\n})\nexport class ChartCardComponent {}`;
 
   const detailSnippets = { html: htmlSnippet, react: reactSnippet, vue: vueSnippet, angular: angularSnippet };
   codeOutput.textContent = htmlSnippet;

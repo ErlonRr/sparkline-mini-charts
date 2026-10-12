@@ -64,14 +64,20 @@ export class MiniScatterChart extends MiniChartElement {
   }
 
   /**
-   * Overrides data getter to parse 2D coordinate arrays or objects.
+   * Overrides the default data parser to support 2D coordinate arrays or objects.
+   * Other items (e.g. `null` gaps) are dropped, except finite numbers, which
+   * the layout plots as `[index, value]`.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
    * @returns {any[]}
    */
-  get data() {
+  parseData(raw) {
     try {
-      const parsed = JSON.parse(this.getAttribute("data") || "[]");
+      const parsed = JSON.parse(raw || "[]");
       if (!Array.isArray(parsed)) return [];
-      return parsed;
+      return parsed.filter(
+        (item) => (item !== null && typeof item === "object") || (typeof item === "number" && Number.isFinite(item))
+      );
     } catch {
       return [];
     }
@@ -79,7 +85,7 @@ export class MiniScatterChart extends MiniChartElement {
 
   render() {
     const data = this.data;
-    const label = this.getAttribute("label") ?? this.createDefaultLabel(data.map((d) => Array.isArray(d) ? d[1] ?? d[0] : (d.y ?? d.x ?? 0)));
+    const label = this.getAttribute("label") ?? this.createDefaultLabel(data);
 
     if (!this.#initialized) {
       this.#createDOM(label);

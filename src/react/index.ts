@@ -3,6 +3,10 @@
 import {
   createElement,
   forwardRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
   type CSSProperties,
   type DOMAttributes,
   type ForwardRefExoticComponent,
@@ -26,14 +30,28 @@ import { MiniScatterChart as MiniScatterChartElement } from "../components/mini-
 import { MiniStackedAreaChart as MiniStackedAreaChartElement } from "../components/mini-stacked-area-chart.js";
 import { MiniStreamChart as MiniStreamChartElement } from "../components/mini-stream-chart.js";
 import { MiniWinLossChart as MiniWinLossChartElement } from "../components/mini-win-loss-chart.js";
+import {
+  attributeOnlyNames,
+  createChartAttributes,
+  toAttributeName,
+  toDataAttribute,
+} from "../core/framework-attributes.js";
 import { defineMiniChart } from "../core/registration.js";
 
 /** Event map for Sparkline custom DOM events */
 export interface SparklineEventHandlers {
+  /** `sparkline-hover`: the pointer is over a data point. */
   onSparklineHover?: (event: CustomEvent) => void;
+  /** `sparkline-leave`: the pointer left the chart. */
   onSparklineLeave?: (event: CustomEvent) => void;
+  /** `sparkline-select`: a candle was clicked (`<mini-candlestick-chart>`). */
+  onSparklineSelect?: (event: CustomEvent) => void;
+  /** `slice-select`: reserved; no chart dispatches it in 1.x. */
   onSliceSelect?: (event: CustomEvent) => void;
+  /** `zone-change`: the needle moved into another zone (`<mini-gauge-chart>`). */
   onZoneChange?: (event: CustomEvent) => void;
+  /** `progress-complete`: a render reached the maximum (`<mini-progress-chart>`). */
+  onProgressComplete?: (event: CustomEvent) => void;
 }
 
 /** Base attributes shared across every sparkline React component. */
@@ -209,6 +227,41 @@ export interface MiniChartProps extends BaseSparklineProps {
 // Component Factory
 // ---------------------------------------------------------------------------
 
+type SparklineEventProp = keyof SparklineEventHandlers;
+
+/** DOM event behind each event prop. Listeners are attached with `addEventListener`. */
+const eventTypes: Readonly<Record<SparklineEventProp, string>> = {
+  onSparklineHover: "sparkline-hover",
+  onSparklineLeave: "sparkline-leave",
+  onSparklineSelect: "sparkline-select",
+  onSliceSelect: "slice-select",
+  onZoneChange: "zone-change",
+  onProgressComplete: "progress-complete",
+};
+
+const eventProps = Object.keys(eventTypes) as SparklineEventProp[];
+const eventPropByType = new Map(eventProps.map((prop) => [eventTypes[prop], prop]));
+
+function isEventProp(key: string): key is SparklineEventProp {
+  return Object.hasOwn(eventTypes, key);
+}
+
+/** Whether the wrappers render on the server, where effects and refs never run. */
+const isServer = typeof document === "undefined";
+
+/**
+ * Layout effects in the browser, plain effects on the server: neither runs
+ * there, but React 18 warns about every layout effect during SSR.
+ */
+const useIsomorphicLayoutEffect = isServer ? useEffect : useLayoutEffect;
+
+/**
+ * Boolean HTML attributes passed through to the element. React 18 writes
+ * `false` on a custom element as the string "false", which still turns the
+ * attribute on, so `false` omits the prop instead.
+ */
+const booleanHtmlProps: ReadonlySet<string> = new Set(["hidden", "inert"]);
+
 function createReactChart<P extends BaseSparklineProps>(
   tagName: string,
   component: CustomElementConstructor,
@@ -216,53 +269,109 @@ function createReactChart<P extends BaseSparklineProps>(
 ): ForwardRefExoticComponent<P & RefAttributes<HTMLElement>> {
   defineMiniChart(tagName, component);
 
-  const Chart = forwardRef<HTMLElement, P>(function SparklineChart(props, ref) {
-    const {
-      data = [],
-      label,
-      interactive,
-      onSparklineHover,
-      onSparklineLeave,
-      onSliceSelect,
-      onZoneChange,
-      ...rawProps
-    } = props as any;
+  const observedAttributes: readonly string[] = (component as { observedAttributes?: string[] }).observedAttributes ?? [];
+  const chartAttributes = createChartAttributes(tagName, observedAttributes);
 
-    const domAttributes: Record<string, any> = {
-      ref,
-      data: typeof data === "string" ? data : JSON.stringify(data),
-      label,
-    };
+  const Chart = forwardRef<HTMLElement, P>(function SparklineChart(props, forwardedRef) {
+    const { data = [], className, ...rawProps } = props as Record<string, any>;
+    const elementRef = useRef<HTMLElement | null>(null);
+    const handlersRef = useRef<SparklineEventHandlers>({});
 
-    if (interactive) {
-      domAttributes.interactive = "";
-    }
+    const ref = useCallback(
+      (element: HTMLElement | null) => {
+        elementRef.current = element;
+        if (typeof forwardedRef === "function") {
+          const cleanup = (forwardedRef as (instance: HTMLElement | null) => unknown)(element);
+          // React 19 runs a cleanup returned by the ref instead of calling it
+          // with null, so a cleanup-returning callback ref keeps working.
+          if (typeof cleanup === "function") {
+            return () => {
+              elementRef.current = null;
+              cleanup();
+            };
+          }
+        } else if (forwardedRef) {
+          forwardedRef.current = element;
+        }
+        return undefined;
+      },
+      [forwardedRef],
+    );
 
-    // Convert camelCase props to kebab-case attributes
+    // `data` is always JSON text: React 18 sets it as an attribute, React 19
+    // through the element's `data` setter, and React 19 SSR drops objects.
+    const domAttributes: Record<string, any> = { ref, data: toDataAttribute(data) };
+    const handlers: SparklineEventHandlers = {};
+    const attributeOnlyValues: Record<string, string | undefined> = {};
+
+    // React 18 writes `className` as a literal `classname` attribute on custom elements.
+    if (className !== undefined) domAttributes.class = className;
+
     for (const [key, val] of Object.entries(rawProps)) {
-      if (val === undefined || val === null) continue;
-
-      if (key === "onSparkline-hover" || key === "onSparkline-leave" || key === "onSlice-select" || key === "onZone-change") {
-        domAttributes[key] = val;
+      if (isEventProp(key)) {
+        if (typeof val === "function") handlers[key] = val;
         continue;
       }
 
-      if (key.startsWith("on") && typeof val === "function") {
-        domAttributes[key] = val;
+      const attributeOnlyName = toAttributeName(key);
+      if (attributeOnlyNames.includes(attributeOnlyName)) {
+        attributeOnlyValues[attributeOnlyName] = chartAttributes.valueOf(attributeOnlyName, val);
         continue;
       }
 
-      if (typeof val === "object") {
-        const kebabKey = key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-        domAttributes[kebabKey] = JSON.stringify(val);
-      } else if (typeof val === "boolean") {
-        const kebabKey = key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-        if (val) domAttributes[kebabKey] = "";
-      } else {
-        const kebabKey = key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-        domAttributes[kebabKey] = val;
+      // Only the chart's observed attributes are converted. Everything else
+      // (style, id, slot, tabIndex, aria-*, data-*, children…) reaches React untouched.
+      const name = chartAttributes.nameOf(key);
+      if (name === null) {
+        if (!(val === false && booleanHtmlProps.has(key))) domAttributes[key] = val;
+        continue;
       }
+
+      const value = chartAttributes.valueOf(name, val);
+      if (value !== undefined) domAttributes[name] = value;
     }
+
+    // The server has no element to call `setAttribute()` on, so attribute-only
+    // options are rendered as plain attributes there. The client sets them in
+    // the effect below, and hydration must not report the server-only attribute.
+    if (attributeOnlyNames.some((name) => attributeOnlyValues[name] !== undefined)) {
+      if (isServer) Object.assign(domAttributes, attributeOnlyValues);
+      else domAttributes.suppressHydrationWarning ??= true;
+    }
+
+    useIsomorphicLayoutEffect(() => {
+      handlersRef.current = handlers;
+    });
+
+    // One listener per event that has a handler; it calls the latest handler,
+    // so a new callback identity does not re-subscribe.
+    const listenedTypes = eventProps.filter((prop) => handlers[prop]).map((prop) => eventTypes[prop]).join(" ");
+    useIsomorphicLayoutEffect(() => {
+      const element = elementRef.current;
+      if (!element || listenedTypes === "") return;
+
+      const types = listenedTypes.split(" ");
+      const listener = (event: Event) => {
+        const prop = eventPropByType.get(event.type);
+        if (prop) handlersRef.current[prop]?.(event as CustomEvent);
+      };
+
+      for (const type of types) element.addEventListener(type, listener);
+      return () => {
+        for (const type of types) element.removeEventListener(type, listener);
+      };
+    }, [listenedTypes]);
+
+    useIsomorphicLayoutEffect(() => {
+      const element = elementRef.current;
+      if (!element) return;
+
+      for (const name of attributeOnlyNames) {
+        const value = attributeOnlyValues[name];
+        if (value === undefined) element.removeAttribute(name);
+        else element.setAttribute(name, value);
+      }
+    }, attributeOnlyNames.map((name) => attributeOnlyValues[name]));
 
     return createElement(tagName, domAttributes);
   });

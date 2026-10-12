@@ -7,10 +7,10 @@
   "homepage": "https://sparkline-mini-charts.erlonrru.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ErlonRru/sparkline-mini-charts.git"
+    "url": "git+https://github.com/ErlonRr/sparkline-mini-charts.git"
   },
   "bugs": {
-    "url": "https://github.com/ErlonRru/sparkline-mini-charts/issues"
+    "url": "https://github.com/ErlonRr/sparkline-mini-charts/issues"
   },
   "type": "module",
   "main": "./dist/index.cjs",
@@ -118,8 +118,6 @@
       "require": "./dist/mini-scatter-chart.cjs"
     },
     "./math": {
-
-
       "types": "./dist/math.d.ts",
       "import": "./dist/math.js",
       "require": "./dist/math.cjs"
@@ -154,11 +152,16 @@
   ],
   "scripts": {
     "dev": "vite --config vite.config.demo.js",
-    "build": "vite build",
+    "build": "vite build && node scripts/emit-entry-dts.mjs",
     "build:demo": "vite build --config vite.config.demo.js",
     "preview": "vite preview --config vite.config.demo.js",
-    "test": "node --test",
-    "typecheck": "tsc --noEmit"
+    "test": "pnpm run test:unit",
+    "test:unit": "node --test \"test/**/!(package-*).test.js\"",
+    "test:package": "node --test \"test/package-*.test.js\"",
+    "typecheck": "tsc --noEmit",
+    "lint:package": "publint && attw --pack . --profile node16 --ignore-rules false-esm",
+    "prepack": "pnpm build 1>&2",
+    "prepublishOnly": "pnpm test:unit && pnpm build && pnpm test:package"
   },
   "engines": {
     "node": ">=22"
@@ -175,19 +178,30 @@
     "zero-dependency"
   ],
   "devDependencies": {
-    "@typescript/typescript6": "^6.0.2",
+    "@angular/common": "22.1.1",
+    "@angular/compiler": "22.1.1",
     "@angular/core": "^22.1.1",
+    "@angular/platform-browser": "22.1.1",
+    "@arethetypeswrong/cli": "0.18.5",
     "@types/react": "^19.2.7",
-    "react": "^19.2.8",
+    "@typescript/typescript6": "^6.0.2",
+    "@vue/server-renderer": "^3.5.43",
+    "@vue/test-utils": "^2.5.1",
+    "happy-dom": "20.14.6",
+    "publint": "0.3.25",
+    "react": "^19.3.0",
+    "react-18": "npm:react@18.3.1",
+    "react-dom": "^19.3.0",
+    "react-dom-18": "npm:react-dom@18.3.1",
     "typescript": "^7.0.2",
     "vite": "^8.2.1",
     "vite-plugin-dts": "^5.0.3",
-    "vue": "^3.5.41"
+    "vue": "^3.5.43"
   },
   "peerDependencies": {
-    "@angular/core": ">=20.0.0",
-    "react": ">=18.0.0",
-    "vue": ">=3.5.0"
+    "@angular/core": "^20.0.0 || ^21.0.0 || ^22.0.0",
+    "react": "^18.3.0 || ^19.0.0",
+    "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
     "@angular/core": {

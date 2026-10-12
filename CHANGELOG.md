@@ -5,6 +5,46 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+A patch release that fixes the critical bugs found in 1.4.0 without changing the public 1.x API. It also reverts the breaking changes that 1.4.0 shipped as a minor release; see [Breaking changes shipped in 1.4.0](#breaking-changes-shipped-in-140) below.
+
+### Added
+
+- React: `onSparklineSelect` and `onProgressComplete` event props, next to the existing `onSparklineHover`, `onSparklineLeave`, `onSliceSelect` and `onZoneChange`.
+- Vue: the wrappers now emit `sparkline-select` and `progress-complete`. The `data` prop also accepts a number (for `<MiniBulletChart :data="42">`).
+- `pnpm lint:package` ([publint](https://publint.dev) and [attw](https://github.com/arethetypeswrong/arethetypeswrong.github.io) on the packed tarball) runs in CI after the build.
+
+### Changed
+
+- Peer dependency ranges are now bounded to the tested majors: `react` `^18.3.0 || ^19.0.0` (was `>=18.0.0`), `vue` `^3.5.0` (was `>=3.5.0`) and `@angular/core` `^20.0.0 || ^21.0.0 || ^22.0.0` (was `>=20.0.0`). All three stay optional.
+- `repository` and `bugs` in package.json now point to [github.com/ErlonRr/sparkline-mini-charts](https://github.com/ErlonRr/sparkline-mini-charts); the old `ErlonRru` URLs were broken. GitHub is the canonical repository and runs the CI that gates merges; the Forgejo instance is a mirror.
+- Publishing is guarded: `prepack` runs `pnpm build`, and `prepublishOnly` runs the unit tests, the build and the package tests, so a publish from a fresh clone can no longer ship a tarball without `dist/`.
+- React: only props that are attributes of that chart (its `observedAttributes`, in camelCase or kebab-case) are converted. Any other prop reaches React unchanged, as in 1.3.0, so for example `trendColor` on a bar chart is no longer written as `trend-color`. No chart reads such attributes, so nothing renders differently.
+- TypeScript: the element `data` accessor is declared once on the base class, with a setter typed `unknown` and a getter typed `any`, instead of `any[]` and the per-chart `get data(): …` declarations. This only widens types.
+- Invalid `data` entries now keep their position instead of being dropped or crashing (see Fixed). Visible effects on invalid input only: pie `[3, null, 1]` keeps 3 slices with an empty middle one; progress `["x", 50]` shows 0 instead of 50; gauge `[null, 0, 50]` exposes min 0 and max 50 but, like `[null]`, still hides the needle and reports no value.
+
+### Fixed
+
+- **`el.data = …` works on every chart.** In 1.4.0, 9 charts (stacked-area, stream, candlestick, ohlc, combo, radial-bar, bullet, range-bar and scatter) declared a getter-only `data` accessor, so assigning the property threw `TypeError` in strict-mode code, including inside React 19, Vue, Svelte and Angular bindings. The base class now owns the only `data` getter/setter, and charts override a `parseData()` hook.
+- **Assigning a JSON string to `data` renders it.** The setter stored strings JSON-encoded a second time, so `el.data = "[1,2,3]"` (what the React and Vue wrappers did) rendered an empty chart. A string is now stored unchanged; `null` and `undefined` remove the attribute; any other value is stored as its JSON, so the attribute still reflects the property.
+- **`data` set before the elements are registered survives the upgrade.** A value assigned to a not-yet-upgraded element used to hide the accessor; it is now re-applied through the setter when the element connects.
+- **Null-safe parsing.** bullet accepts a plain number (`data="42" target="80"` renders 42 against the target, applying `target`/`min`/`max`/`ranges`) and renders `null` as empty; gauge and progress keep a null in its position, so `[null, 0, 50]` keeps min 0 and max 50, and a null value is labelled as empty instead of being reported as a reading of 0; pie and half-pie turn a null slice into 0 so colors stay aligned with their values; range-bar and scatter skip invalid items instead of throwing. Default labels are computed from the parsed data.
+- **A chart that fails to render no longer breaks the page.** A render that throws logs one `console.error` per element and shows the chart's accessible empty state; the chart recovers on the next valid update, including the charts that keep and update their SVG nodes between renders.
+- **Reduced motion no longer changes the data shown.** With `prefers-reduced-motion: reduce`, progress and radial-bar were drawn at 100% whatever their value; the reduced-motion rules now only change timing, and also zero the stagger delays.
+- **`hidden` hides a chart.** `:host([hidden])` now sets `display: none`, which the charts' own `display` overrode.
+- **React wrappers pass standard props through.** `style` (including `--mini-chart-*` custom properties), `className` (written as `class`), `id`, `slot`, `tabIndex`, `aria-*`, `data-*` and `children` reach the element untouched; in 1.4.0 `style` crashed React and `className` became `class-name`. Array and object options are passed as JSON, `data` included. Event props are attached with `addEventListener`, so they fire on React 18 and 19 (in 1.4.0 they were never attached). Default-on flags (`roundCaps`, `hollowBullish`, `sharedDomain`, area `gradient`) can be turned off with `false`, which writes `"false"`. `normalize` is always set as an attribute, so it never shadows `Node.prototype.normalize`, and server rendering writes it too. `hidden={false}` (and `inert={false}`) writes no attribute, because React 18 would write the string `"false"`, and the new `:host([hidden])` rule would then hide the chart. The forwarded ref is merged with the wrapper's own ref; a React 19 callback ref that returns a cleanup gets that cleanup called, not `null`. `dist/react.js` and `dist/react.cjs` start with `"use client"`, so the wrappers work when imported from React Server Components.
+- **Vue wrappers serialize options and respect `false`.** Array and object options (`:zones`, `:ranges`, `:gradient`) are passed as JSON instead of `"[object Object]"`. `false` on a presence-only flag now omits the attribute instead of writing `"false"`. In 1.4.0 that string turned `show-value` on (progress and gauge), and `:gradient="false"` on progress and bullet matched their `:host([gradient])` styles and dropped the value color; `interactive` and `trend-line` already behaved. `normalize` is now always written as an attribute, also in SSR: in 1.4.0 Vue assigned it as a property, which shadowed `Node.prototype.normalize` and never reached the chart. `inheritAttrs` is `false` again, as in 1.3.0, so the converted values are the ones that reach the element.
+- **Angular: `MiniChartDirective` works again in JIT apps, as in 1.3.0.** 1.4.0 rewrote it with signal `input()`/`output()`, which Angular cannot see when the package comes from `node_modules`, and dropped element registration, so following the README rendered nothing. It is back to the 1.3.0 form: `@Input()` setters, and the constructor registers all 17 tags (`defineMiniCharts()`). It keeps the 1.4.0 inputs (`data`, `label`, `curve`, `points`, `min`, `max`, `gradient`, `interactive`) and now has `@Output()`s for the events the charts really dispatch: `sparklineHover`, `sparklineLeave`, `sparklineSelect`, `zoneChange` and `progressComplete`. `sliceSelect` is still declared for compatibility, but no chart emits it. The outputs are now `EventEmitter`s, not `OutputEmitterRef`s, and the inputs are setters, not signals.
+- **TypeScript types for the 17 component subpaths and `sparkline-mini-charts/math`.** Their `exports` `types` paths (`dist/mini-*.d.ts`, `dist/math.d.ts`) were never generated, so TypeScript reported "Could not find a declaration file" (TS7016). The build now writes those entry declarations.
+- Docs and demo: framework snippets bind `data` as a property (`data={x}` in React and Svelte, `:data="x"` in Vue, `[data]="x"` in Angular) instead of `JSON.stringify`, which rendered empty charts. Svelte is described as working via custom elements, not as having native bindings. The demo's React snippet uses `onSparklineHover` and a JSX comment, and its Angular snippets use the AOT-safe recipe.
+
+### Known issues
+
+- **Angular: what this release does not restore.** The 17 per-chart signal directives (`MiniLineChartDirective`, …) and `SPARKLINE_DIRECTIVES` still do not work from `node_modules`: AOT builds reject them (NG2012), and in JIT Angular sees none of their inputs or outputs. They stay exported, unchanged, so 1.4.0 code keeps compiling; they will work from the dedicated `@sparkline-mini-charts/angular` package, planned for 1.5. `MiniChartDirective` works in JIT only; AOT builds (the Angular CLI default) reject it too.
+- **Angular AOT workaround**: `import "sparkline-mini-charts/register"`, add `CUSTOM_ELEMENTS_SCHEMA` to the component, and bind `[data]` on the raw tags (see the README).
+- TypeScript projects that `require()` the CommonJS build get the ESM declarations ("masquerading as ESM" in attw). Planned fix: separate `.d.cts` declarations.
+
 ## [1.4.0] - 2026-08-17
 
 ### Added
@@ -19,7 +59,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - CSS Shadow DOM fill and stroke precedence on bullet and progress chart gradients.
 - Synchronized version badge in navbar header and framework documentation tabs.
 
+### Breaking changes shipped in 1.4.0
+
+1.4.0 was released as a minor version, but it changed the behavior of the framework adapters. These notes were added afterwards.
+
+| Change in 1.4.0 | Who is affected | Status |
+| :-- | :-- | :-- |
+| Angular `MiniChartDirective` no longer registered the custom elements and switched from `@Input()` to signal `input()`, which Angular cannot read from `node_modules` | Apps that followed the 1.3.0 README: charts stopped rendering | **Reverted** in [Unreleased] (JIT apps); AOT apps use the documented `CUSTOM_ELEMENTS_SCHEMA` recipe |
+| React wrappers converted every prop: objects to JSON and camelCase to kebab-case (`style` crashed React, `className` became `class-name`), and `false` dropped default-on flags | Any React app passing `style`, `className` or `false` flags | **Reverted** in [Unreleased]: only chart attributes are converted |
+| The 17 per-chart Angular signal directives and `SPARKLINE_DIRECTIVES` were added but cannot work from `node_modules` | Angular apps adopting them | Not reverted: still exported, documented as a known issue until the dedicated Angular package |
+
+React and Vue `data` forwarding was also broken in 1.4.0, but not because of a 1.4.0 change: since 1.0 the wrappers pass `data` as JSON text, React 19 and Vue assign it to the element's `data` property, and the setter encoded it a second time, so charts rendered empty (9 charts threw instead). It is **fixed** in [Unreleased], together with the 1.4.0 regressions above.
+
 ## [1.3.1] - 2026-08-17
+
+> **Never published as a separate version.** The package went from 1.3.0 straight to 1.4.0, and the changes below were first released in [1.4.0].
 
 ### Added
 
@@ -118,3 +172,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Declarative `data` and accessible `label` APIs with Shadow DOM rendering.
 - Pure ESM exports, explicit registration APIs, tree-shakeable component subpaths, and an intentional `/register` side-effect entry point.
 - SSR-safe module evaluation, Node test coverage, an interactive demo, and project documentation.
+
+[Unreleased]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.3.0...v1.4.0
+[1.3.1]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.2.1...v1.3.0
+[1.2.1]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.0.1...v1.1.0
+[1.0.1]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/ErlonRr/sparkline-mini-charts/compare/168c7bb...v1.0.0
+[0.1.0]: https://github.com/ErlonRr/sparkline-mini-charts/tree/168c7bb

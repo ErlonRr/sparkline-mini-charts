@@ -62,14 +62,17 @@ export class MiniRangeBarChart extends MiniChartElement {
   }
 
   /**
-   * Overrides data parser to support 2D arrays or range objects.
+   * Overrides the default data parser to support 2D arrays or range objects.
+   * Items that are neither arrays nor objects (e.g. `null` gaps) are dropped.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
    * @returns {any[]}
    */
-  get data() {
+  parseData(raw) {
     try {
-      const parsed = JSON.parse(this.getAttribute("data") || "[]");
+      const parsed = JSON.parse(raw || "[]");
       if (!Array.isArray(parsed)) return [];
-      return parsed;
+      return parsed.filter((item) => item !== null && typeof item === "object");
     } catch {
       return [];
     }
@@ -77,7 +80,7 @@ export class MiniRangeBarChart extends MiniChartElement {
 
   render() {
     const data = this.data;
-    const label = this.getAttribute("label") ?? this.createDefaultLabel(data.map((d) => Array.isArray(d) ? d[0] : (d.min || 0)));
+    const label = this.getAttribute("label") ?? this.createDefaultLabel(data);
 
     if (!this.#initialized) {
       this.#createDOM(label);

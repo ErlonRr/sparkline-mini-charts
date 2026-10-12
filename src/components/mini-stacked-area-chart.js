@@ -68,12 +68,14 @@ export class MiniStackedAreaChart extends MiniChartElement {
   }
 
   /**
-   * Overrides data getter to parse 2D arrays.
+   * Overrides the default data parser to support 2D arrays.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
    * @returns {number[][]}
    */
-  get data() {
+  parseData(raw) {
     try {
-      const parsed = JSON.parse(this.getAttribute("data") || "[]");
+      const parsed = JSON.parse(raw || "[]");
       if (!Array.isArray(parsed)) return [];
       return parsed.map((series) =>
         Array.isArray(series) ? series.filter(Number.isFinite) : []

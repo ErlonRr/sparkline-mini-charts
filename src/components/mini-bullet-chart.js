@@ -63,18 +63,26 @@ export class MiniBulletChart extends MiniChartElement {
   }
 
   /**
-   * Overrides data getter to parse numeric arrays or bullet config objects.
+   * Overrides the default data parser to accept numeric arrays, bullet config
+   * objects, or a single number, which becomes `{ value }` so the target, min,
+   * max and ranges attributes still apply. `null` and any other JSON value give
+   * the empty model `[]`.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
    * @returns {any}
    */
-  get data() {
-    const raw = this.getAttribute("data");
+  parseData(raw) {
     if (!raw) return [];
+    let parsed;
     try {
-      return JSON.parse(raw);
+      parsed = JSON.parse(raw);
     } catch {
       const num = parseFloat(raw);
       return !isNaN(num) ? [num] : [];
     }
+    if (typeof parsed === "number") return Number.isFinite(parsed) ? { value: parsed } : [];
+    if (parsed !== null && typeof parsed === "object") return parsed;
+    return [];
   }
 
   render() {

@@ -72,12 +72,14 @@ export class MiniRadialBarChart extends MiniChartElement {
   }
 
   /**
-   * Overrides data getter to support numbers or objects `{value, color}`.
+   * Overrides the default data parser to support numbers or objects `{value, color}`.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
    * @returns {any[]}
    */
-  get data() {
+  parseData(raw) {
     try {
-      const parsed = JSON.parse(this.getAttribute("data") || "[]");
+      const parsed = JSON.parse(raw || "[]");
       if (!Array.isArray(parsed)) return [];
       return parsed.filter((item) => {
         if (typeof item === "number" && Number.isFinite(item)) return true;

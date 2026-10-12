@@ -3,6 +3,12 @@ name: CI
 on:
   push:
 
+# One run per ref: a newer push cancels the stale run on feature branches,
+# while runs on main queue instead, so a demo deploy is never interrupted mid-copy.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   build-test:
     runs-on: batcave-node22
@@ -22,26 +28,31 @@ jobs:
       - name: Typecheck
         run: pnpm run typecheck
 
-      - name: Test
-        run: pnpm run test
+      - name: Unit tests
+        run: pnpm run test:unit
 
       - name: Build library
         run: pnpm run build
+
+      # publint + attw on the packed tarball; see "Package lint" in CONTRIBUTING.md for the allowlist.
+      - name: Lint package
+        run: pnpm run lint:package
+
+      - name: Package tests
+        run: pnpm run test:package
 
       - name: Build demo
         run: pnpm run build:demo
 
       - name: Deploy demo
+        if: github.ref == 'refs/heads/main'
         run: |
           mkdir -p /deploy/sparkline-mini-charts
           rm -rf /deploy/sparkline-mini-charts/*
           cp -a dist-demo/. /deploy/sparkline-mini-charts/
 
       - name: Verify deploy
+        if: github.ref == 'refs/heads/main'
         run: |
-          echo "=== DEPLOY ==="
-          ls -la /deploy
-          echo "=== SPARKLINE ==="
           ls -la /deploy/sparkline-mini-charts
-          echo "=== INDEX ==="
           test -f /deploy/sparkline-mini-charts/index.html

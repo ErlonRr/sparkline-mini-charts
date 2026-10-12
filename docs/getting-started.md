@@ -114,28 +114,38 @@ const traffic = [40, 30, 20, 10];
 ```
 
 ### Angular
-Use the standalone `MiniChartDirective` from `sparkline-mini-charts/angular`:
+Angular CLI apps compile ahead of time (AOT). Import the registration entry once, allow custom elements with `CUSTOM_ELEMENTS_SCHEMA`, and bind `[data]` as a property on the raw tags:
 
 ```typescript
-import { Component } from '@angular/core';
-import { MiniChartDirective } from 'sparkline-mini-charts/angular';
+import 'sparkline-mini-charts/register';
+import { CUSTOM_ELEMENTS_SCHEMA, Component } from '@angular/core';
 
 @Component({
   selector: 'app-dashboard',
-  standalone: true,
-  imports: [MiniChartDirective],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <mini-line-chart [data]="revenue" label="Revenue"></mini-line-chart>
-    <mini-gauge-chart [data]="[65, 0, 100]" label="CPU Load"></mini-gauge-chart>
+    <mini-gauge-chart [data]="[65, 0, 100]" label="CPU Load" (zone-change)="onZone($event)"></mini-gauge-chart>
   `
 })
 export class DashboardComponent {
   revenue = [12, 18, 15, 27, 34];
+
+  onZone(event: Event) {
+    console.log((event as CustomEvent).detail);
+  }
 }
 ```
 
+`[data]` assigns the element's `data` property, so pass arrays and objects as they are. Other options are attributes: write them literally (`curve="smooth"`) or bind them with `[attr.name]`, serializing objects yourself (`[attr.zones]="zonesJson"`). Events are plain DOM events, so bind them by their kebab-case name.
+
+**Known limitation in 1.4.x.** The `sparkline-mini-charts/angular` entry is built without the Angular compiler, so it ships no compiled Angular metadata:
+
+- The 17 per-chart signal directives (`MiniLineChartDirective`, …) and `SPARKLINE_DIRECTIVES` do not work when imported from `node_modules`, in AOT or JIT builds. They stay exported so that 1.4.0 code still compiles, and will work from the dedicated `@sparkline-mini-charts/angular` package, planned for 1.5.
+- `MiniChartDirective` (the 1.3.0 catch-all directive, restored in 1.4.1) works in JIT apps only. It registers all 17 tags itself and needs no `CUSTOM_ELEMENTS_SCHEMA`. Inputs: `data`, `label`, `curve`, `points`, `min`, `max`, `gradient`, `interactive`. Outputs: `sparklineHover`, `sparklineLeave`, `sparklineSelect`, `zoneChange`, `progressComplete` (`sliceSelect` is declared but never emits). Do not import it together with `SPARKLINE_DIRECTIVES`, or every output fires twice. AOT builds reject it with error NG2012.
+
 ### Svelte
-Svelte binds directly to native Web Components without wrappers:
+Works in Svelte via custom elements, with no wrapper. Svelte assigns `data={…}` to the element's `data` property, so pass arrays and objects as they are:
 
 ```svelte
 <script>
@@ -143,7 +153,7 @@ Svelte binds directly to native Web Components without wrappers:
   let revenue = [10, 25, 40, 15, 60];
 </script>
 
-<mini-line-chart data={JSON.stringify(revenue)} label="Revenue"></mini-line-chart>
+<mini-line-chart data={revenue} label="Revenue"></mini-line-chart>
 ```
 
 ---

@@ -1,5 +1,6 @@
 // mini-progress-chart.js — Responsive SVG semi-circular gauge/progress bar Custom Element.
 
+import { parsePositionalData } from "../core/data.js";
 import { MiniChartElement } from "../core/mini-chart-element.js";
 import { createSvgElement, createChartSvg, chartStyles } from "../core/svg.js";
 
@@ -69,6 +70,28 @@ export class MiniProgressChart extends MiniChartElement {
       this.#rafId = null;
     }
     this.#detachInteractionListeners();
+  }
+
+  /**
+   * Overrides the default data parser: the value is positional (`data[0]`), so
+   * an invalid entry becomes `null` in its slot instead of being dropped.
+   * @override
+   * @param {string | null} raw JSON text of the `data` attribute.
+   * @returns {(number | null)[]}
+   */
+  parseData(raw) {
+    return parsePositionalData(raw);
+  }
+
+  /**
+   * A null value is no reading, so the chart is labelled empty and renders
+   * exactly like a missing `data` attribute.
+   * @override
+   * @param {(number | null)[]} data Parsed chart values.
+   * @returns {string} Accessible chart label.
+   */
+  createDefaultLabel(data) {
+    return super.createDefaultLabel(data[0] === null ? [] : data);
   }
 
   render() {
@@ -220,7 +243,7 @@ export class MiniProgressChart extends MiniChartElement {
   }
 
   /**
-   * @param {number[]} data 
+   * @param {(number | null)[]} data 
    */
   #updateChart(data) {
     if (!this.#valuePath || !this.#svg || !this.#valueText || !this.#gradient) return;
@@ -234,7 +257,8 @@ export class MiniProgressChart extends MiniChartElement {
     const min = !isNaN(minAttr) ? minAttr : 0;
     const max = !isNaN(maxAttr) && maxAttr > min ? maxAttr : 100;
 
-    const rawVal = data.length > 0 ? data[0] : 0;
+    // A missing or null value falls back to the default 0.
+    const rawVal = data[0] ?? 0;
     const clampedVal = Math.max(min, Math.min(max, rawVal));
     const progress = (clampedVal - min) / (max - min);
     const targetOffset = 100 - progress * 100;

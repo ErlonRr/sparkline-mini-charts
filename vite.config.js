@@ -34,8 +34,6 @@ export default defineConfig({
         angular: fromRoot("src/angular.ts"),
         react: fromRoot("src/react.ts"),
         vue: fromRoot("src/vue.ts"),
-
-
       },
       formats: ["es", "cjs"],
       fileName: (format, entryName) => `${entryName}.${format === "es" ? "js" : "cjs"}`,
@@ -43,6 +41,11 @@ export default defineConfig({
     sourcemap: true,
     rolldownOptions: {
       external: ["@angular/core", "react", "vue"],
+      output: {
+        // The React wrappers use hooks and register elements in the browser, so
+        // dist/react.js and dist/react.cjs open a React Server Components client boundary.
+        banner: (chunk) => (chunk.isEntry && chunk.name === "react" ? '"use client";' : ""),
+      },
     },
   },
   plugins: [
