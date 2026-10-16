@@ -340,7 +340,7 @@ h1:focus {
     padding-bottom: calc(66px + env(safe-area-inset-bottom));
   }
 
-  .badge {
+  .brand-name span {
     display: none;
   }
 }
@@ -443,16 +443,43 @@ h1:focus {
     background: var(--accent-soft);
   }
 
+  .primary-nav a {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .nav-icon {
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: none !important;
+  }
+
+  .nav-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Narrow tablet: labels only, there is no room for the icons. */
+@media (min-width: 720px) and (max-width: 799px) {
   .nav-icon {
     display: none;
   }
 }
 
-/* Tablet: the version badge and the second half of the name make room for the nav. */
+/* Tablet: the second half of the name makes room for the nav. */
 @media (min-width: 720px) and (max-width: 1019px) {
-  .badge,
   .brand-name span {
     display: none;
+  }
+
+  .primary-nav a {
+    padding: 6px 9px;
+    gap: 5px;
+    font-size: 0.9rem;
   }
 }
 
