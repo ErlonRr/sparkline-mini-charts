@@ -22,6 +22,8 @@
         // Storage blocked: follow the system theme.
       }
     </script>
+    <!-- A link, not a JS import: the stylesheet blocks the first paint in dev too (no unstyled flash). -->
+    <link rel="stylesheet" href="./src/styles.css" />
     <script type="module" src="./src/main.js"></script>
   </head>
   <body>

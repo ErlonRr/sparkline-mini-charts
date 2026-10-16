@@ -5,7 +5,6 @@
 // both run the built packages/core/dist/ (vite.config.js stops with the fix when it is missing).
 import "sparkline-mini-charts/register";
 import { defineChartPreset } from "sparkline-mini-charts/define";
-import "./styles.css";
 import { DEMO_PRESETS } from "./presets.js";
 
 for (const [name, map] of Object.entries(DEMO_PRESETS)) defineChartPreset(name, map);
