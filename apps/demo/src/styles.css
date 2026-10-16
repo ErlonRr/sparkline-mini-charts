@@ -72,7 +72,13 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  scroll-padding-top: calc(var(--header-h) + 12px);
+  scroll-padding-top: 12px;
+}
+
+@media (min-width: 720px) {
+  html {
+    scroll-padding-top: calc(var(--header-h) + 12px);
+  }
 }
 
 body {
@@ -200,23 +206,23 @@ h1:focus {
 
 /* ---------------------------------------------------------------- header */
 
+/* Phone: a slim top bar that scrolls away, and the primary nav as a fixed bottom tab bar.
+   Tablet and desktop (720px+): one sticky row with the nav inline. */
 .site-header {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 50;
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: saturate(1.6) blur(14px);
-  -webkit-backdrop-filter: saturate(1.6) blur(14px);
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
+  padding-top: env(safe-area-inset-top);
 }
 
 .header-inner {
   display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas: "brand actions" "nav nav";
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "brand actions";
   align-items: center;
   column-gap: 12px;
-  padding-block: 10px 0;
+  min-height: 56px;
 }
 
 .brand {
@@ -261,44 +267,82 @@ h1:focus {
 }
 
 .primary-nav {
-  grid-area: nav;
-  margin-inline: calc(-1 * var(--gutter));
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.primary-nav::-webkit-scrollbar {
-  display: none;
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 60;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  border-top: 1px solid var(--border);
+  padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  box-shadow: 0 -6px 20px -12px rgb(0 0 0 / 0.25);
 }
 
 .primary-nav ul {
-  display: flex;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px;
   margin: 0;
-  padding: 6px var(--gutter) 8px;
+  padding: 0;
   list-style: none;
 }
 
 .primary-nav a {
-  display: block;
-  padding: 6px 12px;
-  border-radius: 999px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 4px 2px;
+  border-radius: 14px;
   color: var(--muted);
-  font-weight: 550;
-  font-size: 0.94rem;
+  font-weight: 600;
+  font-size: 0.72rem;
+  line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
-  transition: color 0.15s, background-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s;
 }
 
-.primary-nav a:hover {
-  color: var(--text);
-  background: var(--surface-2);
+.nav-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 30px;
+  border-radius: 15px;
+  transition: background-color 0.2s var(--ease);
+}
+
+.nav-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.primary-nav a:active .nav-icon {
+  background: var(--surface-3);
 }
 
 .primary-nav a[aria-current="page"] {
   color: var(--accent);
+}
+
+.primary-nav a[aria-current="page"] .nav-icon {
   background: var(--accent-soft);
+}
+
+/* The page ends above the tab bar. */
+@media (max-width: 719px) {
+  body {
+    padding-bottom: calc(66px + env(safe-area-inset-bottom));
+  }
+
+  .badge {
+    display: none;
+  }
 }
 
 .header-actions {
@@ -351,21 +395,64 @@ h1:focus {
   display: none;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 720px) {
+  .site-header {
+    position: sticky;
+    top: 0;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: saturate(1.6) blur(14px);
+    -webkit-backdrop-filter: saturate(1.6) blur(14px);
+  }
+
   .header-inner {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas: "brand nav actions";
     min-height: var(--header-h);
-    padding-block: 0;
   }
 
   .primary-nav {
-    margin: 0;
+    position: static;
+    grid-area: nav;
     justify-self: center;
+    background: none;
+    border: 0;
+    padding: 0;
+    box-shadow: none;
   }
 
   .primary-nav ul {
-    padding: 0;
+    display: flex;
+    gap: 2px;
+  }
+
+  .primary-nav a {
+    display: block;
+    min-height: 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.94rem;
+    transition: color 0.15s, background-color 0.15s;
+  }
+
+  .primary-nav a:hover {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+
+  .primary-nav a[aria-current="page"] {
+    background: var(--accent-soft);
+  }
+
+  .nav-icon {
+    display: none;
+  }
+}
+
+/* Tablet: the version badge and the second half of the name make room for the nav. */
+@media (min-width: 720px) and (max-width: 1019px) {
+  .badge,
+  .brand-name span {
+    display: none;
   }
 }
 
@@ -2064,6 +2151,135 @@ main {
   gap: 16px;
   justify-items: start;
   padding-block: 40px;
+}
+
+/* ---------------------------------------------------------------- touch & small screens */
+
+button,
+a,
+.segment,
+.tab {
+  touch-action: manipulation;
+}
+
+/* Fingers: 44px targets (WCAG 2.5.5 target), and 16px fields so iOS does not zoom on focus. */
+@media (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+  }
+
+  .btn-sm {
+    min-height: 40px;
+  }
+
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .segment span {
+    min-height: 40px;
+    padding: 0 14px;
+  }
+
+  .segmented-sm .segment span {
+    min-height: 36px;
+    padding: 0 12px;
+  }
+
+  .tab {
+    min-height: 44px;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  .reset-btn {
+    min-height: 36px;
+    padding-inline: 10px;
+  }
+}
+
+@media (max-width: 719px) {
+  /* Hero and page actions: full-width buttons, easier to hit with a thumb. */
+  .hero .page-actions,
+  .page-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .page-actions > .btn {
+    width: 100%;
+  }
+}
+
+/* Configurator below 1020px: the preview stays in view while the options scroll under it. */
+@media (max-width: 1019px) {
+  .config-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Legends stay for screen readers; the groups' labels say the rest. */
+  .stage-toolbar legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .config-main > .card:first-child {
+    position: sticky;
+    top: calc(env(safe-area-inset-top) + 8px);
+    z-index: 20;
+    box-shadow: var(--shadow-md);
+  }
+
+  .config-layout .panel-head:has(#stage-title) {
+    display: none;
+  }
+
+  .stage-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 10px 12px;
+    scrollbar-width: none;
+  }
+
+  .stage-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .stage-toolbar > * {
+    flex: none;
+  }
+
+  .stage {
+    min-height: 150px;
+    padding: 12px;
+  }
+
+  .frame {
+    padding: 10px;
+  }
+
+  .stage-size {
+    display: none;
+  }
+}
+
+@media (min-width: 720px) and (max-width: 1019px) {
+  .config-main > .card:first-child {
+    top: calc(var(--header-h) + 8px);
+  }
 }
 
 /* ---------------------------------------------------------------- motion */

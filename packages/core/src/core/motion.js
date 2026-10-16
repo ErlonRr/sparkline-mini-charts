@@ -38,6 +38,35 @@ const slides = new WeakMap();
  */
 export const easeOut = (t) => 1 - (1 - t) ** 3;
 
+/** Updates closer together than this (ms) belong to a stream. */
+const STREAM_GAP_MS = 1500;
+
+/** @type {WeakMap<object, { at: number, streak: number }>} When each chart's last tween started, and how many in a row were close together. */
+const cadence = new WeakMap();
+
+/**
+ * Picks the duration and the easing of a tween.
+ *
+ * A single update eases out over `duration`. Once updates keep arriving
+ * (`appendData()` on a timer), each one would otherwise rush and then stall,
+ * restarting at full speed every time. From the third close update on, the
+ * tween lasts as long as the gap since the previous one and is linear, so
+ * the next one starts at the speed the last one ended with.
+ *
+ * @param {object} chart Chart element.
+ * @param {number} duration Duration of a single update, in milliseconds.
+ * @returns {{ duration: number, ease: (t: number) => number }}
+ */
+function pace(chart, duration) {
+  const now = typeof performance === "object" ? performance.now() : Date.now();
+  const before = cadence.get(chart);
+  const gap = before ? now - before.at : Number.POSITIVE_INFINITY;
+  const streak = gap < STREAM_GAP_MS ? (before?.streak ?? 0) + 1 : 0;
+  cadence.set(chart, { at: now, streak });
+  if (streak < 2) return { duration, ease: easeOut };
+  return { duration: Math.min(STREAM_GAP_MS, Math.max(duration / 2, gap)), ease: (t) => t };
+}
+
 /**
  * Linear interpolation.
  *
@@ -101,6 +130,7 @@ export function tween(chart, frame, duration = UPDATE_MS) {
     return;
   }
 
+  const { duration: span, ease } = pace(chart, duration);
   frame(0);
   /** @type {number | null} */
   let start = null;
@@ -108,8 +138,8 @@ export function tween(chart, frame, duration = UPDATE_MS) {
   const state = { raf: 0, frame };
   const step = (/** @type {number} */ now) => {
     start ??= now;
-    const progress = Math.min(1, (now - start) / duration);
-    frame(easeOut(progress));
+    const progress = Math.min(1, (now - start) / span);
+    frame(ease(progress));
     if (progress < 1 && running.get(chart) === state) state.raf = requestAnimationFrame(step);
     else if (running.get(chart) === state) running.delete(chart);
   };
