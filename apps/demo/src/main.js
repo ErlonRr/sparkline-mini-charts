@@ -123,6 +123,11 @@ async function render() {
   const result = page.mount(view, { params: match?.slice(1) ?? [], query: params });
   cleanup = typeof result === "function" ? result : null;
   main.removeAttribute("aria-busy");
+  // First view mounted and styles applied: reveal the page (the boot screen fades out).
+  requestAnimationFrame(() => {
+    document.documentElement.classList.add("ready");
+    window.setTimeout(() => document.getElementById("boot")?.remove(), 400);
+  });
 
   const heading = view.querySelector("h1");
   document.title = `${heading?.textContent ?? "Not found"} · Sparkline Mini Charts`;
