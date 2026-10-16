@@ -7,6 +7,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-17
+
+### Changed
+
+- Charts fed by a steady stream (`appendData()` on a timer) now move at a constant speed. From the third update in a row less than 1.5 s apart, a transition lasts as long as the gap since the previous update and is linear, so each one starts at the speed the last one ended with. Before, every update rushed in and then stalled. A single update still eases out in 400 ms.
+
 ## [1.5.0] - 2026-10-12
 
 A feature release: 7 new charts (24 in all), per-chart configuration, live data, an optional tooltip, keyboard navigation and dark mode. Existing 1.4 markup keeps working.
@@ -244,7 +250,8 @@ React and Vue `data` forwarding was also broken in 1.4.0, but not because of a 1
 - Pure ESM exports, explicit registration APIs, tree-shakeable component subpaths, and an intentional `/register` side-effect entry point.
 - SSR-safe module evaluation, Node test coverage, an interactive demo, and project documentation.
 
-[Unreleased]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/ErlonRr/sparkline-mini-charts/compare/v1.3.0...v1.4.0

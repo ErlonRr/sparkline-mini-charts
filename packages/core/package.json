@@ -1,6 +1,6 @@
 {
   "name": "sparkline-mini-charts",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Zero-dependency SVG sparkline Web Components with Shadow DOM, responsive scaling, and framework bindings.",
   "author": "Erlon Rru",
   "license": "MIT",
